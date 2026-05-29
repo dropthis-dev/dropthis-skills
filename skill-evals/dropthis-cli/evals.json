@@ -26,11 +26,11 @@
   {
     "id": 3,
     "prompt": "Update drop_abc123 with the new content in ./dist-v2",
-    "expected_output": "Agent uses the update command (not publish) with the drop id",
+    "expected_output": "Agent uses drops update command (not publish) with the drop id",
     "files": [],
     "expectations": [
-      "Uses `dropthis update drop_abc123 ./dist-v2 --url`",
-      "Uses the `update` command, NOT `publish` or `drops update`",
+      "Uses `dropthis drops update drop_abc123 ./dist-v2 --url`",
+      "Uses `drops update`, NOT standalone `update` or `publish`",
       "Passes the drop id as the first argument",
       "Passes the new content path as the second argument"
     ]

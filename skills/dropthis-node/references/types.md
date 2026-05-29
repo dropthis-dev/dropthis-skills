@@ -54,6 +54,8 @@ type DropthisErrorResponse = {
   param?: string | null;
   currentRevision?: number;
   requestId?: string | null;
+  suggestion?: string | null;
+  retryable?: boolean | null;
 };
 ```
 
@@ -196,10 +198,26 @@ type ListDeploymentsResponse = {
 
 ## Auth types
 
+### Action
+
+```typescript
+type Action = {
+  code: string;
+  kind: string;
+  method?: string | null;
+  endpoint?: string | null;
+  message: string;
+};
+```
+
 ### EmailOtpResponse
 
 ```typescript
-type EmailOtpResponse = { ok: true; expiresIn: number };
+type EmailOtpResponse = {
+  ok: true;
+  expiresIn: number;
+  nextAction?: Action | null;
+};
 ```
 
 ### SessionResponse

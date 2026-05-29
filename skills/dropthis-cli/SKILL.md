@@ -67,6 +67,7 @@ The CLI outputs JSON in non-TTY environments. Exit codes are stable.
 **Rules for agents:**
 - Supply ALL required flags. The CLI will NOT prompt when stdin is not a TTY.
 - Use `--api-key` or `DROPTHIS_API_KEY` env var. Never rely on interactive login.
+- Use `--no-interactive` to disable inline auth prompts and confirmations.
 - Use `--url` to get only the published URL (cleanest for agents).
 - Use `--json` for the full response object.
 - Exit `0` = success. Non-zero = error with message on stderr.
@@ -112,7 +113,8 @@ dropthis publish ./dist --url
 
 | Command | What it does |
 |---------|-------------|
-| `publish <input>` | Publish content, get a URL |
+| `<input>` | Publish content, get a URL (default command) |
+| `publish <input>` | Same as above, explicit form |
 | `drops list` | List your drops |
 | `drops get <id>` | Get drop details |
 | `drops update <id> [input]` | Update content, metadata, or both |
@@ -131,17 +133,19 @@ dropthis publish ./dist --url
 
 ## Publish
 
+`publish` is the default command — you can omit it:
+
 ```bash
-# Single file
-dropthis publish ./page.html --url
+# Single file (shorthand)
+dropthis ./page.html --url
 
 # Directory (static site)
-dropthis publish ./dist --url
+dropthis ./dist --url
 
 # Multiple files
-dropthis publish index.html styles.css app.js --url
+dropthis index.html styles.css app.js --url
 
-# Stdin
+# Stdin (explicit publish required)
 echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index.html --url
 ```
 
@@ -152,9 +156,7 @@ echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index
 | `--title <title>` | Drop title |
 | `--visibility <public\|unlisted>` | Drop visibility |
 | `--password <password>` | Set password protection |
-| `--no-password` | Clear password |
 | `--noindex` | Prevent search engine indexing |
-| `--index` | Allow indexing |
 | `--entry <path>` | Entry file for directories |
 | `--content-type <mime>` | Content type (required for stdin) |
 | `--path <path>` | File path for stdin or byte input |
@@ -172,12 +174,12 @@ echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index
 **Agent generates HTML and publishes it:**
 ```bash
 # Write generated content to temp file, publish, return URL
-dropthis publish /tmp/generated-page.html --url --title "Generated Report"
+dropthis /tmp/generated-page.html --url --title "Generated Report"
 ```
 
 **Publish a built site:**
 ```bash
-dropthis publish ./dist --url --title "Preview Deploy"
+dropthis ./dist --url --title "Preview Deploy"
 ```
 
 **Update existing content:**
@@ -187,7 +189,7 @@ dropthis drops update drop_abc123 ./dist-v2 --url
 
 **Password-protected drop:**
 ```bash
-dropthis publish ./report.html --password s3cret --url
+dropthis ./report.html --password s3cret --url
 ```
 
 ## Common Mistakes

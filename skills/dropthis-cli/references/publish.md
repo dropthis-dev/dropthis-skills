@@ -4,9 +4,17 @@
 
 Publish files, folders, strings, or stdin. Multiple files are bundled into one drop. Use `-` to read stdin explicitly, or pipe without args.
 
+`publish` is the **default command** — you can omit it and pass files directly to `dropthis`:
+
+```bash
+dropthis ./page.html          # shorthand
+dropthis publish ./page.html  # explicit (equivalent)
+```
+
 ### Usage
 
 ```bash
+dropthis [input...] [flags]
 dropthis publish [input...] [flags]
 ```
 
@@ -17,6 +25,10 @@ The `input` argument accepts:
 - `-` for explicit stdin
 - Omit input and pipe content via stdin
 
+### Inline auth
+
+When credentials are missing and the terminal is interactive, `publish` prompts for email OTP login inline instead of failing. Use `--no-interactive` to disable this and fail with exit code 3 instead.
+
 ### Flags
 
 | Flag | Required | Description |
@@ -24,9 +36,7 @@ The `input` argument accepts:
 | `--title` `<title>` | No | Drop title |
 | `--visibility` `<public\|unlisted>` | No | public (default) or unlisted |
 | `--password` `<password>` | No | Require password to view |
-| `--no-password` | No | Remove password protection |
 | `--noindex` | No | Prevent search-engine indexing |
-| `--index` | No | Allow search-engine indexing (default) |
 | `--entry` `<path>` | No | Entry file for multi-file bundles (default: index.html) |
 | `--expires-at` `<datetime>` | No | Auto-delete after this ISO 8601 date |
 | `--metadata` `<json>` | No | Attach JSON key-value pairs, e.g. '{"source":"ci"}' |
@@ -47,7 +57,9 @@ These flags are inherited from the parent `dropthis` command and available on al
 |------|-------------|
 | `--api-key` `<key>` | Override API key for this invocation |
 | `--api-url` `<url>` | Override API base URL |
+| `--json` | Force JSON output |
 | `-q`, `--quiet` | Suppress status output and imply JSON |
+| `--no-interactive` | Disable interactive prompts (inline auth, confirmations) |
 
 ### Output
 
@@ -119,14 +131,17 @@ Free plan · Expires in 7 days · Badge included
 ### Examples
 
 ```bash
-# Publish a single HTML file, get just the URL
+# Publish a single HTML file (shorthand — publish is the default command)
+dropthis ./page.html --url
+
+# Explicit form (equivalent)
 dropthis publish ./page.html --url
 
 # Publish a directory (static site)
-dropthis publish ./dist --url
+dropthis ./dist --url
 
 # Publish multiple files bundled into one drop
-dropthis publish index.html styles.css app.js --url
+dropthis index.html styles.css app.js --url
 
 # Publish from stdin with required flags
 echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index.html --url
@@ -135,28 +150,28 @@ echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index
 echo "<h1>Hello</h1>" | dropthis publish --content-type text/html --path index.html --url
 
 # Publish with a custom title and password
-dropthis publish ./report.html --title "Q4 Report" --password s3cret --url
+dropthis ./report.html --title "Q4 Report" --password s3cret --url
 
 # Publish as unlisted with noindex
-dropthis publish ./draft.html --visibility unlisted --noindex --url
+dropthis ./draft.html --visibility unlisted --noindex --url
 
 # Publish with metadata
-dropthis publish ./page.html --metadata '{"source":"agent","version":"1.2"}' --url
+dropthis ./page.html --metadata '{"source":"agent","version":"1.2"}' --url
 
 # Publish with an expiration
-dropthis publish ./temp.html --expires-at "2025-12-31T23:59:59Z" --url
+dropthis ./temp.html --expires-at "2025-12-31T23:59:59Z" --url
 
 # Dry-run to validate before publishing
-dropthis publish ./dist --dry-run --title "Preview"
+dropthis ./dist --dry-run --title "Preview"
 
 # Publish from a raw JSON body file
 dropthis publish --from-json ./request.json --url
 
 # Publish with a specific API key
-dropthis publish ./page.html --url --api-key sk_live_abc123
+dropthis ./page.html --url --api-key sk_live_abc123
 
 # Get full JSON response
-dropthis publish ./page.html --json
+dropthis ./page.html --json
 ```
 
 ### Notes
@@ -164,8 +179,6 @@ dropthis publish ./page.html --json
 - When piping stdin, both `--content-type` and `--path` are required.
 - `--from-json` and `<input>` are mutually exclusive.
 - `--url` and `--dry-run` are mutually exclusive.
-- `--password` and `--no-password` are mutually exclusive.
-- `--noindex` and `--index` are mutually exclusive.
 - `--metadata` and `--metadata-file` are mutually exclusive.
 - An idempotency key is auto-generated (`cli_pub_<uuid>`) if not provided.
 - Maximum 200 files per bundle.

@@ -31,6 +31,8 @@ console.log(data.url);
 | `param` | `string \| null` | Which parameter caused the error |
 | `currentRevision` | `number \| undefined` | Server's current revision (for concurrency conflicts) |
 | `requestId` | `string \| null` | Server request ID for support |
+| `suggestion` | `string \| null` | Server-provided suggestion for resolving the error |
+| `retryable` | `boolean \| null` | Whether the operation can be safely retried |
 
 ## Common error codes
 
@@ -57,11 +59,10 @@ Use `ifRevision` to prevent overwriting concurrent changes:
 
 ```typescript
 const { data } = await dropthis.drops.get("drop_abc123");
-const { error } = await dropthis.drops.update(
-  "drop_abc123",
-  { title: "Updated" },
-  { ifRevision: data.revision },
-);
+const { error } = await dropthis.drops.update("drop_abc123", {
+  title: "Updated",
+  ifRevision: data.revision,
+});
 
 if (error?.code === "http_409") {
   console.log("Conflict! Server revision:", error.currentRevision);

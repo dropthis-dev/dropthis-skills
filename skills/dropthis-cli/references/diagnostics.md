@@ -25,20 +25,20 @@ dropthis doctor [flags]
 Key-value pairs printed one per line:
 
 ```
-Version  0.2.4
+Version  0.4.1
 Auth     env
-Storage  keyring
+Storage  secure
 ```
 
 The `Auth` field shows where the current credential was resolved from:
 - `env` -- from `DROPTHIS_API_KEY` environment variable
 - `flag` -- from `--api-key` flag
-- `stored` -- from `dropthis login` credential
+- `storage` -- from `dropthis login` credential
 - `missing` -- no credential found
 
 The `Storage` field shows the credential storage backend:
-- `keyring` -- OS keychain (macOS Keychain, Windows Credential Manager, etc.)
-- `file` -- file-based fallback (`~/.config/dropthis/`)
+- `secure` -- OS keychain (macOS Keychain, Windows Credential Manager, etc.)
+- `insecure` -- file-based fallback (`~/.config/dropthis/`)
 - `none` -- no stored credential
 
 #### JSON output
@@ -46,9 +46,9 @@ The `Storage` field shows the credential storage backend:
 ```json
 {
   "ok": true,
-  "version": "0.2.4",
+  "version": "0.4.1",
   "auth": { "source": "env" },
-  "storage": { "backend": "keyring" }
+  "storage": { "backend": "secure" }
 }
 ```
 

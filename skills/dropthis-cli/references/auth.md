@@ -9,6 +9,10 @@ Credentials are resolved in this order:
 2. `DROPTHIS_API_KEY` environment variable
 3. Stored credential from `dropthis login`
 
+### Inline auth on publish
+
+If you run `dropthis publish` (or the `dropthis ./file` shorthand) without credentials in an interactive terminal, the CLI prompts for email OTP login inline — no separate `dropthis login` step needed. Use `--no-interactive` to disable this behavior.
+
 ---
 
 ## login
@@ -153,7 +157,7 @@ dropthis whoami [flags]
 {"ok":true,"authenticated":false}
 ```
 
-The `source` field indicates where the credential came from: `"env"` (environment variable), `"flag"` (--api-key), or `"stored"` (from login).
+The `source` field indicates where the credential came from: `"env"` (environment variable), `"flag"` (--api-key), or `"storage"` (from login).
 
 ### Examples
 
@@ -278,10 +282,10 @@ dropthis doctor [flags]
 ### Output
 
 ```json
-{"ok":true,"version":"0.2.4","auth":{"source":"env"},"storage":{"backend":"secure"}}
+{"ok":true,"version":"0.4.1","auth":{"source":"env"},"storage":{"backend":"secure"}}
 ```
 
-The `auth.source` field will be `"env"`, `"flag"`, `"stored"`, or `"missing"`. The `storage.backend` field will be `"secure"` or `"none"`.
+The `auth.source` field will be `"env"`, `"flag"`, `"storage"`, or `"missing"`. The `storage.backend` field will be `"secure"`, `"insecure"`, or `"none"`.
 
 ### Examples
 
