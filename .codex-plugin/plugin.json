@@ -1,0 +1,15 @@
+{
+  "name": "dropthis",
+  "displayName": "Dropthis",
+  "description": "Skills for the Dropthis platform — publish AI-generated content to permanent URLs.",
+  "version": "0.1.0",
+  "skills": "./skills/",
+  "author": {
+    "name": "Dropthis",
+    "url": "https://dropthis.app"
+  },
+  "homepage": "https://dropthis.app",
+  "repository": "https://github.com/dropthis-dev/dropthis-skills",
+  "license": "MIT",
+  "keywords": ["publish", "dropthis", "html", "deploy", "ai-publishing"]
+}

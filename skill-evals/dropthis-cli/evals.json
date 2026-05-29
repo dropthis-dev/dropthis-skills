@@ -1,0 +1,151 @@
+[
+  {
+    "id": 1,
+    "prompt": "Publish this HTML file at /tmp/report.html and give me the URL",
+    "expected_output": "Agent runs dropthis publish with --url flag and returns the URL from stdout",
+    "files": [],
+    "expectations": [
+      "Uses `dropthis publish /tmp/report.html --url`",
+      "Uses --url flag to get just the URL (not --json)",
+      "Returns the URL from stdout to the user",
+      "Does NOT parse JSON output -- --url gives a plain URL string"
+    ]
+  },
+  {
+    "id": 2,
+    "prompt": "Publish my dist folder with a custom title 'Preview Deploy'",
+    "expected_output": "Agent runs dropthis publish with --title and --url flags",
+    "files": [],
+    "expectations": [
+      "Uses `dropthis publish ./dist --title \"Preview Deploy\" --url`",
+      "Includes --title flag with the specified title",
+      "Uses --url to get the published URL back",
+      "Passes the directory path directly (not individual files)"
+    ]
+  },
+  {
+    "id": 3,
+    "prompt": "Update drop_abc123 with the new content in ./dist-v2",
+    "expected_output": "Agent uses the update command (not publish) with the drop id",
+    "files": [],
+    "expectations": [
+      "Uses `dropthis update drop_abc123 ./dist-v2 --url`",
+      "Uses the `update` command, NOT `publish` or `drops update`",
+      "Passes the drop id as the first argument",
+      "Passes the new content path as the second argument"
+    ]
+  },
+  {
+    "id": 4,
+    "prompt": "Delete my drop drop_abc123",
+    "expected_output": "Agent uses drops delete with --yes flag since it's running non-interactively",
+    "files": [],
+    "expectations": [
+      "Uses `dropthis drops delete drop_abc123 --yes`",
+      "Includes --yes flag because agents run in non-TTY (non-interactive) mode",
+      "Does NOT omit --yes and expect a confirmation prompt"
+    ]
+  },
+  {
+    "id": 5,
+    "prompt": "I'm not logged in, help me authenticate with dropthis",
+    "expected_output": "Agent checks auth status with whoami, then guides through the two-step non-interactive login flow",
+    "files": [],
+    "expectations": [
+      "Runs `dropthis whoami --json` first to check current auth status",
+      "Checks the `authenticated` field in the response",
+      "If not authenticated, asks the user for their email address",
+      "Runs `dropthis login request --email <email>` to send OTP",
+      "Tells user to check their inbox for the code",
+      "After user provides code, runs `dropthis login verify --email <email> --otp <code>`",
+      "Does NOT attempt interactive `dropthis login` since agents are non-TTY"
+    ]
+  },
+  {
+    "id": 6,
+    "prompt": "Publish this report privately with a password 'quarterly2025'",
+    "expected_output": "Agent uses --password and optionally --visibility unlisted",
+    "files": [],
+    "expectations": [
+      "Uses `dropthis publish <file> --password quarterly2025 --url`",
+      "Includes --password flag with the specified password",
+      "May also include --visibility unlisted for additional privacy",
+      "Uses --url to return the URL"
+    ]
+  },
+  {
+    "id": 7,
+    "prompt": "Set up dropthis in my CI/CD pipeline so it publishes the dist folder on every deploy",
+    "expected_output": "Agent instructs to use DROPTHIS_API_KEY env var, not interactive login",
+    "files": [],
+    "expectations": [
+      "Recommends setting DROPTHIS_API_KEY as a CI/CD secret",
+      "Shows `export DROPTHIS_API_KEY=sk_live_...` or equivalent CI config",
+      "Uses `dropthis publish ./dist --url` as the publish command",
+      "Does NOT recommend `dropthis login` for CI -- uses env var auth",
+      "Mentions that non-TTY environments auto-output JSON"
+    ]
+  },
+  {
+    "id": 8,
+    "prompt": "Generate a landing page for my project 'Acme Widgets' and publish it live",
+    "expected_output": "Agent writes HTML to a temp file, then publishes with dropthis",
+    "files": [],
+    "expectations": [
+      "Generates HTML content for the landing page",
+      "Writes HTML to a file (e.g., /tmp/landing.html)",
+      "Runs `dropthis publish /tmp/landing.html --url --title \"Acme Widgets\"`",
+      "Returns the live URL to the user",
+      "Does NOT try to pass HTML inline as a CLI argument"
+    ]
+  },
+  {
+    "id": 9,
+    "prompt": "List all my drops",
+    "expected_output": "Agent uses drops list command",
+    "files": [],
+    "expectations": [
+      "Uses `dropthis drops list`",
+      "Uses the `drops list` subcommand, not a different command",
+      "Output will be JSON with an array of drops"
+    ]
+  },
+  {
+    "id": 10,
+    "prompt": "Publish from stdin: I want to pipe this HTML string into dropthis",
+    "expected_output": "Agent uses stdin with required --content-type and --path flags",
+    "files": [],
+    "expectations": [
+      "Pipes content to dropthis, e.g., `echo '<h1>Hello</h1>' | dropthis publish - --content-type text/html --path index.html --url`",
+      "Uses `-` as the input argument for explicit stdin",
+      "Includes --content-type text/html (required for stdin)",
+      "Includes --path index.html (required for stdin)",
+      "Does NOT omit --content-type or --path when using stdin"
+    ]
+  },
+  {
+    "id": 11,
+    "prompt": "Publish these three files together: index.html, styles.css, and app.js",
+    "expected_output": "Agent passes all three files as arguments to publish",
+    "files": [],
+    "expectations": [
+      "Uses `dropthis publish index.html styles.css app.js --url`",
+      "Passes all files as separate arguments (not a directory)",
+      "All files are bundled into one drop automatically",
+      "Does NOT create a directory or zip the files first"
+    ]
+  },
+  {
+    "id": 12,
+    "prompt": "The publish command failed with exit code 3, what should I do?",
+    "expected_output": "Agent explains that exit 3 means auth required and guides the user to authenticate",
+    "files": [],
+    "expectations": [
+      "Identifies exit code 3 as auth_error",
+      "Suggests checking auth with `dropthis whoami --json`",
+      "Recommends authenticating via `dropthis login` or setting DROPTHIS_API_KEY",
+      "Reads the `next_action` field from the error JSON for guidance",
+      "Does NOT suggest random fixes unrelated to authentication"
+    ]
+  }
+]

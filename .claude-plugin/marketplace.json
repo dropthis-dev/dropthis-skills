@@ -1,0 +1,17 @@
+{
+  "name": "dropthis-skills",
+  "metadata": {
+    "description": "Dropthis publishing skills for Claude Code"
+  },
+  "owner": {
+    "name": "Dropthis",
+    "email": "damjan.malis@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "dropthis",
+      "source": "./",
+      "category": "developer-tools"
+    }
+  ]
+}

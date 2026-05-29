@@ -1,0 +1,13 @@
+{
+  "name": "dropthis-skills",
+  "owner": {
+    "name": "Dropthis",
+    "email": "damjan.malis@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "dropthis",
+      "source": "./"
+    }
+  ]
+}

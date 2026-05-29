@@ -1,0 +1,190 @@
+# Auth, API Keys, and Account
+
+Authentication, API key management, and account operations.
+
+## Auth
+
+Accessed via `dropthis.auth`. Used for email OTP login flows and session management.
+
+### requestEmailOtp(input)
+
+Request a one-time password sent to the given email address.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `input.email` | `string` | Yes | Email address to send OTP to |
+
+**Returns:** `DropthisResult<EmailOtpResponse>`
+
+`EmailOtpResponse`: `{ ok: true; expiresIn: number }`
+
+**Example:**
+
+```typescript
+const { data, error } = await dropthis.auth.requestEmailOtp({
+  email: "user@example.com",
+});
+if (!error) console.log("OTP sent, expires in", data.expiresIn, "seconds");
+```
+
+### verifyEmailOtp(input)
+
+Verify the OTP code and receive a session token.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `input.email` | `string` | Yes | Email address |
+| `input.code` | `string` | Yes | OTP code received via email |
+
+**Returns:** `DropthisResult<SessionResponse>`
+
+`SessionResponse`: `{ object: "session"; token: string; accountId: string; isNewAccount: boolean; expiresIn: number }`
+
+**Example:**
+
+```typescript
+const { data, error } = await dropthis.auth.verifyEmailOtp({
+  email: "user@example.com",
+  code: "123456",
+});
+if (!error) console.log("Session token:", data.token);
+```
+
+### logout()
+
+Destroy the current session.
+
+**Returns:** `DropthisResult<{ ok: true }>`
+
+**Example:**
+
+```typescript
+const { error } = await dropthis.auth.logout();
+```
+
+## API Keys
+
+Accessed via `dropthis.apiKeys`. Manage API keys for programmatic access.
+
+### list()
+
+List all API keys for the authenticated account.
+
+**Returns:** `DropthisResult<{ object: "list"; data: ApiKeyResponse[] }>`
+
+`ApiKeyResponse`: `{ object: "api_key"; id: string; keyLast4: string; label: string; createdAt: string }`
+
+**Example:**
+
+```typescript
+const { data, error } = await dropthis.apiKeys.list();
+if (!error) {
+  for (const key of data.data) {
+    console.log(key.id, key.label, key.keyLast4);
+  }
+}
+```
+
+### create(input)
+
+Create a new API key. The full key is only returned once in the response.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `input.label` | `string` | Yes | Human-readable label for the key |
+
+**Returns:** `DropthisResult<ApiKeyCreatedResponse>`
+
+`ApiKeyCreatedResponse` extends `ApiKeyResponse` with: `{ key: string; accountId?: string | null; isNewAccount?: boolean }`
+
+**Example:**
+
+```typescript
+const { data, error } = await dropthis.apiKeys.create({ label: "CI" });
+if (!error) {
+  console.log("New key:", data.key); // Only shown once!
+  console.log("Key ID:", data.id);
+}
+```
+
+### delete(keyId)
+
+Delete an API key.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `keyId` | `string` | Yes | API key ID to delete |
+
+**Returns:** `DropthisResult<{ ok: true }>`
+
+**Example:**
+
+```typescript
+const { error } = await dropthis.apiKeys.delete("key_abc123");
+```
+
+## Account
+
+Accessed via `dropthis.account`. Manage the authenticated account.
+
+### get()
+
+Get the current account details.
+
+**Returns:** `DropthisResult<AccountResponse>`
+
+`AccountResponse`: `{ id: string; email: string; displayName: string | null; plan: string; status: string; createdAt: string }`
+
+**Example:**
+
+```typescript
+const { data, error } = await dropthis.account.get();
+if (!error) console.log(data.email, data.plan);
+```
+
+### update(input)
+
+Update account settings.
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `input.displayName` | `string \| null` | Yes | New display name, or `null` to clear |
+
+**Returns:** `DropthisResult<AccountResponse>`
+
+**Example:**
+
+```typescript
+const { data, error } = await dropthis.account.update({
+  displayName: "Jane Doe",
+});
+```
+
+### delete()
+
+Permanently delete the account.
+
+**Returns:** `DropthisResult<null>`
+
+**Example:**
+
+```typescript
+const { error } = await dropthis.account.delete();
+if (error) console.error("Delete failed:", error.message);
+```
+
+## Notes
+
+- `auth.requestEmailOtp()` and `auth.verifyEmailOtp()` do **not** require authentication (no API key needed).
+- `auth.logout()`, all `apiKeys.*` methods, and all `account.*` methods require authentication.
+- The full API key string is only returned from `apiKeys.create()`. Store it securely -- it cannot be retrieved again.

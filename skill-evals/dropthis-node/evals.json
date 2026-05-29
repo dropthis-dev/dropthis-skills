@@ -1,0 +1,122 @@
+[
+	{
+		"id": "publish-html-string",
+		"prompt": "Publish this HTML and give me the URL",
+		"expected_tool": "dropthis.publish()",
+		"expected_input": "string (HTML content)",
+		"example": "const { data, error } = await dropthis.publish(\"<h1>Hello</h1>\");\nif (!error) console.log(data.url);",
+		"tags": ["publish", "basic"]
+	},
+	{
+		"id": "publish-directory",
+		"prompt": "Upload my dist folder to dropthis",
+		"expected_tool": "dropthis.publish()",
+		"expected_input": "string (directory path)",
+		"example": "const { data, error } = await dropthis.publish(\"./dist\");",
+		"tags": ["publish", "directory"]
+	},
+	{
+		"id": "update-drop-content",
+		"prompt": "Update drop_abc123 with new content from ./build",
+		"expected_tool": "dropthis.deploy()",
+		"expected_input": "dropId + PublishInput",
+		"example": "const { data, error } = await dropthis.deploy(\"drop_abc123\", \"./build\", { ifRevision: 3 });",
+		"tags": ["update", "content"]
+	},
+	{
+		"id": "delete-drop",
+		"prompt": "Delete my drop drop_abc123",
+		"expected_tool": "dropthis.drops.delete()",
+		"expected_input": "dropId string",
+		"example": "const { error } = await dropthis.drops.delete(\"drop_abc123\");",
+		"tags": ["drops", "delete"]
+	},
+	{
+		"id": "list-drops-pagination",
+		"prompt": "List all my drops",
+		"expected_tool": "dropthis.drops.list()",
+		"expected_input": "ListDropsParams (optional)",
+		"example": "const page = await dropthis.drops.list({ limit: 20 });\nif (!page.error) {\n  const all = await page.data.autoPagingToArray({ limit: 100 });\n}",
+		"tags": ["drops", "list", "pagination"]
+	},
+	{
+		"id": "setup-authentication",
+		"prompt": "How do I set up authentication for the dropthis SDK?",
+		"expected_tool": "new Dropthis({ apiKey }) or DROPTHIS_API_KEY env var",
+		"expected_input": "DropthisClientOptions or string",
+		"example": "// Option 1: env var (recommended)\nprocess.env.DROPTHIS_API_KEY = \"sk_...\";\nconst dropthis = new Dropthis();\n\n// Option 2: explicit\nconst dropthis = new Dropthis({ apiKey: \"sk_...\" });\n\n// Option 3: string shorthand\nconst dropthis = new Dropthis(\"sk_...\");",
+		"tags": ["auth", "setup"]
+	},
+	{
+		"id": "publish-with-password",
+		"prompt": "Publish this page with a password so only people with the password can see it",
+		"expected_tool": "dropthis.publish()",
+		"expected_input": "PublishInput + PublishOptions with password",
+		"example": "const { data, error } = await dropthis.publish(\"<h1>Secret</h1>\", {\n  password: \"s3cret\",\n});",
+		"tags": ["publish", "password", "options"]
+	},
+	{
+		"id": "get-deployment-details",
+		"prompt": "Get details about a specific deployment dep_xyz789 on drop_abc123",
+		"expected_tool": "dropthis.deployments.get()",
+		"expected_input": "dropId + deploymentId",
+		"example": "const { data, error } = await dropthis.deployments.get(\"drop_abc123\", \"dep_xyz789\");\nif (!error) console.log(data.status, data.sizeBytes);",
+		"tags": ["deployments", "get"]
+	},
+	{
+		"id": "handle-publish-errors",
+		"prompt": "How do I handle errors when publishing?",
+		"expected_tool": "Check error field on DropthisResult",
+		"expected_input": "N/A",
+		"example": "const { data, error } = await dropthis.publish(\"<h1>Hello</h1>\");\nif (error) {\n  console.error(error.code, error.message);\n  console.error(\"Status:\", error.statusCode);\n  return;\n}\nconsole.log(data.url);",
+		"tags": ["errors", "pattern"]
+	},
+	{
+		"id": "ci-pipeline-publish",
+		"prompt": "Publish from a CI pipeline using an environment variable for the key",
+		"expected_tool": "new Dropthis() with DROPTHIS_API_KEY env var",
+		"expected_input": "No explicit apiKey -- reads from env",
+		"example": "// In CI, set DROPTHIS_API_KEY as a secret env var\nconst dropthis = new Dropthis();\nconst { data, error } = await dropthis.publish(\"./dist\");\nif (error) process.exit(1);\nconsole.log(data.url);",
+		"tags": ["auth", "ci", "env"]
+	},
+	{
+		"id": "publish-with-vanity-slug",
+		"prompt": "Publish with a custom slug so I get a nice URL",
+		"expected_tool": "dropthis.publish()",
+		"expected_input": "PublishInput + PublishOptions with slug",
+		"example": "const { data, error } = await dropthis.publish(\"./dist\", {\n  slug: \"my-project\",\n  title: \"My Project\",\n});",
+		"tags": ["publish", "slug", "options"]
+	},
+	{
+		"id": "update-metadata-only",
+		"prompt": "Change the title of drop_abc123 without uploading new content",
+		"expected_tool": "dropthis.update() or dropthis.drops.update()",
+		"expected_input": "dropId + DropOptions & RequestControls",
+		"example": "await dropthis.update(\"drop_abc123\", { title: \"New title\" });\n// Or equivalently:\nawait dropthis.drops.update(\"drop_abc123\", { title: \"New title\" });",
+		"tags": ["update", "metadata"]
+	},
+	{
+		"id": "list-deployments",
+		"prompt": "Show me the deployment history for drop_abc123",
+		"expected_tool": "dropthis.deployments.list()",
+		"expected_input": "dropId + optional ListDeploymentsParams",
+		"example": "const { data, error } = await dropthis.deployments.list(\"drop_abc123\");\nif (!error) {\n  for (const dep of data.deployments) {\n    console.log(dep.id, dep.status, dep.createdAt);\n  }\n}",
+		"tags": ["deployments", "list"]
+	},
+	{
+		"id": "create-api-key",
+		"prompt": "Create a new API key labeled 'production'",
+		"expected_tool": "dropthis.apiKeys.create()",
+		"expected_input": "{ label: string }",
+		"example": "const { data, error } = await dropthis.apiKeys.create({ label: \"production\" });\nif (!error) console.log(\"Key:\", data.key);",
+		"tags": ["apiKeys", "create"]
+	},
+	{
+		"id": "optimistic-concurrency",
+		"prompt": "Update a drop safely with optimistic concurrency",
+		"expected_tool": "dropthis.update() or dropthis.drops.update() with ifRevision",
+		"expected_input": "dropId + options with ifRevision",
+		"example": "const { data } = await dropthis.drops.get(\"drop_abc123\");\nconst { error } = await dropthis.drops.update(\n  \"drop_abc123\",\n  { title: \"Updated\", ifRevision: data.revision },\n);\nif (error?.code === \"http_409\") {\n  console.log(\"Conflict! Server revision:\", error.currentRevision);\n}",
+		"tags": ["concurrency", "ifRevision"]
+	}
+]
