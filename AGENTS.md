@@ -6,6 +6,7 @@ Central repo for all Dropthis agent skills. Skills are authored and maintained h
 
 - `skills/dropthis-node/` — Node SDK integration skill
 - `skills/dropthis-cli/` — CLI operations skill
+- `skills/dropthis-mcp/` — MCP server skill (stdio + remote connector)
 - `skill-evals/` — agent test scenarios for each skill
 
 ## Editing skills
