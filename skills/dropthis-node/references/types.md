@@ -15,6 +15,7 @@ type DropthisClientOptions = {
   apiKey?: string;
   baseUrl?: string;
   timeoutMs?: number;
+  uploadTimeoutMs?: number;
   fetch?: typeof globalThis.fetch;
 };
 ```
@@ -50,12 +51,15 @@ type DropthisErrorResponse = {
   message: string;
   statusCode: number | null;
   type?: string;
-  detail?: unknown;
+  title?: string;
+  detail?: string | null;
+  instance?: string | null;
   param?: string | null;
   currentRevision?: number;
   requestId?: string | null;
   suggestion?: string | null;
   retryable?: boolean | null;
+  body?: unknown;
 };
 ```
 
