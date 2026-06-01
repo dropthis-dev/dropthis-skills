@@ -26,13 +26,16 @@ console.log(data.url);
 | `code` | `string` | Machine-readable error code (e.g. `"missing_api_key"`, `"http_404"`) |
 | `message` | `string` | Human-readable error message |
 | `statusCode` | `number \| null` | HTTP status code, or `null` for client-side errors |
-| `type` | `string \| undefined` | Error type category |
-| `detail` | `unknown` | Raw response body from the server |
-| `param` | `string \| null` | Which parameter caused the error |
+| `type` | `string \| undefined` | problem+json type URI |
+| `title` | `string \| undefined` | problem+json title |
+| `detail` | `string \| null \| undefined` | problem+json detail string |
+| `instance` | `string \| null \| undefined` | problem+json instance URI |
+| `param` | `string \| null \| undefined` | Which parameter caused the error |
 | `currentRevision` | `number \| undefined` | Server's current revision (for concurrency conflicts) |
-| `requestId` | `string \| null` | Server request ID for support |
-| `suggestion` | `string \| null` | Server-provided suggestion for resolving the error |
-| `retryable` | `boolean \| null` | Whether the operation can be safely retried |
+| `requestId` | `string \| null \| undefined` | Server request ID for support |
+| `suggestion` | `string \| null \| undefined` | Server-provided suggestion for resolving the error |
+| `retryable` | `boolean \| null \| undefined` | Whether the operation can be safely retried |
+| `body` | `unknown` | Raw response body from the server |
 
 ## Common error codes
 
@@ -49,9 +52,8 @@ console.log(data.url);
 | `http_413` | `413` | Drop size exceeds plan limit or account storage cap |
 | `http_429` | `429` | Rate limited |
 | `upload_target_missing` | `null` | Server did not return an upload target for a file |
-| `signed_upload_*` | varies | Presigned URL upload failed |
-| `missing_upload_etag` | `null` | Signed upload response missing ETag header |
-| `invalid_upload_target` | `null` | Multipart upload target has invalid part size |
+| `unsupported_upload_strategy` | `null` | Server returned a non-`single_put` strategy (the SDK uploads via single PUT only) |
+| `signed_upload_*` | varies | Presigned URL upload (PUT) failed; the suffix is the HTTP status |
 
 ## Optimistic concurrency
 

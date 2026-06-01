@@ -62,16 +62,17 @@ dropthis drops get <dropId> [flags]
 #### Output
 
 ```json
-{"ok":true,"drop":{"id":"drop_abc123","url":"https://dropthis.app/abc123","title":"My Page","visibility":"public","accessible":true,"persistent":false,"tier":"free"}}
+{"ok":true,"drop":{"id":"drop_abc123","url":"https://dropthis.app/abc123","title":"My Page","visibility":"public","accessible":true,"persistent":false,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
 ```
 
-Additional fields in the drop object:
+The `drop` object is the full SDK `DropResponse`. Notable fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `accessible` | boolean | Whether the drop is currently accessible (not expired, not deleted) |
-| `persistent` | boolean | `true` for Pro drops (no TTL), `false` for free-tier drops (7-day TTL) |
-| `tier` | string | Plan tier the drop was published under: `"free"` or `"pro"` |
+| `persistent` | boolean | `true` for Pro drops (no TTL), `false` for free-tier drops (3-day TTL) |
+| `tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true}`) |
+| `limitations` | object | `{"actions":[...]}` -- a list of `DropAction` entries; empty array when there are none |
 
 #### Examples
 
@@ -116,9 +117,8 @@ dropthis drops update <dropId> [input] [flags]
 | `--entry` `<path>` | No | Entry file for multi-file bundles (default: index.html) |
 | `--content-type` `<mime>` | No | Override MIME type (auto-detected from extension) |
 | `--path` `<path>` | No | Set filename when publishing from stdin |
-| `--idempotency-key` `<key>` | No | Prevent duplicate publishes on retry (auto-generated) |
+| `--idempotency-key` `<key>` | No | Prevent duplicate updates on retry (auto-generated plain UUID) |
 | `--if-revision` `<n>` | No | Fail if current revision doesn't match -- optimistic lock |
-| `--from-json` `<path>` | No | Send raw API request body from a JSON file |
 | `--url` | No | Print only the published URL (no JSON envelope) |
 | `--dry-run` | No | Show what would be published without publishing |
 | `--json` | No | Force JSON output |
@@ -204,9 +204,6 @@ dropthis drops update drop_abc123 --slug new-slug --json
 # Dry-run to preview what would change
 dropthis drops update drop_abc123 ./dist --dry-run
 
-# Update from a raw JSON body
-dropthis drops update drop_abc123 --from-json ./deployment.json --url
-
 # Update content and metadata in one command
 dropthis drops update drop_abc123 ./dist-v2 --title "v2 Release" --url
 
@@ -222,8 +219,7 @@ dropthis drops update drop_abc123 --metadata '{"campaign":"winter-2025"}'
 - When no `[input]` is provided, only metadata flags (title, visibility, password, etc.) are applied without creating a new deployment.
 - When `[input]` is provided, a new deployment is created. Metadata flags can be combined.
 - `--if-revision` enables optimistic concurrency -- the update fails with `revision_conflict` if the drop has been modified since the specified revision.
-- `--from-json` and `[input]` are mutually exclusive.
-- An idempotency key is auto-generated (`cli_upd_<uuid>`) if not provided.
+- An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
 
 ---
 

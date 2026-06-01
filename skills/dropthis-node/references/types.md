@@ -15,6 +15,7 @@ type DropthisClientOptions = {
   apiKey?: string;
   baseUrl?: string;
   timeoutMs?: number;
+  uploadTimeoutMs?: number;
   fetch?: typeof globalThis.fetch;
 };
 ```
@@ -50,12 +51,15 @@ type DropthisErrorResponse = {
   message: string;
   statusCode: number | null;
   type?: string;
-  detail?: unknown;
+  title?: string;
+  detail?: string | null;
+  instance?: string | null;
   param?: string | null;
   currentRevision?: number;
   requestId?: string | null;
   suggestion?: string | null;
   retryable?: boolean | null;
+  body?: unknown;
 };
 ```
 
@@ -69,7 +73,6 @@ type DropResponse = {
   id: string;
   slug: string;
   url: string;
-  canonicalHost: string;
   deploymentId: string | null;
   title: string;
   contentType: string;
@@ -297,6 +300,7 @@ type CreateUploadSessionResponse = {
   uploadId: string;
   expiresAt: string;
   files: CreateUploadSessionFileResponse[];
+  nextAction?: Action | null;
 };
 ```
 
@@ -319,10 +323,10 @@ type UploadTarget = {
   url: string;
   headers: Record<string, string>;
   expiresAt: string;
-  partSize?: number;
-  partCount?: number;
 };
 ```
+
+The SDK only uploads via `single_put`. There are no `partSize`/`partCount` fields.
 
 ### UploadSessionResponse
 
@@ -333,6 +337,7 @@ type UploadSessionResponse = {
   expiresAt: string;
   entry?: string | null;
   files: UploadSessionFileResponse[];
+  nextAction?: Action | null;
 };
 ```
 
@@ -346,36 +351,6 @@ type UploadSessionFileResponse = {
   sizeBytes: number;
   objectKey: string;
   verified: boolean;
-};
-```
-
-### CreateUploadPartTargetsRequest
-
-```typescript
-type CreateUploadPartTargetsRequest = {
-  fileId: string;
-  partNumbers: number[];
-};
-```
-
-### CreateUploadPartTargetsResponse
-
-```typescript
-type CreateUploadPartTargetsResponse = {
-  fileId: string;
-  urlExpiresAt?: string | null;
-  parts: UploadPartTarget[];
-};
-```
-
-### UploadPartTarget
-
-```typescript
-type UploadPartTarget = {
-  partNumber: number;
-  url: string;
-  headers: Record<string, string>;
-  expiresAt: string;
 };
 ```
 
@@ -432,34 +407,28 @@ type RequestControls = {
 ### PublishInput
 
 ```typescript
-type PublishInput = string | Uint8Array | ExplicitPublishInput;
+type PublishInput =
+  | string
+  | string[]
+  | URL
+  | Uint8Array
+  | { kind: "content"; content: string; contentType?: string; path?: string }
+  | { kind: "source_url"; sourceUrl: string }
+  | { kind: "files"; files: PublishFileInput[]; entry?: string };
 ```
 
-### ExplicitPublishInput
+### PublishFileInput
+
+Each file supplies its bytes via exactly one of `content`, `contentBase64`, or `bytes`. `contentType` is optional (auto-detected if omitted).
 
 ```typescript
-type ExplicitPublishInput =
-  | {
-      content: string;
-      contentType?: string;
-      title?: string;
-      visibility?: "public" | "unlisted";
-      metadata?: Record<string, unknown>;
-      entry?: string;
-    }
-  | {
-      files: Array<{
-        path: string;
-        content?: string;
-        contentBase64?: string;
-        bytes?: Uint8Array;
-        contentType: string;
-      }>;
-      title?: string;
-      visibility?: "public" | "unlisted";
-      metadata?: Record<string, unknown>;
-      entry?: string;
-    };
+type PublishFileInput = {
+  path: string;
+  contentType?: string;
+  content?: string;
+  contentBase64?: string;
+  bytes?: Uint8Array;
+};
 ```
 
 ### PublishOptions
@@ -468,27 +437,30 @@ type ExplicitPublishInput =
 type PublishOptions = DropOptions & PrepareOptions & RequestControls;
 ```
 
-### UpdateOptions
-
-Deprecated alias for `DropOptions & RequestControls`.
-
 ## Internal types (exported for advanced use)
 
-These types are exported from `src/publish/prepare.ts` for advanced use cases such as inspecting what `prepare()` returns. They are not part of `src/types.ts`.
+These types are exported from `src/publish/core.ts` for advanced use cases such as inspecting what `prepare()` returns.
 
-**`PreparedPublishRequest`** -- Returned by `dropthis.prepare()`. Contains the upload manifest, prepared files, and options.
+**`PreparedPublishRequest`** -- Returned by `dropthis.prepare()`. A discriminated union on `kind`:
 
 ```typescript
-type PreparedPublishRequest = {
-  kind: "staged";
-  manifest: CreateUploadSessionRequest;
-  files: PreparedUploadFile[];
-  options: Record<string, unknown>;
-  metadata?: Record<string, unknown>;
-};
+type PreparedPublishRequest =
+  | {
+      kind: "staged";
+      manifest: CreateUploadSessionRequest;
+      files: PreparedUploadFile[];
+      options: Record<string, unknown>;
+      metadata?: Record<string, unknown>;
+    }
+  | {
+      kind: "source";
+      sourceUrl: string;
+      options: Record<string, unknown>;
+      metadata?: Record<string, unknown>;
+    };
 ```
 
-**`PreparedUploadFile`** -- Individual file within a `PreparedPublishRequest`.
+**`PreparedUploadFile`** -- Individual file within a `staged` `PreparedPublishRequest`. Its bytes are lazy: call `getBody()` to read them.
 
 ```typescript
 type PreparedUploadFile = {
@@ -496,6 +468,6 @@ type PreparedUploadFile = {
   contentType: string;
   sizeBytes: number;
   checksumSha256?: string;
-  source: { kind: "path"; path: string } | { kind: "bytes"; bytes: Uint8Array };
+  getBody(): Promise<Uint8Array | Blob | ReadableStream>;
 };
 ```

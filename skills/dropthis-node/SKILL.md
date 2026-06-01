@@ -139,11 +139,19 @@ const { data } = await dropthis.publish("./dist");
 ```typescript
 const { data } = await dropthis.publish("./dist", {
   title: "Q4 Report",
-  slug: "q4-report",
   visibility: "unlisted",
   password: "s3cret",
   expiresAt: "2026-12-31T00:00:00Z",
 });
+```
+
+### Set a vanity slug
+
+`slug` is NOT a `publish()` option — `publish()` ignores it. Publish first, then set the slug via `update(dropId, { slug })`:
+
+```typescript
+const { data } = await dropthis.publish("./dist");
+await dropthis.update(data.id, { slug: "q4-report" });
 ```
 
 ### Publish bytes
@@ -155,15 +163,24 @@ const { data } = await dropthis.publish(new Uint8Array([...]), {
 });
 ```
 
-### Publish explicit files
+### Publish explicit files (multi-file bundle)
 
 ```typescript
 const { data } = await dropthis.publish({
+  kind: "files",
   files: [
-    { path: "index.html", content: "<h1>Hi</h1>", contentType: "text/html" },
-    { path: "style.css", content: "body{}", contentType: "text/css" },
+    { path: "index.html", content: "<h1>Hi</h1>" },
+    { path: "style.css", content: "body{}" },
   ],
+  entry: "index.html",
 });
+```
+
+### Publish a public URL (server fetches it)
+
+```typescript
+const { data } = await dropthis.publish("https://example.com/page.html");
+// or: await dropthis.publish({ kind: "source_url", sourceUrl: "https://example.com/page.html" });
 ```
 
 ### Deploy new content to an existing drop
@@ -208,7 +225,8 @@ for await (const drop of page.data) {
 |---------|-----|
 | Accessing `data` without checking `error` | Always check `if (error)` first |
 | Using `drops.update()` to push new content | Use `dropthis.deploy(id, newContent)` for content changes; `drops.update()` and `dropthis.update()` are both metadata-only |
-| Passing a URL string to `publish()` | URLs are not supported; fetch the content first, then pass the string/bytes |
+| Fetching a URL before publishing | Pass the `http(s)` URL straight to `publish()` (or `{ kind: "source_url", sourceUrl }`) -- the server fetches it. Do NOT download it yourself first. |
+| Passing the slug/URL token as `dropId` | `deploy(dropId, …)`, `drops.update(dropId, …)`, `drops.get/delete(dropId)` take the `drop_…` id — the `data.id` returned by `publish()`, NOT `data.slug` or the URL token |
 | Forgetting `ifRevision` on concurrent updates | Pass `ifRevision` from the previous response to get optimistic concurrency |
 | Using `uploads.*` directly for simple publishes | Use `dropthis.publish()` which handles the staged upload flow automatically |
 | Importing from subpaths | Import everything from `"@dropthis/node"` -- there are no public subpath exports |

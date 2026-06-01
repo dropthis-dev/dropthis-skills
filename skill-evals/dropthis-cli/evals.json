@@ -113,14 +113,14 @@
   {
     "id": 10,
     "prompt": "Publish from stdin: I want to pipe this HTML string into dropthis",
-    "expected_output": "Agent uses stdin with required --content-type and --path flags",
+    "expected_output": "Agent pipes content to stdin; --content-type/--path are optional (auto-detected), recommended for determinism",
     "files": [],
     "expectations": [
-      "Pipes content to dropthis, e.g., `echo '<h1>Hello</h1>' | dropthis publish - --content-type text/html --path index.html --url`",
-      "Uses `-` as the input argument for explicit stdin",
-      "Includes --content-type text/html (required for stdin)",
-      "Includes --path index.html (required for stdin)",
-      "Does NOT omit --content-type or --path when using stdin"
+      "Pipes content to dropthis, e.g., `echo '<h1>Hello</h1>' | dropthis publish - --url` (bare stdin is accepted)",
+      "Uses `-` as the input argument, or omits the input entirely so stdin is read automatically",
+      "MAY add `--content-type text/html` and `--path index.html` for deterministic output (the SDK auto-detects them if omitted)",
+      "Does NOT claim --content-type or --path are required for stdin",
+      "Does NOT save the piped content to a temp file first just to publish it"
     ]
   },
   {
@@ -130,9 +130,11 @@
     "files": [],
     "expectations": [
       "Uses `dropthis publish index.html styles.css app.js --url`",
-      "Passes all files as separate arguments (not a directory)",
-      "All files are bundled into one drop automatically",
-      "Does NOT create a directory or zip the files first"
+      "Passes all three files as SEPARATE arguments to one publish command",
+      "All files are bundled into one drop automatically (multi-arg bundle)",
+      "Does NOT inline styles.css or app.js into index.html",
+      "Does NOT create a directory, zip, or base64 the files first",
+      "Does NOT run publish three separate times"
     ]
   },
   {
@@ -146,6 +148,31 @@
       "Recommends authenticating via `dropthis login` or setting DROPTHIS_API_KEY",
       "Reads the `next_action` field from the error JSON for guidance",
       "Does NOT suggest random fixes unrelated to authentication"
+    ]
+  },
+  {
+    "id": 13,
+    "prompt": "Publish a copy of the page at https://example.com/report.html and give me the URL",
+    "expected_output": "Agent passes the URL directly to publish (source_url flow), does not fetch it first",
+    "files": [],
+    "expectations": [
+      "Runs `dropthis https://example.com/report.html --url` (or `dropthis publish https://example.com/report.html --url`)",
+      "Passes the URL string directly as the publish input — the server fetches it (source_url)",
+      "Does NOT curl/wget/fetch the URL and save it to a file first",
+      "Does NOT treat the URL as inline HTML content"
+    ]
+  },
+  {
+    "id": 14,
+    "prompt": "I published a drop earlier; here's the URL https://dropthis.app/0izsioo. Push a new version with this updated HTML: <h1>v2</h1>",
+    "expected_output": "Agent recovers the drop_… id (slug is not an id) and redeploys with the id",
+    "files": [],
+    "expectations": [
+      "Recognizes that `0izsioo` is the slug/URL token, NOT a drop id",
+      "Does NOT pass the slug `0izsioo` (or the URL) as the drop id to `drops update` / `deployments`",
+      "Recovers the `drop_…` id first — e.g. `dropthis drops list --json` and matches the slug/url — then updates content with that id",
+      "Uses the `drop_…` id (e.g. `dropthis drops update drop_xxx <input>`), not the slug",
+      "Does NOT publish a brand-new drop instead of updating the existing one"
     ]
   }
 ]

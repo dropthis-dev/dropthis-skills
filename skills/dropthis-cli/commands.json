@@ -1,0 +1,293 @@
+{
+  "commands": [
+    {
+      "name": "publish",
+      "description": "Publish files, folders, URLs, strings, or stdin.\nMultiple files are bundled into one drop.\nUse - to read stdin explicitly, or pipe without args.",
+      "arguments": [
+        "input"
+      ],
+      "options": [
+        "--title",
+        "--visibility",
+        "--password",
+        "--noindex",
+        "--expires-at",
+        "--content-type",
+        "--entry",
+        "--metadata",
+        "--metadata-file",
+        "--path",
+        "--url",
+        "--dry-run",
+        "--json",
+        "--idempotency-key"
+      ],
+      "auth": "required",
+      "examples": [
+        "dropthis ./file.html",
+        "dropthis publish ./site --json",
+        "dropthis publish ./site --url",
+        "dropthis publish ./dist --dry-run"
+      ]
+    },
+    {
+      "name": "drops",
+      "description": "Manage published drops",
+      "auth": "required",
+      "examples": [
+        "dropthis drops list --json",
+        "dropthis drops update drop_abc ./site --json",
+        "dropthis drops update drop_abc --title 'New Title' --dry-run"
+      ],
+      "subcommands": [
+        {
+          "name": "list",
+          "description": "List your drops",
+          "options": [
+            "--limit",
+            "--cursor",
+            "--json"
+          ]
+        },
+        {
+          "name": "get",
+          "description": "Show drop details",
+          "arguments": [
+            "dropId"
+          ],
+          "options": [
+            "--json"
+          ]
+        },
+        {
+          "name": "update",
+          "description": "Update content or metadata",
+          "arguments": [
+            "dropId",
+            "input"
+          ],
+          "options": [
+            "--slug",
+            "--title",
+            "--visibility",
+            "--password",
+            "--no-password",
+            "--noindex",
+            "--index",
+            "--expires-at",
+            "--content-type",
+            "--entry",
+            "--metadata",
+            "--metadata-file",
+            "--path",
+            "--if-revision",
+            "--url",
+            "--dry-run",
+            "--json",
+            "--idempotency-key"
+          ]
+        },
+        {
+          "name": "delete",
+          "description": "Delete a drop",
+          "arguments": [
+            "dropId"
+          ],
+          "options": [
+            "--yes",
+            "--json"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "api-keys",
+      "description": "Manage API keys",
+      "auth": "required",
+      "examples": [
+        "dropthis api-keys create --label CI --json"
+      ],
+      "subcommands": [
+        {
+          "name": "create",
+          "description": "Create an API key",
+          "options": [
+            "--label",
+            "--json"
+          ]
+        },
+        {
+          "name": "list",
+          "description": "List API keys",
+          "options": [
+            "--json"
+          ]
+        },
+        {
+          "name": "delete",
+          "description": "Delete an API key",
+          "arguments": [
+            "keyId"
+          ],
+          "options": [
+            "--yes",
+            "--json"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "deployments",
+      "description": "View deployment history",
+      "auth": "required",
+      "subcommands": [
+        {
+          "name": "list",
+          "description": "List deployments for a drop",
+          "arguments": [
+            "dropId"
+          ],
+          "options": [
+            "--limit",
+            "--cursor",
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis deployments list drop_abc --json"
+          ]
+        },
+        {
+          "name": "get",
+          "description": "Show deployment details",
+          "arguments": [
+            "dropId",
+            "deploymentId"
+          ],
+          "options": [
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis deployments get drop_abc dep_abc --json"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "login",
+      "description": "Authenticate with email OTP",
+      "options": [
+        "--email",
+        "--otp",
+        "--json"
+      ],
+      "examples": [
+        "dropthis login verify --email user@example.com --otp 123456 --json"
+      ],
+      "subcommands": [
+        {
+          "name": "request",
+          "description": "Request an email OTP",
+          "options": [
+            "--email",
+            "--json"
+          ]
+        },
+        {
+          "name": "verify",
+          "description": "Verify email OTP and store an API key",
+          "options": [
+            "--email",
+            "--otp",
+            "--json"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "logout",
+      "description": "Remove stored credentials",
+      "options": [
+        "--revoke",
+        "--json"
+      ],
+      "examples": [
+        "dropthis logout --json"
+      ]
+    },
+    {
+      "name": "whoami",
+      "description": "Show current authentication status",
+      "options": [
+        "--json"
+      ],
+      "auth": "required",
+      "examples": [
+        "dropthis whoami --json"
+      ]
+    },
+    {
+      "name": "account",
+      "description": "Show or manage your account",
+      "auth": "required",
+      "examples": [
+        "dropthis account --json"
+      ],
+      "subcommands": [
+        {
+          "name": "get",
+          "description": "Show account details",
+          "options": [
+            "--json"
+          ],
+          "auth": "required"
+        },
+        {
+          "name": "update",
+          "description": "Update account display name",
+          "options": [
+            "--display-name",
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis account update --display-name 'Ada' --json"
+          ]
+        },
+        {
+          "name": "delete",
+          "description": "Delete your account",
+          "options": [
+            "--yes",
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis account delete --yes --json"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "doctor",
+      "description": "Report CLI diagnostics",
+      "options": [
+        "--json"
+      ],
+      "examples": [
+        "dropthis doctor --json"
+      ]
+    },
+    {
+      "name": "commands",
+      "description": "Print machine-readable command metadata",
+      "options": [
+        "--json"
+      ],
+      "examples": [
+        "dropthis commands --json"
+      ]
+    }
+  ]
+}

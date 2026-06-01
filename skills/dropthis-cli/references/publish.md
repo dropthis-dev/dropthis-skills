@@ -2,7 +2,7 @@
 
 ## publish
 
-Publish files, folders, strings, or stdin. Multiple files are bundled into one drop. Use `-` to read stdin explicitly, or pipe without args.
+Publish files, folders, URLs, strings, or stdin. Multiple files are bundled into one drop. A bare `http(s)` URL is fetched by the server (source_url). Use `-` to read stdin explicitly, or pipe without args.
 
 `publish` is the **default command** — you can omit it and pass files directly to `dropthis`:
 
@@ -21,7 +21,8 @@ dropthis publish [input...] [flags]
 The `input` argument accepts:
 - A file path (`./page.html`)
 - A directory path (`./dist`)
-- Multiple file paths (`index.html styles.css app.js`) -- bundled into one drop
+- Multiple file paths (`index.html styles.css app.js`) -- bundled into one drop. Pass the files as separate arguments; do NOT inline CSS/JS into one HTML file.
+- A public `http(s)` URL (`https://example.com/page.html`) -- the server fetches it (source_url flow)
 - `-` for explicit stdin
 - Omit input and pipe content via stdin
 
@@ -44,7 +45,6 @@ When credentials are missing and the terminal is interactive, `publish` prompts 
 | `--content-type` `<mime>` | No | Override MIME type (auto-detected from extension) |
 | `--path` `<path>` | No | Set filename when publishing from stdin |
 | `--idempotency-key` `<key>` | No | Prevent duplicate publishes on retry (auto-generated) |
-| `--from-json` `<path>` | No | Send raw API request body from a JSON file |
 | `--url` | No | Print only the published URL (no JSON envelope) |
 | `--dry-run` | No | Show what would be published without publishing |
 | `--json` | No | Force JSON output |
@@ -63,24 +63,33 @@ These flags are inherited from the parent `dropthis` command and available on al
 
 ### Output
 
+Retain `drop.id` for all follow-up operations (`drops`/`deployments`); the `slug`/`url` are not accepted as a drop id.
+
 #### Default (non-TTY / JSON)
 
+The CLI emits the SDK `DropResponse` under `drop`:
+
 ```json
-{"ok":true,"drop":{"url":"https://dropthis.app/abc123","id":"drop_abc123","object":"drop","accessible":true,"persistent":false,"badgeApplied":true,"tier":"free","limitations":{"expiresInDays":7,"badge":true}}}
+{"ok":true,"drop":{"object":"drop","id":"drop_abc123","slug":"abc123","url":"https://dropthis.app/abc123","deploymentId":"dep_xyz789","title":"My Page","contentType":"text/html","visibility":"public","status":"ready","revision":1,"sizeBytes":1234,"createdAt":"2026-05-29T12:00:00Z","expiresAt":"2026-06-01T12:00:00Z","accessible":true,"persistent":false,"badgeApplied":true,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
 ```
 
-Fields present in all publish responses:
+Key fields present in publish responses:
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `drop.object` | string | Always `"drop"` |
 | `drop.url` | string | The published URL |
-| `drop.id` | string | Drop ID (starts with `drop_`) |
+| `drop.id` | string | Drop ID (starts with `drop_`). Use THIS for `drops get/update/delete` and `deployments` -- not the slug/URL. |
+| `drop.slug` | string | Vanity-able URL token (e.g. `abc123`). NOT a drop id -- do NOT pass it to `drops`/`deployments` commands. |
+| `drop.deploymentId` | string \| null | The deployment that produced this content version |
+| `drop.contentType` | string | MIME type of the entry content |
+| `drop.sizeBytes` | number | Total bundle size in bytes |
+| `drop.expiresAt` | string \| null | ISO 8601 auto-delete time, or `null` if persistent |
 | `drop.accessible` | boolean | Whether the drop is currently accessible |
-| `drop.persistent` | boolean | `true` for Pro drops, `false` for free-tier drops (7-day TTL) |
+| `drop.persistent` | boolean | `true` for Pro drops, `false` for free-tier drops (3-day TTL) |
 | `drop.badgeApplied` | boolean | `true` when the dropthis badge is shown on the drop |
-| `drop.tier` | string | Plan tier: `"free"` or `"pro"` |
-| `drop.limitations` | object \| null | Plan constraints; `null` for Pro. Free: `{"expiresInDays":7,"badge":true}` |
+| `drop.tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (e.g. free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true}`) |
+| `drop.limitations` | object | `{"actions":[...]}` -- a list of `DropAction` entries (`code`, `kind`, `priority`, `message`, optional `resolve`). Empty array when there are no actions. |
 
 #### With `--url`
 
@@ -90,18 +99,16 @@ https://dropthis.app/abc123
 
 #### Human-friendly (TTY without `--json`)
 
-For Pro drops:
-
 ```
 Published: https://dropthis.app/abc123
+  1.2 KB · text/html · expires 2026-06-01
 ```
 
-For free-plan drops, a second line shows the plan constraints:
-
-```
-Published: https://dropthis.app/abc123
-Free plan · Expires in 7 days · Badge included
-```
+The second line is a dimmed detail line summarizing the drop. It includes, when present:
+the formatted size (`sizeBytes`), the content type (`contentType`, before any `;`),
+`unlisted` when visibility is unlisted, and `expires <date>` when `expiresAt` is set (free
+drops expire after 3 days). Fields that are absent are omitted; if none apply, the line is
+not printed.
 
 #### With `--dry-run`
 
@@ -143,7 +150,10 @@ dropthis ./dist --url
 # Publish multiple files bundled into one drop
 dropthis index.html styles.css app.js --url
 
-# Publish from stdin with required flags
+# Publish a copy of a public URL (server fetches it)
+dropthis https://example.com/page.html --url
+
+# Publish from stdin (- is optional; content type and path auto-detected, but recommended)
 echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index.html --url
 
 # Pipe without args (stdin auto-detected in non-TTY)
@@ -164,9 +174,6 @@ dropthis ./temp.html --expires-at "2025-12-31T23:59:59Z" --url
 # Dry-run to validate before publishing
 dropthis ./dist --dry-run --title "Preview"
 
-# Publish from a raw JSON body file
-dropthis publish --from-json ./request.json --url
-
 # Publish with a specific API key
 dropthis ./page.html --url --api-key sk_live_abc123
 
@@ -176,10 +183,9 @@ dropthis ./page.html --json
 
 ### Notes
 
-- When piping stdin, both `--content-type` and `--path` are required.
-- `--from-json` and `<input>` are mutually exclusive.
+- When piping stdin, `--content-type` and `--path` are strongly recommended. If omitted, the SDK auto-detects the content type (HTML detected from tags, else `text/plain`) and picks an entry filename (`index.html` for HTML, `index.txt` otherwise). Set them explicitly for deterministic output.
 - `--url` and `--dry-run` are mutually exclusive.
 - `--metadata` and `--metadata-file` are mutually exclusive.
-- An idempotency key is auto-generated (`cli_pub_<uuid>`) if not provided.
+- An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
 - Maximum 200 files per bundle.
 - In non-TTY environments (pipes, CI), output defaults to JSON automatically.

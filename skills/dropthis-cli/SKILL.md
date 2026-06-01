@@ -145,9 +145,16 @@ dropthis ./dist --url
 # Multiple files
 dropthis index.html styles.css app.js --url
 
-# Stdin (explicit publish required)
-echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index.html --url
+# Publish a copy of a public URL (server fetches it — SSRF-guarded)
+dropthis https://example.com/page.html --url
+
+# Stdin — publish is the default command, so it can be omitted. Piped (non-TTY) stdin
+# is read automatically when no input is given; use - to read stdin explicitly.
+echo "<h1>Hello</h1>" | dropthis --content-type text/html --path index.html --url
+echo "<h1>Hello</h1>" | dropthis - --content-type text/html --path index.html --url
 ```
+
+> Capture the drop **id** from publish output for later edits: `ID=$(dropthis ./page.html --json | jq -r '.drop.id')` — then `dropthis drops update "$ID" ...` / `dropthis deployments list "$ID"`. Follow-up commands need the `drop_…` id, not the slug.
 
 ### Publish Options
 
@@ -158,13 +165,12 @@ echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index
 | `--password <password>` | Set password protection |
 | `--noindex` | Prevent search engine indexing |
 | `--entry <path>` | Entry file for directories |
-| `--content-type <mime>` | Content type (required for stdin) |
+| `--content-type <mime>` | Content type (recommended for stdin; auto-detected if omitted) |
 | `--path <path>` | File path for stdin or byte input |
 | `--expires-at <datetime>` | Expiration datetime |
 | `--metadata <json>` | Metadata as JSON string |
 | `--metadata-file <path>` | Metadata from a JSON file |
 | `--idempotency-key <key>` | Idempotency key |
-| `--from-json <path>` | Read exact POST /drops JSON request body from file |
 | `--url` | Print only the URL |
 | `--json` | Print full JSON response |
 | `--dry-run` | Validate without publishing |
@@ -198,8 +204,9 @@ dropthis ./report.html --password s3cret --url
 |---|---------|-----|
 | 1 | **Forgetting `--url` or `--json`** | Without either flag, the CLI prints human-friendly output that's hard to parse. Always use `--url` for agents. |
 | 2 | **Not checking exit code 3** | Exit 3 means auth required. Run `dropthis whoami` first, then prompt for login if needed. |
-| 3 | **Passing a URL as input** | URL inputs are not supported. Fetch the content first, save to a file, then publish the file. |
-| 4 | **Missing `--content-type` with stdin** | When piping content via stdin (`-`), `--content-type` and `--path` are required. |
+| 3 | **Assuming URLs aren't supported** | A bare `http(s)` URL IS a valid input: `dropthis https://example.com/page.html --url` publishes a server-fetched copy (source_url flow). Pass the URL directly -- do NOT fetch it yourself first. |
+| 4 | **Relying on stdin auto-detection** | When piping content via stdin (`-`), set `--content-type` and `--path` explicitly for deterministic output. Without them the SDK auto-detects content type and entry filename. |
+| 5 | **Using the slug/URL token as the drop id** | `drops get/update/delete` and `deployments list/get` take the full `drop_…` id (the `id` field in publish `--json` output), NOT the slug or URL token. Capture `.drop.id` from publish; if you only have the slug, run `dropthis drops list --json` to find the id. |
 
 ## After Setup
 

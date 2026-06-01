@@ -82,10 +82,15 @@
 	{
 		"id": "publish-with-vanity-slug",
 		"prompt": "Publish with a custom slug so I get a nice URL",
-		"expected_tool": "dropthis.publish()",
-		"expected_input": "PublishInput + PublishOptions with slug",
-		"example": "const { data, error } = await dropthis.publish(\"./dist\", {\n  slug: \"my-project\",\n  title: \"My Project\",\n});",
-		"tags": ["publish", "slug", "options"]
+		"expected_tool": "dropthis.publish() then dropthis.update()",
+		"expected_input": "publish first, then update(dropId, { slug }) -- slug is NOT a publish() option",
+		"example": "const { data, error } = await dropthis.publish(\"./dist\", {\n  title: \"My Project\",\n});\nif (!error) {\n  await dropthis.update(data.id, { slug: \"my-project\" });\n}",
+		"expectations": [
+			"Calls dropthis.publish() WITHOUT a slug option (publish() ignores slug)",
+			"Sets the vanity slug via dropthis.update(data.id, { slug }) AFTER publishing",
+			"Passes data.id (the drop_… id), NOT data.slug or the URL token, to update()"
+		],
+		"tags": ["publish", "slug", "update", "options"]
 	},
 	{
 		"id": "update-metadata-only",
@@ -110,6 +115,33 @@
 		"expected_input": "{ label: string }",
 		"example": "const { data, error } = await dropthis.apiKeys.create({ label: \"production\" });\nif (!error) console.log(\"Key:\", data.key);",
 		"tags": ["apiKeys", "create"]
+	},
+	{
+		"id": "publish-multi-file",
+		"prompt": "Publish a small app made of index.html, style.css, and app.js together as one drop",
+		"expected_tool": "dropthis.publish()",
+		"expected_input": "{ kind: \"files\", files: [...] } or string[] of paths",
+		"example": "const { data, error } = await dropthis.publish({\n  kind: \"files\",\n  files: [\n    { path: \"index.html\", content: \"<!doctype html>...\" },\n    { path: \"style.css\", content: \"body{}\" },\n    { path: \"app.js\", content: \"console.log(1)\" },\n  ],\n  entry: \"index.html\",\n});\nif (!error) console.log(data.url);",
+		"expectations": [
+			"Uses dropthis.publish() with { kind: \"files\", files: [...] } OR a string[] of file paths",
+			"Each file is its own entry in the files array (path + content)",
+			"Does NOT inline style.css or app.js into the index.html string",
+			"Sets entry: \"index.html\" (or relies on the index.html default)"
+		],
+		"tags": ["publish", "multi-file", "files"]
+	},
+	{
+		"id": "publish-source-url",
+		"prompt": "Publish a copy of the page at https://example.com/report.html and give me the URL",
+		"expected_tool": "dropthis.publish()",
+		"expected_input": "a bare http(s) URL string (or { kind: \"source_url\", sourceUrl })",
+		"example": "const { data, error } = await dropthis.publish(\"https://example.com/report.html\");\n// or: await dropthis.publish({ kind: \"source_url\", sourceUrl: \"https://example.com/report.html\" });\nif (!error) console.log(data.url);",
+		"expectations": [
+			"Passes the URL string directly to dropthis.publish() (the server fetches it via source_url)",
+			"Does NOT fetch/download the URL itself before publishing",
+			"Does NOT pass the URL as inline { kind: \"content\" }"
+		],
+		"tags": ["publish", "source_url", "url"]
 	},
 	{
 		"id": "optimistic-concurrency",

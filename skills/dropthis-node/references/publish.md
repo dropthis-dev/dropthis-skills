@@ -14,7 +14,7 @@ Publish new content and get a URL back.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `input` | `PublishInput` | Yes | Content to publish (see Input types below) |
-| `options` | `PublishOptions` | No | Publish options (title, slug, visibility, etc.) |
+| `options` | `PublishOptions` | No | Publish options (title, visibility, password, noindex, expiresAt, etc.). `slug` is NOT settable here — `publish()` ignores it; set the vanity slug afterward via `update(dropId, { slug })`. |
 
 **Returns:** `DropthisResult<DropResponse>`
 
@@ -23,6 +23,9 @@ Publish new content and get a URL back.
 ```typescript
 const { data, error } = await dropthis.publish("<h1>Hello</h1>");
 if (!error) console.log(data.url);
+
+// Set a vanity slug AFTER publishing (slug is update-only):
+await dropthis.update(data.id, { slug: "my-slug" });
 ```
 
 ### deploy(dropId, input, options?)
@@ -78,13 +81,17 @@ Useful for inspecting what would be uploaded.
 | `input` | `PublishInput` | Yes | Content to prepare |
 | `options` | `PublishOptions` | No | Publish options |
 
-**Returns:** `Promise<PreparedPublishRequest>`
+**Returns:** `Promise<PreparedPublishRequest>` — a discriminated union on `kind`:
+- `kind: "staged"` — has `manifest` (the upload manifest) and `files` (prepared files).
+- `kind: "source"` — has `sourceUrl` (server-fetched URL); no files to upload.
 
 **Example:**
 
 ```typescript
 const prepared = await dropthis.prepare("./dist");
-console.log(prepared.manifest.files); // list of files that would be uploaded
+if (prepared.kind === "staged") {
+  console.log(prepared.manifest.files); // files that would be uploaded
+}
 ```
 
 ## Input types
@@ -93,12 +100,15 @@ console.log(prepared.manifest.files); // list of files that would be uploaded
 
 | Input | Type | Description |
 |-------|------|-------------|
-| HTML string | `string` | `"<h1>Hello</h1>"` -- auto-detected as HTML |
+| HTML/text string | `string` | `"<h1>Hello</h1>"` -- auto-detected as inline content |
 | File path | `string` | `"./report.html"` -- detected via filesystem stat |
 | Directory path | `string` | `"./dist"` -- all files collected recursively |
+| File path list | `string[]` | `["index.html", "style.css"]` -- bundled into one drop |
+| Public URL | `string` \| `URL` | `"https://example.com/page.html"` -- server fetches it (source_url flow) |
 | Raw bytes | `Uint8Array` | Binary content |
-| Explicit content | `{ content: string; contentType?: string }` | String with explicit content type |
-| Explicit files | `{ files: Array<{ path, content?, contentBase64?, bytes?, contentType }> }` | Multiple files with inline content |
+| Inline content | `{ kind: "content"; content; contentType?; path? }` | Explicit inline content |
+| Source URL | `{ kind: "source_url"; sourceUrl }` | Explicit server-fetched URL |
+| Explicit files | `{ kind: "files"; files: PublishFileInput[]; entry? }` | Multi-file bundle (do NOT inline assets into one file) |
 
 ## PublishOptions
 
@@ -137,7 +147,7 @@ console.log(prepared.manifest.files); // list of files that would be uploaded
 
 The `Dropthis` class exposes the following resource accessors as lazy-initialized getters:
 
-### drops()
+### drops
 
 Access the Drops resource for CRUD operations on drops. See [drops.md](drops.md).
 
@@ -146,7 +156,7 @@ dropthis.drops.list();
 dropthis.drops.get("drop_abc123");
 ```
 
-### deployments()
+### deployments
 
 Access the Deployments resource for deployment history. See [deployments.md](deployments.md).
 
@@ -154,7 +164,7 @@ Access the Deployments resource for deployment history. See [deployments.md](dep
 dropthis.deployments.list("drop_abc123");
 ```
 
-### uploads()
+### uploads
 
 Access the Uploads resource for low-level upload session management. See [uploads.md](uploads.md).
 
@@ -162,7 +172,7 @@ Access the Uploads resource for low-level upload session management. See [upload
 dropthis.uploads.create({ schemaVersion: 1, files: [...] });
 ```
 
-### auth()
+### auth
 
 Access the Auth resource for email OTP login flows. See [auth.md](auth.md).
 
@@ -170,7 +180,7 @@ Access the Auth resource for email OTP login flows. See [auth.md](auth.md).
 dropthis.auth.requestEmailOtp({ email: "user@example.com" });
 ```
 
-### apiKeys()
+### apiKeys
 
 Access the API Keys resource for managing API keys. See [auth.md](auth.md).
 
@@ -178,7 +188,7 @@ Access the API Keys resource for managing API keys. See [auth.md](auth.md).
 dropthis.apiKeys.create({ label: "CI" });
 ```
 
-### account()
+### account
 
 Access the Account resource for managing the authenticated account. See [auth.md](auth.md).
 
@@ -186,52 +196,12 @@ Access the Account resource for managing the authenticated account. See [auth.md
 dropthis.account.get();
 ```
 
-## Low-level methods
-
-### request(method, path, options?)
-
-Generic HTTP request to the dropthis API. Used for endpoints not covered by resource methods.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `method` | `string` | Yes | HTTP method (e.g. `"GET"`, `"POST"`) |
-| `path` | `string` | Yes | API path (e.g. `"/drops"`) |
-| `options.body` | `unknown` | No | Request body |
-| `options.params` | `Record<string, string \| number \| boolean \| null \| undefined>` | No | Query parameters |
-| `options.idempotencyKey` | `string` | No | Idempotency key |
-| `options.ifRevision` | `number` | No | Optimistic concurrency revision |
-| `options.authenticated` | `boolean` | No | Whether to include auth header (default: `true`) |
-| `options.timeoutMs` | `number` | No | Per-request timeout override |
-
-**Returns:** `DropthisResult<T>`
-
-**Example:**
-
-```typescript
-const { data, error } = await dropthis.request<{ ok: true }>("POST", "/some/endpoint", {
-  body: { key: "value" },
-});
-```
-
-### requestSignedUpload(url, bytes, headers)
-
-Upload bytes to a presigned URL. Used internally by the staged upload flow.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `url` | `string` | Yes | Presigned upload URL |
-| `bytes` | `Uint8Array \| Blob \| ReadableStream` | Yes | Content to upload |
-| `headers` | `Record<string, string>` | Yes | Headers required by the presigned URL |
-
-**Returns:** `DropthisResult<{ etag: string | null }>`
-
 ## Notes
 
-- String inputs are auto-detected: if the string resolves to a file or directory on disk, it is treated as a path. Otherwise it is treated as inline content.
-- URL strings are **not supported**. Fetch the content first, then pass the result.
-- The staged upload flow uses presigned URLs for direct-to-R2 uploads. The SDK handles this entirely.
+- String inputs are auto-detected in priority order: an `http(s)` URL → server-fetched (source_url); multiline/oversized → inline content; otherwise stat the path (file/dir) → staged upload; a path-shaped miss → `file_not_found`; else inline prose.
+- A bare `http(s)` URL string (or a `URL` object, or `{ kind: "source_url" }`) publishes a server-fetched copy. Pass the URL directly -- do NOT fetch it yourself.
+- To publish multiple files, pass `string[]` paths or `{ kind: "files", files: [...] }`. Do NOT inline CSS/JS into one HTML blob.
+- `publish()` returns BOTH `data.id` (the `drop_…` id) and `data.slug` (the URL token). Pass `data.id` to `deploy(dropId, …)`, `update(dropId, …)`, and `drops.get/update/delete(dropId)` — the slug is NOT accepted as a drop id. Retain `data.id` for all follow-up operations.
+- The staged upload flow uses presigned URLs for direct-to-R2 uploads (single PUT per file). The SDK handles this entirely.
 - For files larger than 10 MB, SHA-256 checksums are computed automatically for integrity verification.
+- The public API is `prepare` / `publish` / `deploy` / `update` plus the resource getters. There is no generic `request()` escape hatch and no `requestSignedUpload()` — those low-level methods are not part of the public surface.

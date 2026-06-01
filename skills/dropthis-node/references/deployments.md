@@ -1,53 +1,16 @@
 # Deployments
 
-Deployment history for a drop. Each time content is updated, a new deployment is created.
-Accessed via `dropthis.deployments`.
+Deployment history for a drop. Each time content is redeployed, a new deployment is created.
+The `dropthis.deployments` resource is **read-only** -- it lists and fetches deployment history.
+
+To publish a NEW content version (redeploy), call `dropthis.deploy(dropId, input, options)`.
+To update settings only, call `dropthis.update(dropId, options)` (metadata-only; never content).
 
 ## Methods
 
-### create(dropId, body, options?)
-
-Create a new deployment for an existing drop (low-level). Keys are automatically converted to snake_case.
-Most users should use `dropthis.update(dropId, newContent)` instead.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `dropId` | `string` | Yes | Drop ID |
-| `body` | `Record<string, unknown>` | Yes | Deployment body (camelCase keys auto-converted to snake_case) |
-| `options.idempotencyKey` | `string` | No | Idempotency key for safe retries |
-| `options.ifRevision` | `number` | No | Optimistic concurrency revision |
-
-**Returns:** `DropthisResult<DropResponse>`
-
-**Example:**
-
-```typescript
-const { data, error } = await dropthis.deployments.create("drop_abc123", {
-  uploadId: "upl_xyz789",
-  options: { title: "v2" },
-}, { ifRevision: 1 });
-```
-
-### createRaw(dropId, body, options?)
-
-Create a new deployment using a raw request body without snake_case conversion.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `dropId` | `string` | Yes | Drop ID |
-| `body` | `unknown` | Yes | Request body (sent as-is) |
-| `options.idempotencyKey` | `string` | No | Idempotency key |
-| `options.ifRevision` | `number` | No | Optimistic concurrency revision |
-
-**Returns:** `DropthisResult<DropResponse>`
-
 ### list(dropId, params?)
 
-List deployments for a drop.
+List deployments for a drop, newest first.
 
 **Parameters:**
 
@@ -101,8 +64,30 @@ if (!error) {
 }
 ```
 
+## Creating a new deployment (redeploy)
+
+`dropthis.deployments` does not create deployments. To publish a new content version to an
+existing drop -- keeping its URL and slug -- call `dropthis.deploy(dropId, input, options)`.
+It accepts the same `PublishInput` as `dropthis.publish()` and handles the full staged upload
+flow automatically.
+
+```typescript
+const { data, error } = await dropthis.deploy(
+  "drop_abc123",
+  "<h1>v2</h1>",
+  { ifRevision: 1 },
+);
+if (!error) {
+  console.log(data.url, data.revision);
+}
+```
+
+To change settings (title, visibility, password, noindex, slug) WITHOUT changing content, use
+`dropthis.update("drop_abc123", { title: "New title" })` -- it is metadata-only and never
+creates a content deployment.
+
 ## Notes
 
 - Deployments are immutable once created. You cannot update or delete individual deployments.
-- `deployments.create()` and `deployments.createRaw()` are low-level. Prefer `dropthis.update(dropId, newContent)` which handles the full staged upload flow.
+- `dropthis.deployments.list/get` are read-only. Use `dropthis.deploy(dropId, input, options)` to create a new content version.
 - The `ListDeploymentsResponse` does not use `CursorPage`. Pagination must be handled manually using `nextCursor`.

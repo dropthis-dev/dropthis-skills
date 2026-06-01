@@ -14,6 +14,8 @@ List deployments for a drop with pagination.
 dropthis deployments list <dropId> [flags]
 ```
 
+`<dropId>` is the full `drop_…` id (the `id` from publish `--json`), NOT the slug or URL token.
+
 #### Flags
 
 | Flag | Required | Description |
@@ -25,7 +27,7 @@ dropthis deployments list <dropId> [flags]
 #### Output
 
 ```json
-{"ok":true,"data":[{"id":"dep_xyz789","drop_id":"drop_abc123","revision":2,"created_at":"2025-01-15T10:30:00Z"}]}
+{"ok":true,"deployments":[{"id":"dep_xyz789","dropId":"drop_abc123","revision":2,"status":"published","createdAt":"2025-01-15T10:30:00Z"}],"nextCursor":null}
 ```
 
 #### Examples
@@ -53,6 +55,8 @@ Get details for a single deployment.
 dropthis deployments get <dropId> <deploymentId> [flags]
 ```
 
+`<dropId>` is the full `drop_…` id (the `id` from publish `--json`), NOT the slug or URL token.
+
 #### Flags
 
 | Flag | Required | Description |
@@ -62,7 +66,7 @@ dropthis deployments get <dropId> <deploymentId> [flags]
 #### Output
 
 ```json
-{"ok":true,"deployment":{"id":"dep_xyz789","drop_id":"drop_abc123","revision":2,"created_at":"2025-01-15T10:30:00Z"}}
+{"ok":true,"deployment":{"id":"dep_xyz789","dropId":"drop_abc123","revision":2,"status":"published","createdAt":"2025-01-15T10:30:00Z"}}
 ```
 
 #### Examples
@@ -74,6 +78,7 @@ dropthis deployments get drop_abc123 dep_xyz789
 
 ## Notes
 
+- `<dropId>` is the full `drop_…` id (the `id` from publish `--json`), NOT the slug or URL token.
 - All `deployments` subcommands require authentication.
 - Deployments are immutable snapshots. Each `dropthis drops update` with content creates a new one.
 - The `revision` field is useful with `dropthis drops update --if-revision` for optimistic concurrency.

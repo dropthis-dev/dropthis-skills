@@ -18,7 +18,7 @@ Request a one-time password sent to the given email address.
 
 **Returns:** `DropthisResult<EmailOtpResponse>`
 
-`EmailOtpResponse`: `{ ok: true; expiresIn: number }`
+`EmailOtpResponse`: `{ ok: true; expiresIn: number; nextAction?: Action | null }`
 
 **Example:**
 
