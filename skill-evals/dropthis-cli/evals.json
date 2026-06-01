@@ -130,9 +130,11 @@
     "files": [],
     "expectations": [
       "Uses `dropthis publish index.html styles.css app.js --url`",
-      "Passes all files as separate arguments (not a directory)",
-      "All files are bundled into one drop automatically",
-      "Does NOT create a directory or zip the files first"
+      "Passes all three files as SEPARATE arguments to one publish command",
+      "All files are bundled into one drop automatically (multi-arg bundle)",
+      "Does NOT inline styles.css or app.js into index.html",
+      "Does NOT create a directory, zip, or base64 the files first",
+      "Does NOT run publish three separate times"
     ]
   },
   {
@@ -146,6 +148,18 @@
       "Recommends authenticating via `dropthis login` or setting DROPTHIS_API_KEY",
       "Reads the `next_action` field from the error JSON for guidance",
       "Does NOT suggest random fixes unrelated to authentication"
+    ]
+  },
+  {
+    "id": 13,
+    "prompt": "Publish a copy of the page at https://example.com/report.html and give me the URL",
+    "expected_output": "Agent passes the URL directly to publish (source_url flow), does not fetch it first",
+    "files": [],
+    "expectations": [
+      "Runs `dropthis https://example.com/report.html --url` (or `dropthis publish https://example.com/report.html --url`)",
+      "Passes the URL string directly as the publish input — the server fetches it (source_url)",
+      "Does NOT curl/wget/fetch the URL and save it to a file first",
+      "Does NOT treat the URL as inline HTML content"
     ]
   }
 ]
