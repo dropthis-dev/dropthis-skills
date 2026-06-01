@@ -180,7 +180,7 @@ dropthis ./page.html --json
 
 ### Notes
 
-- When piping stdin, both `--content-type` and `--path` are required.
+- When piping stdin, `--content-type` and `--path` are strongly recommended. If omitted, the SDK auto-detects the content type (HTML detected from tags, else `text/plain`) and picks an entry filename (`index.html` for HTML, `index.txt` otherwise). Set them explicitly for deterministic output.
 - `--from-json` and `<input>` are mutually exclusive.
 - `--url` and `--dry-run` are mutually exclusive.
 - `--metadata` and `--metadata-file` are mutually exclusive.

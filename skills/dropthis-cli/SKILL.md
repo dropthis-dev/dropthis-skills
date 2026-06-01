@@ -161,7 +161,7 @@ echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index
 | `--password <password>` | Set password protection |
 | `--noindex` | Prevent search engine indexing |
 | `--entry <path>` | Entry file for directories |
-| `--content-type <mime>` | Content type (required for stdin) |
+| `--content-type <mime>` | Content type (recommended for stdin; auto-detected if omitted) |
 | `--path <path>` | File path for stdin or byte input |
 | `--expires-at <datetime>` | Expiration datetime |
 | `--metadata <json>` | Metadata as JSON string |
@@ -202,7 +202,7 @@ dropthis ./report.html --password s3cret --url
 | 1 | **Forgetting `--url` or `--json`** | Without either flag, the CLI prints human-friendly output that's hard to parse. Always use `--url` for agents. |
 | 2 | **Not checking exit code 3** | Exit 3 means auth required. Run `dropthis whoami` first, then prompt for login if needed. |
 | 3 | **Assuming URLs aren't supported** | A bare `http(s)` URL IS a valid input: `dropthis https://example.com/page.html --url` publishes a server-fetched copy (source_url flow). Pass the URL directly -- do NOT fetch it yourself first. |
-| 4 | **Missing `--content-type` with stdin** | When piping content via stdin (`-`), `--content-type` and `--path` are required. |
+| 4 | **Relying on stdin auto-detection** | When piping content via stdin (`-`), set `--content-type` and `--path` explicitly for deterministic output. Without them the SDK auto-detects content type and entry filename. |
 
 ## After Setup
 

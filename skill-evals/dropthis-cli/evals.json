@@ -113,14 +113,14 @@
   {
     "id": 10,
     "prompt": "Publish from stdin: I want to pipe this HTML string into dropthis",
-    "expected_output": "Agent uses stdin with required --content-type and --path flags",
+    "expected_output": "Agent pipes content to stdin; --content-type/--path are optional (auto-detected), recommended for determinism",
     "files": [],
     "expectations": [
-      "Pipes content to dropthis, e.g., `echo '<h1>Hello</h1>' | dropthis publish - --content-type text/html --path index.html --url`",
-      "Uses `-` as the input argument for explicit stdin",
-      "Includes --content-type text/html (required for stdin)",
-      "Includes --path index.html (required for stdin)",
-      "Does NOT omit --content-type or --path when using stdin"
+      "Pipes content to dropthis, e.g., `echo '<h1>Hello</h1>' | dropthis publish - --url` (bare stdin is accepted)",
+      "Uses `-` as the input argument, or omits the input entirely so stdin is read automatically",
+      "MAY add `--content-type text/html` and `--path index.html` for deterministic output (the SDK auto-detects them if omitted)",
+      "Does NOT claim --content-type or --path are required for stdin",
+      "Does NOT save the piped content to a temp file first just to publish it"
     ]
   },
   {
