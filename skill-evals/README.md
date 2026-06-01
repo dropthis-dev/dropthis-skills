@@ -18,12 +18,17 @@ DROP (not just the transcript):
    - CLI: `dropthis publish index.html style.css app.js --url` (three separate args), or
    - Node: `dropthis.publish({ kind: "files", files: [...] })` or a `string[]` of paths, or
    - MCP: `dropthis_publish` with `files: [...]`.
-4. **PASS (result-verified):** the drop contains THREE separate files. Verify one of:
-   - MCP: call `dropthis_get` on the returned `dropId` and confirm the deployment lists 3
-     files (`index.html`, `style.css`, `app.js`) — NOT a single inlined HTML file; or
-   - CLI: `dropthis deployments get <dropId> <deploymentId> --json` (or open the URL +
-     view-source) and confirm `style.css`/`app.js` are fetched as separate assets, not
-     inlined `<style>`/`<script>` blobs in one HTML file.
+4. **PASS (result-verified):** the drop serves THREE separate files. `dropthis_get` returns a
+   `DropResponse` (no deployment file list) and publish returns the drop `id` — so verify the
+   files at the URL, not by inlining a get. Verify one of:
+   - Fetch the published `url` and confirm `style.css` and `app.js` load as SEPARATE network
+     resources (referenced via `<link href="style.css">` / `<script src="app.js">`), NOT
+     inlined `<style>`/`<script>` blobs in one HTML file; or
+   - CLI: `dropthis deployments get <id> <deploymentId> --json` (using the drop `id` from
+     publish, then a deployment id from `dropthis deployments list <id> --json`) and confirm
+     the deployment's `files` array lists `index.html`, `style.css`, `app.js`; or
+   - MCP: `dropthis_list_deployments` with `drop_id: <id>` to confirm a deployment exists,
+     then load the `url` and confirm the secondary assets are fetched separately.
 5. **FAIL:** the agent inlines style.css/app.js into one HTML blob, zips, base64s the bundle,
    or runs publish three times (three separate drops).
 
