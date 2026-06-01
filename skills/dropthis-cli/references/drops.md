@@ -117,7 +117,7 @@ dropthis drops update <dropId> [input] [flags]
 | `--entry` `<path>` | No | Entry file for multi-file bundles (default: index.html) |
 | `--content-type` `<mime>` | No | Override MIME type (auto-detected from extension) |
 | `--path` `<path>` | No | Set filename when publishing from stdin |
-| `--idempotency-key` `<key>` | No | Prevent duplicate publishes on retry (auto-generated) |
+| `--idempotency-key` `<key>` | No | Prevent duplicate updates on retry (auto-generated plain UUID) |
 | `--if-revision` `<n>` | No | Fail if current revision doesn't match -- optimistic lock |
 | `--url` | No | Print only the published URL (no JSON envelope) |
 | `--dry-run` | No | Show what would be published without publishing |
