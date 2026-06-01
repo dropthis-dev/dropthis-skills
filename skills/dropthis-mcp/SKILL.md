@@ -5,7 +5,8 @@ description: >
   public URL to fetch, or (locally) a file — and get a permanent URL back. Use when the
   user wants to publish, update, or manage drops via MCP tools (`dropthis_publish`,
   `dropthis_redeploy`, `dropthis_update`, `dropthis_get`, `dropthis_list`,
-  `dropthis_delete`, `dropthis_whoami`) in Claude Code, Claude Desktop, Cursor, Windsurf,
+  `dropthis_list_deployments`, `dropthis_delete`, `dropthis_whoami`, `dropthis_account`)
+  in Claude Code, Claude Desktop, Cursor, Windsurf,
   ChatGPT, or n8n, or when configuring the dropthis MCP server (local stdio or the hosted
   remote connector). Load this before calling dropthis tools — it covers input selection,
   auth, and the free/Pro contract.
