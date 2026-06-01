@@ -70,7 +70,7 @@ Additional fields in the drop object:
 | Field | Type | Description |
 |-------|------|-------------|
 | `accessible` | boolean | Whether the drop is currently accessible (not expired, not deleted) |
-| `persistent` | boolean | `true` for Pro drops (no TTL), `false` for free-tier drops (7-day TTL) |
+| `persistent` | boolean | `true` for Pro drops (no TTL), `false` for free-tier drops (3-day TTL) |
 | `tier` | string | Plan tier the drop was published under: `"free"` or `"pro"` |
 
 #### Examples

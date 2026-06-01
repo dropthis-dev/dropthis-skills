@@ -66,7 +66,7 @@ These flags are inherited from the parent `dropthis` command and available on al
 #### Default (non-TTY / JSON)
 
 ```json
-{"ok":true,"drop":{"url":"https://dropthis.app/abc123","id":"drop_abc123","object":"drop","accessible":true,"persistent":false,"badgeApplied":true,"tier":"free","limitations":{"expiresInDays":7,"badge":true}}}
+{"ok":true,"drop":{"url":"https://dropthis.app/abc123","id":"drop_abc123","object":"drop","accessible":true,"persistent":false,"badgeApplied":true,"tier":"free","limitations":{"expiresInDays":3,"badge":true}}}
 ```
 
 Fields present in all publish responses:
@@ -77,10 +77,10 @@ Fields present in all publish responses:
 | `drop.url` | string | The published URL |
 | `drop.id` | string | Drop ID (starts with `drop_`) |
 | `drop.accessible` | boolean | Whether the drop is currently accessible |
-| `drop.persistent` | boolean | `true` for Pro drops, `false` for free-tier drops (7-day TTL) |
+| `drop.persistent` | boolean | `true` for Pro drops, `false` for free-tier drops (3-day TTL) |
 | `drop.badgeApplied` | boolean | `true` when the dropthis badge is shown on the drop |
 | `drop.tier` | string | Plan tier: `"free"` or `"pro"` |
-| `drop.limitations` | object \| null | Plan constraints; `null` for Pro. Free: `{"expiresInDays":7,"badge":true}` |
+| `drop.limitations` | object \| null | Plan constraints; `null` for Pro. Free: `{"expiresInDays":3,"badge":true}` |
 
 #### With `--url`
 
@@ -100,7 +100,7 @@ For free-plan drops, a second line shows the plan constraints:
 
 ```
 Published: https://dropthis.app/abc123
-Free plan · Expires in 7 days · Badge included
+Free plan · Expires in 3 days · Badge included
 ```
 
 #### With `--dry-run`
