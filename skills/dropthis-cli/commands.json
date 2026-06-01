@@ -20,7 +20,6 @@
         "--url",
         "--dry-run",
         "--json",
-        "--from-json",
         "--idempotency-key"
       ],
       "auth": "required",
@@ -85,7 +84,6 @@
             "--url",
             "--dry-run",
             "--json",
-            "--from-json",
             "--idempotency-key"
           ]
         },
