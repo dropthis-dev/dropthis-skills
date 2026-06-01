@@ -62,16 +62,17 @@ dropthis drops get <dropId> [flags]
 #### Output
 
 ```json
-{"ok":true,"drop":{"id":"drop_abc123","url":"https://dropthis.app/abc123","title":"My Page","visibility":"public","accessible":true,"persistent":false,"tier":"free"}}
+{"ok":true,"drop":{"id":"drop_abc123","url":"https://dropthis.app/abc123","title":"My Page","visibility":"public","accessible":true,"persistent":false,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
 ```
 
-Additional fields in the drop object:
+The `drop` object is the full SDK `DropResponse`. Notable fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `accessible` | boolean | Whether the drop is currently accessible (not expired, not deleted) |
 | `persistent` | boolean | `true` for Pro drops (no TTL), `false` for free-tier drops (3-day TTL) |
-| `tier` | string | Plan tier the drop was published under: `"free"` or `"pro"` |
+| `tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true}`) |
+| `limitations` | object | `{"actions":[...]}` -- a list of `DropAction` entries; empty array when there are none |
 
 #### Examples
 

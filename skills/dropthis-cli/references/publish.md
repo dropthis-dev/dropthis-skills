@@ -68,11 +68,13 @@ Retain `drop.id` for all follow-up operations (`drops`/`deployments`); the `slug
 
 #### Default (non-TTY / JSON)
 
+The CLI emits the SDK `DropResponse` under `drop`:
+
 ```json
-{"ok":true,"drop":{"url":"https://dropthis.app/abc123","id":"drop_abc123","slug":"abc123","object":"drop","accessible":true,"persistent":false,"badgeApplied":true,"tier":"free","limitations":{"expiresInDays":3,"badge":true}}}
+{"ok":true,"drop":{"object":"drop","id":"drop_abc123","slug":"abc123","url":"https://dropthis.app/abc123","deploymentId":"dep_xyz789","title":"My Page","contentType":"text/html","visibility":"public","status":"ready","revision":1,"sizeBytes":1234,"createdAt":"2026-05-29T12:00:00Z","expiresAt":"2026-06-01T12:00:00Z","accessible":true,"persistent":false,"badgeApplied":true,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
 ```
 
-Fields present in all publish responses:
+Key fields present in publish responses:
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -80,11 +82,15 @@ Fields present in all publish responses:
 | `drop.url` | string | The published URL |
 | `drop.id` | string | Drop ID (starts with `drop_`). Use THIS for `drops get/update/delete` and `deployments` -- not the slug/URL. |
 | `drop.slug` | string | Vanity-able URL token (e.g. `abc123`). NOT a drop id -- do NOT pass it to `drops`/`deployments` commands. |
+| `drop.deploymentId` | string \| null | The deployment that produced this content version |
+| `drop.contentType` | string | MIME type of the entry content |
+| `drop.sizeBytes` | number | Total bundle size in bytes |
+| `drop.expiresAt` | string \| null | ISO 8601 auto-delete time, or `null` if persistent |
 | `drop.accessible` | boolean | Whether the drop is currently accessible |
 | `drop.persistent` | boolean | `true` for Pro drops, `false` for free-tier drops (3-day TTL) |
 | `drop.badgeApplied` | boolean | `true` when the dropthis badge is shown on the drop |
-| `drop.tier` | string | Plan tier: `"free"` or `"pro"` |
-| `drop.limitations` | object \| null | Plan constraints; `null` for Pro. Free: `{"expiresInDays":3,"badge":true}` |
+| `drop.tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (e.g. free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true}`) |
+| `drop.limitations` | object | `{"actions":[...]}` -- a list of `DropAction` entries (`code`, `kind`, `priority`, `message`, optional `resolve`). Empty array when there are no actions. |
 
 #### With `--url`
 
@@ -94,18 +100,16 @@ https://dropthis.app/abc123
 
 #### Human-friendly (TTY without `--json`)
 
-For Pro drops:
-
 ```
 Published: https://dropthis.app/abc123
+  1.2 KB · text/html · expires 2026-06-01
 ```
 
-For free-plan drops, a second line shows the plan constraints:
-
-```
-Published: https://dropthis.app/abc123
-Free plan · Expires in 3 days · Badge included
-```
+The second line is a dimmed detail line summarizing the drop. It includes, when present:
+the formatted size (`sizeBytes`), the content type (`contentType`, before any `;`),
+`unlisted` when visibility is unlisted, and `expires <date>` when `expiresAt` is set (free
+drops expire after 3 days). Fields that are absent are omitted; if none apply, the line is
+not printed.
 
 #### With `--dry-run`
 
@@ -150,7 +154,7 @@ dropthis index.html styles.css app.js --url
 # Publish a copy of a public URL (server fetches it)
 dropthis https://example.com/page.html --url
 
-# Publish from stdin with required flags
+# Publish from stdin (- is optional; content type and path auto-detected, but recommended)
 echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index.html --url
 
 # Pipe without args (stdin auto-detected in non-TTY)
