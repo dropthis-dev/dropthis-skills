@@ -26,7 +26,8 @@ Update settings only — never content.
 
 ## dropthis_get
 
-- Input: `drop_id`. Output: url, slug, expiry, settings. Read-only.
+- Input: `drop_id`.
+- Output: the full camelCase `DropResponse` — `id`, `slug`, `url`, `deploymentId`, `title`, `visibility`, `status`, `revision`, `contentType`, `sizeBytes`, `createdAt`, `expiresAt`, `accessible`, `persistent`, `badgeApplied`, `tier`, `limitations`. **The password is never returned** (write-only — `DropResponse` has no password field). Read-only.
 
 ## dropthis_list
 
