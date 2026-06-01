@@ -161,5 +161,18 @@
       "Does NOT curl/wget/fetch the URL and save it to a file first",
       "Does NOT treat the URL as inline HTML content"
     ]
+  },
+  {
+    "id": 14,
+    "prompt": "I published a drop earlier; here's the URL https://dropthis.app/0izsioo. Push a new version with this updated HTML: <h1>v2</h1>",
+    "expected_output": "Agent recovers the drop_… id (slug is not an id) and redeploys with the id",
+    "files": [],
+    "expectations": [
+      "Recognizes that `0izsioo` is the slug/URL token, NOT a drop id",
+      "Does NOT pass the slug `0izsioo` (or the URL) as the drop id to `drops update` / `deployments`",
+      "Recovers the `drop_…` id first — e.g. `dropthis drops list --json` and matches the slug/url — then updates content with that id",
+      "Uses the `drop_…` id (e.g. `dropthis drops update drop_xxx <input>`), not the slug",
+      "Does NOT publish a brand-new drop instead of updating the existing one"
+    ]
   }
 ]

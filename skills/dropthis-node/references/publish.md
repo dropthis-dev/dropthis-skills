@@ -237,5 +237,6 @@ Upload bytes to a presigned URL. Used internally by the staged upload flow.
 - String inputs are auto-detected in priority order: an `http(s)` URL → server-fetched (source_url); multiline/oversized → inline content; otherwise stat the path (file/dir) → staged upload; a path-shaped miss → `file_not_found`; else inline prose.
 - A bare `http(s)` URL string (or a `URL` object, or `{ kind: "source_url" }`) publishes a server-fetched copy. Pass the URL directly -- do NOT fetch it yourself.
 - To publish multiple files, pass `string[]` paths or `{ kind: "files", files: [...] }`. Do NOT inline CSS/JS into one HTML blob.
+- `publish()` returns BOTH `data.id` (the `drop_…` id) and `data.slug` (the URL token). Pass `data.id` to `deploy(dropId, …)`, `update(dropId, …)`, and `drops.get/update/delete(dropId)` — the slug is NOT accepted as a drop id. Retain `data.id` for all follow-up operations.
 - The staged upload flow uses presigned URLs for direct-to-R2 uploads. The SDK handles this entirely.
 - For files larger than 10 MB, SHA-256 checksums are computed automatically for integrity verification.

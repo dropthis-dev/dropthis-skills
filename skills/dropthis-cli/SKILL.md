@@ -152,6 +152,8 @@ dropthis https://example.com/page.html --url
 echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index.html --url
 ```
 
+> Capture the drop **id** from publish output for later edits: `ID=$(dropthis ./page.html --json | jq -r '.drop.id')` — then `dropthis drops update "$ID" ...` / `dropthis deployments list "$ID"`. Follow-up commands need the `drop_…` id, not the slug.
+
 ### Publish Options
 
 | Flag | Description |
@@ -203,6 +205,7 @@ dropthis ./report.html --password s3cret --url
 | 2 | **Not checking exit code 3** | Exit 3 means auth required. Run `dropthis whoami` first, then prompt for login if needed. |
 | 3 | **Assuming URLs aren't supported** | A bare `http(s)` URL IS a valid input: `dropthis https://example.com/page.html --url` publishes a server-fetched copy (source_url flow). Pass the URL directly -- do NOT fetch it yourself first. |
 | 4 | **Relying on stdin auto-detection** | When piping content via stdin (`-`), set `--content-type` and `--path` explicitly for deterministic output. Without them the SDK auto-detects content type and entry filename. |
+| 5 | **Using the slug/URL token as the drop id** | `drops get/update/delete` and `deployments list/get` take the full `drop_…` id (the `id` field in publish `--json` output), NOT the slug or URL token. Capture `.drop.id` from publish; if you only have the slug, run `dropthis drops list --json` to find the id. |
 
 ## After Setup
 

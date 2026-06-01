@@ -64,10 +64,12 @@ These flags are inherited from the parent `dropthis` command and available on al
 
 ### Output
 
+Retain `drop.id` for all follow-up operations (`drops`/`deployments`); the `slug`/`url` are not accepted as a drop id.
+
 #### Default (non-TTY / JSON)
 
 ```json
-{"ok":true,"drop":{"url":"https://dropthis.app/abc123","id":"drop_abc123","object":"drop","accessible":true,"persistent":false,"badgeApplied":true,"tier":"free","limitations":{"expiresInDays":3,"badge":true}}}
+{"ok":true,"drop":{"url":"https://dropthis.app/abc123","id":"drop_abc123","slug":"abc123","object":"drop","accessible":true,"persistent":false,"badgeApplied":true,"tier":"free","limitations":{"expiresInDays":3,"badge":true}}}
 ```
 
 Fields present in all publish responses:
@@ -76,7 +78,8 @@ Fields present in all publish responses:
 |-------|------|-------------|
 | `drop.object` | string | Always `"drop"` |
 | `drop.url` | string | The published URL |
-| `drop.id` | string | Drop ID (starts with `drop_`) |
+| `drop.id` | string | Drop ID (starts with `drop_`). Use THIS for `drops get/update/delete` and `deployments` -- not the slug/URL. |
+| `drop.slug` | string | Vanity-able URL token (e.g. `abc123`). NOT a drop id -- do NOT pass it to `drops`/`deployments` commands. |
 | `drop.accessible` | boolean | Whether the drop is currently accessible |
 | `drop.persistent` | boolean | `true` for Pro drops, `false` for free-tier drops (3-day TTL) |
 | `drop.badgeApplied` | boolean | `true` when the dropthis badge is shown on the drop |

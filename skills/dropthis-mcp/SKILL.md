@@ -76,6 +76,24 @@ To change settings (title, visibility, password, noindex, vanity slug) without c
 content, use `dropthis_update`. To ship a new content version to the same URL, use
 `dropthis_redeploy` (it accepts the same content inputs: `content`, `source_url`, `files`, or `file`).
 
+**Retain the `id` from the publish response for all follow-up operations.** Every id-based
+tool — `dropthis_redeploy`, `dropthis_update`, `dropthis_get`, `dropthis_delete`,
+`dropthis_list_deployments` — takes the full `drop_…` id as `drop_id`, NOT the slug or the
+URL token. `dropthis_publish` returns both `id` and `slug` (and `url`); keep the `id`.
+
+```json
+// dropthis_publish returns:
+{ "id": "drop_6hRcUUok5PYeEK6jJQY5Is", "slug": "0izsioo", "url": "https://dropthis.app/0izsioo" }
+```
+
+```text
+# Redeploy uses the id, NOT the slug:
+dropthis_redeploy { "drop_id": "drop_6hRcUUok5PYeEK6jJQY5Is", "content": "<h1>v2</h1>" }
+# WRONG: dropthis_redeploy { "drop_id": "0izsioo", ... }  → fails (slug is not a drop id)
+```
+
+If you only have the slug/URL, call `dropthis_list` to recover the `id`.
+
 ## Auth and limits
 
 Call `dropthis_whoami` first if you need to know the plan (Free vs Pro) before publishing.

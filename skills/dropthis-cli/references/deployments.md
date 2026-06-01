@@ -14,6 +14,8 @@ List deployments for a drop with pagination.
 dropthis deployments list <dropId> [flags]
 ```
 
+`<dropId>` is the full `drop_…` id (the `id` from publish `--json`), NOT the slug or URL token.
+
 #### Flags
 
 | Flag | Required | Description |
@@ -53,6 +55,8 @@ Get details for a single deployment.
 dropthis deployments get <dropId> <deploymentId> [flags]
 ```
 
+`<dropId>` is the full `drop_…` id (the `id` from publish `--json`), NOT the slug or URL token.
+
 #### Flags
 
 | Flag | Required | Description |
@@ -74,6 +78,7 @@ dropthis deployments get drop_abc123 dep_xyz789
 
 ## Notes
 
+- `<dropId>` is the full `drop_…` id (the `id` from publish `--json`), NOT the slug or URL token.
 - All `deployments` subcommands require authentication.
 - Deployments are immutable snapshots. Each `dropthis drops update` with content creates a new one.
 - The `revision` field is useful with `dropthis drops update --if-revision` for optimistic concurrency.
