@@ -38,7 +38,7 @@ Update settings only — never content.
 Permanently delete a drop and its public URL. Destructive.
 
 - Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token), `confirm: true` (required).
-- Output: a small result envelope `{ "deleted": true, "drop_id": "drop_abc123" }` (snake_case `drop_id`) — NOT a `DropResponse`. The other tools pass through the camelCase `DropResponse` fields; `dropthis_delete` returns this tool-specific result instead.
+- Output: a small result envelope `{ "deleted": true, "drop_id": "drop_abc123" }` (snake_case `drop_id`) — NOT a `DropResponse`. The DropResponse-returning tools (`dropthis_publish`, `dropthis_redeploy`, `dropthis_update`, `dropthis_get`) pass through the camelCase `DropResponse` fields; the list tools (`dropthis_list`, `dropthis_list_deployments`) return projected `{ items, nextCursor }` envelopes; `dropthis_delete` returns this tool-specific `{ deleted, drop_id }` result.
 - Confirm with the user before calling.
 
 ## dropthis_whoami
