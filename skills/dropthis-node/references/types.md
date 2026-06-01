@@ -69,7 +69,6 @@ type DropResponse = {
   id: string;
   slug: string;
   url: string;
-  canonicalHost: string;
   deploymentId: string | null;
   title: string;
   contentType: string;
