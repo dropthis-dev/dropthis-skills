@@ -45,7 +45,6 @@ When credentials are missing and the terminal is interactive, `publish` prompts 
 | `--content-type` `<mime>` | No | Override MIME type (auto-detected from extension) |
 | `--path` `<path>` | No | Set filename when publishing from stdin |
 | `--idempotency-key` `<key>` | No | Prevent duplicate publishes on retry (auto-generated) |
-| `--from-json` `<path>` | No | Send raw API request body from a JSON file |
 | `--url` | No | Print only the published URL (no JSON envelope) |
 | `--dry-run` | No | Show what would be published without publishing |
 | `--json` | No | Force JSON output |
@@ -175,9 +174,6 @@ dropthis ./temp.html --expires-at "2025-12-31T23:59:59Z" --url
 # Dry-run to validate before publishing
 dropthis ./dist --dry-run --title "Preview"
 
-# Publish from a raw JSON body file
-dropthis publish --from-json ./request.json --url
-
 # Publish with a specific API key
 dropthis ./page.html --url --api-key sk_live_abc123
 
@@ -188,7 +184,6 @@ dropthis ./page.html --json
 ### Notes
 
 - When piping stdin, `--content-type` and `--path` are strongly recommended. If omitted, the SDK auto-detects the content type (HTML detected from tags, else `text/plain`) and picks an entry filename (`index.html` for HTML, `index.txt` otherwise). Set them explicitly for deterministic output.
-- `--from-json` and `<input>` are mutually exclusive.
 - `--url` and `--dry-run` are mutually exclusive.
 - `--metadata` and `--metadata-file` are mutually exclusive.
 - An idempotency key is auto-generated (`cli_pub_<uuid>`) if not provided.

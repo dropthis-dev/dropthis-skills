@@ -80,7 +80,7 @@ These appear in the `error.code` field when the API returns an error:
 ### Invalid usage (exit 2)
 
 ```json
-{"ok":false,"error":{"code":"invalid_usage","message":"Use either <input> or --from-json, not both."}}
+{"ok":false,"error":{"code":"invalid_usage","message":"--url and --dry-run cannot be combined."}}
 ```
 
 ### Local input error (exit 4)

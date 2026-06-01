@@ -171,7 +171,6 @@ echo "<h1>Hello</h1>" | dropthis - --content-type text/html --path index.html --
 | `--metadata <json>` | Metadata as JSON string |
 | `--metadata-file <path>` | Metadata from a JSON file |
 | `--idempotency-key <key>` | Idempotency key |
-| `--from-json <path>` | Read exact POST /drops JSON request body from file |
 | `--url` | Print only the URL |
 | `--json` | Print full JSON response |
 | `--dry-run` | Validate without publishing |

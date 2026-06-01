@@ -119,7 +119,6 @@ dropthis drops update <dropId> [input] [flags]
 | `--path` `<path>` | No | Set filename when publishing from stdin |
 | `--idempotency-key` `<key>` | No | Prevent duplicate publishes on retry (auto-generated) |
 | `--if-revision` `<n>` | No | Fail if current revision doesn't match -- optimistic lock |
-| `--from-json` `<path>` | No | Send raw API request body from a JSON file |
 | `--url` | No | Print only the published URL (no JSON envelope) |
 | `--dry-run` | No | Show what would be published without publishing |
 | `--json` | No | Force JSON output |
@@ -205,9 +204,6 @@ dropthis drops update drop_abc123 --slug new-slug --json
 # Dry-run to preview what would change
 dropthis drops update drop_abc123 ./dist --dry-run
 
-# Update from a raw JSON body
-dropthis drops update drop_abc123 --from-json ./deployment.json --url
-
 # Update content and metadata in one command
 dropthis drops update drop_abc123 ./dist-v2 --title "v2 Release" --url
 
@@ -223,7 +219,6 @@ dropthis drops update drop_abc123 --metadata '{"campaign":"winter-2025"}'
 - When no `[input]` is provided, only metadata flags (title, visibility, password, etc.) are applied without creating a new deployment.
 - When `[input]` is provided, a new deployment is created. Metadata flags can be combined.
 - `--if-revision` enables optimistic concurrency -- the update fails with `revision_conflict` if the drop has been modified since the specified revision.
-- `--from-json` and `[input]` are mutually exclusive.
 - An idempotency key is auto-generated (`cli_upd_<uuid>`) if not provided.
 
 ---
