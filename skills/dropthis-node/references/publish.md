@@ -14,7 +14,7 @@ Publish new content and get a URL back.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `input` | `PublishInput` | Yes | Content to publish (see Input types below) |
-| `options` | `PublishOptions` | No | Publish options (title, slug, visibility, etc.) |
+| `options` | `PublishOptions` | No | Publish options (title, visibility, password, noindex, expiresAt, etc.). `slug` is NOT settable here — `publish()` ignores it; set the vanity slug afterward via `update(dropId, { slug })`. |
 
 **Returns:** `DropthisResult<DropResponse>`
 
@@ -23,6 +23,9 @@ Publish new content and get a URL back.
 ```typescript
 const { data, error } = await dropthis.publish("<h1>Hello</h1>");
 if (!error) console.log(data.url);
+
+// Set a vanity slug AFTER publishing (slug is update-only):
+await dropthis.update(data.id, { slug: "my-slug" });
 ```
 
 ### deploy(dropId, input, options?)
@@ -144,7 +147,7 @@ if (prepared.kind === "staged") {
 
 The `Dropthis` class exposes the following resource accessors as lazy-initialized getters:
 
-### drops()
+### drops
 
 Access the Drops resource for CRUD operations on drops. See [drops.md](drops.md).
 
@@ -153,7 +156,7 @@ dropthis.drops.list();
 dropthis.drops.get("drop_abc123");
 ```
 
-### deployments()
+### deployments
 
 Access the Deployments resource for deployment history. See [deployments.md](deployments.md).
 
@@ -161,7 +164,7 @@ Access the Deployments resource for deployment history. See [deployments.md](dep
 dropthis.deployments.list("drop_abc123");
 ```
 
-### uploads()
+### uploads
 
 Access the Uploads resource for low-level upload session management. See [uploads.md](uploads.md).
 
@@ -169,7 +172,7 @@ Access the Uploads resource for low-level upload session management. See [upload
 dropthis.uploads.create({ schemaVersion: 1, files: [...] });
 ```
 
-### auth()
+### auth
 
 Access the Auth resource for email OTP login flows. See [auth.md](auth.md).
 
@@ -177,7 +180,7 @@ Access the Auth resource for email OTP login flows. See [auth.md](auth.md).
 dropthis.auth.requestEmailOtp({ email: "user@example.com" });
 ```
 
-### apiKeys()
+### apiKeys
 
 Access the API Keys resource for managing API keys. See [auth.md](auth.md).
 
@@ -185,7 +188,7 @@ Access the API Keys resource for managing API keys. See [auth.md](auth.md).
 dropthis.apiKeys.create({ label: "CI" });
 ```
 
-### account()
+### account
 
 Access the Account resource for managing the authenticated account. See [auth.md](auth.md).
 
