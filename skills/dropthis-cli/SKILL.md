@@ -148,8 +148,10 @@ dropthis index.html styles.css app.js --url
 # Publish a copy of a public URL (server fetches it — SSRF-guarded)
 dropthis https://example.com/page.html --url
 
-# Stdin (explicit publish required)
-echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index.html --url
+# Stdin — publish is the default command, so it can be omitted. Piped (non-TTY) stdin
+# is read automatically when no input is given; use - to read stdin explicitly.
+echo "<h1>Hello</h1>" | dropthis --content-type text/html --path index.html --url
+echo "<h1>Hello</h1>" | dropthis - --content-type text/html --path index.html --url
 ```
 
 > Capture the drop **id** from publish output for later edits: `ID=$(dropthis ./page.html --json | jq -r '.drop.id')` — then `dropthis drops update "$ID" ...` / `dropthis deployments list "$ID"`. Follow-up commands need the `drop_…` id, not the slug.
