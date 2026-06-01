@@ -7,22 +7,22 @@ in-band with `code`, `suggestion`, and `request_id`.
 
 Publish NEW content → permanent public URL.
 
-- Inputs: exactly one of `content` (string) · `source_url` (http(s) URL) · `file` (local path, stdio only). Optional: `title`, `password` (Pro), `noindex`, `visibility` (`public` | `unlisted`).
-- Output: `url`, `drop_id`, `expires_at`, `tier`, `badge`.
+- Inputs: exactly one of `content` (string) · `source_url` (http(s) URL) · `files` (array of `{path, content|content_base64, content_type?}` + optional `entry`) · `file` (local path, stdio only). Optional: `title`, `password` (Pro), `noindex`, `visibility` (`public` | `unlisted`), `expires_at`, `metadata`, `idempotency_key`.
+- Output: the full camelCase `DropResponse` — `url`, `id`, `slug`, `deploymentId`, `expiresAt`, `createdAt`, `contentType`, `sizeBytes`, `badgeApplied`, `persistent`, `tier`, `limitations` (no `password`).
 
 ## dropthis_redeploy
 
 Publish a new content version to an existing drop, keeping its URL/slug.
 
-- Inputs: `drop_id`; one of `content` or `file`. (`source_url` is not supported for redeploy.)
-- Output: `url`, `drop_id`, `updated_at`.
+- Inputs: `drop_id`; exactly one of `content`, `source_url`, `files` (+ optional `entry`), or `file` (stdio only). Optional: `expires_at`, `metadata`, `idempotency_key`, `if_revision`.
+- Output: the updated `DropResponse` — `url`, `id`, `revision`, `deploymentId`, `createdAt` (there is NO `updatedAt` field).
 
 ## dropthis_update
 
 Update settings only — never content.
 
 - Inputs: `drop_id`; optional `title`, `visibility`, `password` (Pro; `null` clears), `noindex` (`null` clears), `vanity_slug` (Pro).
-- Output: `url`, `drop_id`, `updated_at`.
+- Output: the updated `DropResponse` — `url`, `id`, `slug`, `title`, `visibility`, `revision` (there is NO `updatedAt` field).
 
 ## dropthis_get
 
@@ -30,7 +30,7 @@ Update settings only — never content.
 
 ## dropthis_list
 
-- Inputs: optional `cursor`, `limit` (1–100, default 20). Output: `items` (id, url, title, status, expiresAt) + `next_cursor`. Read-only.
+- Inputs: optional `cursor`, `limit` (1–100, default 20). Output: `items` (each `id`, `url`, `title`, `status`, `expiresAt`) + `nextCursor`. Read-only.
 
 ## dropthis_delete
 

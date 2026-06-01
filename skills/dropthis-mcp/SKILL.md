@@ -69,11 +69,12 @@ OAuth (approve a 6-digit email login). Automation (n8n, CI) sends `Authorization
 
 - `content` — inline HTML/text you generated. The common case.
 - `source_url` — a public `http(s)` URL the server fetches (SSRF-guarded). Use to mirror an existing page.
+- `files` — a multi-file bundle of `{path, content|content_base64, content_type?}` (plus optional `entry`). Use this for multi-file apps — do NOT inline CSS/JS into one HTML string.
 - `file` — a local file path. **Local/stdio only**; not available on the remote connector.
 
 To change settings (title, visibility, password, noindex, vanity slug) without changing
 content, use `dropthis_update`. To ship a new content version to the same URL, use
-`dropthis_redeploy` (it accepts `content` or `file` — not `source_url`).
+`dropthis_redeploy` (it accepts the same content inputs: `content`, `source_url`, `files`, or `file`).
 
 ## Auth and limits
 
