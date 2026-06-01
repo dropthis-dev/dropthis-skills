@@ -1,0 +1,17 @@
+{
+  "name": "dropthis-skills-devtools",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Maintainer dev-tools for the dropthis-skills plugin. NOT published; not part of the installed skill. Regenerates the committed commands.json + tools.md GENERATED block from the published @dropthis/cli and @dropthis/mcp.",
+  "type": "module",
+  "scripts": {
+    "gen:commands": "node scripts/gen-commands.mjs",
+    "gen:tools": "node scripts/gen-tools.mjs",
+    "gen": "npm run gen:commands && npm run gen:tools",
+    "check": "node scripts/gen-commands.mjs --check && node scripts/gen-tools.mjs --check"
+  },
+  "devDependencies": {
+    "@dropthis/cli": "0.6.0",
+    "@dropthis/mcp": "0.2.0"
+  }
+}

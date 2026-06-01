@@ -61,6 +61,18 @@ Output goes to:
 - `skills/dropthis-cli/references/*.md`
 - `skill-evals/dropthis-cli/evals.json`
 
+6. Regenerate the machine-readable command catalog and verify it is in sync (maintainer step — no CI runs this):
+   - `npm install`  (first time only; installs the pinned @dropthis/cli + @dropthis/mcp dev-tools)
+   - `npm run gen:commands`
+   - `node scripts/gen-commands.mjs --check`  (must exit 0)
+
+## Step 3b: Regenerate the MCP tool reference (maintainer step — no CI runs this)
+
+1. `npm install`  (first time only; installs the pinned @dropthis/mcp dev-tool)
+2. `npm run gen:tools`  (drives the live @dropthis/mcp `tools/list` schemas → regenerates the GENERATED block)
+3. `node scripts/gen-tools.mjs --check`  (must exit 0)
+4. Hand-authored prose above the GENERATED block (Choosing inputs, per-tool descriptions/outputs, Free vs Pro) stays manual.
+
 ## Step 4: Verify
 
 Run both analyzers again:
