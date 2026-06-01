@@ -2,7 +2,7 @@
 
 ## publish
 
-Publish files, folders, strings, or stdin. Multiple files are bundled into one drop. Use `-` to read stdin explicitly, or pipe without args.
+Publish files, folders, URLs, strings, or stdin. Multiple files are bundled into one drop. A bare `http(s)` URL is fetched by the server (source_url). Use `-` to read stdin explicitly, or pipe without args.
 
 `publish` is the **default command** — you can omit it and pass files directly to `dropthis`:
 
@@ -21,7 +21,8 @@ dropthis publish [input...] [flags]
 The `input` argument accepts:
 - A file path (`./page.html`)
 - A directory path (`./dist`)
-- Multiple file paths (`index.html styles.css app.js`) -- bundled into one drop
+- Multiple file paths (`index.html styles.css app.js`) -- bundled into one drop. Pass the files as separate arguments; do NOT inline CSS/JS into one HTML file.
+- A public `http(s)` URL (`https://example.com/page.html`) -- the server fetches it (source_url flow)
 - `-` for explicit stdin
 - Omit input and pipe content via stdin
 
@@ -142,6 +143,9 @@ dropthis ./dist --url
 
 # Publish multiple files bundled into one drop
 dropthis index.html styles.css app.js --url
+
+# Publish a copy of a public URL (server fetches it)
+dropthis https://example.com/page.html --url
 
 # Publish from stdin with required flags
 echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index.html --url
