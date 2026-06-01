@@ -78,13 +78,17 @@ Useful for inspecting what would be uploaded.
 | `input` | `PublishInput` | Yes | Content to prepare |
 | `options` | `PublishOptions` | No | Publish options |
 
-**Returns:** `Promise<PreparedPublishRequest>`
+**Returns:** `Promise<PreparedPublishRequest>` — a discriminated union on `kind`:
+- `kind: "staged"` — has `manifest` (the upload manifest) and `files` (prepared files).
+- `kind: "source"` — has `sourceUrl` (server-fetched URL); no files to upload.
 
 **Example:**
 
 ```typescript
 const prepared = await dropthis.prepare("./dist");
-console.log(prepared.manifest.files); // list of files that would be uploaded
+if (prepared.kind === "staged") {
+  console.log(prepared.manifest.files); // files that would be uploaded
+}
 ```
 
 ## Input types
@@ -189,54 +193,12 @@ Access the Account resource for managing the authenticated account. See [auth.md
 dropthis.account.get();
 ```
 
-## Low-level methods
-
-### request(method, path, options?)
-
-Generic HTTP request to the dropthis API. Used for endpoints not covered by resource methods.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `method` | `string` | Yes | HTTP method (e.g. `"GET"`, `"POST"`) |
-| `path` | `string` | Yes | API path (e.g. `"/drops"`) |
-| `options.body` | `unknown` | No | Request body |
-| `options.params` | `Record<string, string \| number \| boolean \| null \| undefined>` | No | Query parameters |
-| `options.idempotencyKey` | `string` | No | Idempotency key |
-| `options.ifRevision` | `number` | No | Optimistic concurrency revision |
-| `options.authenticated` | `boolean` | No | Whether to include auth header (default: `true`) |
-| `options.timeoutMs` | `number` | No | Per-request timeout override |
-
-**Returns:** `DropthisResult<T>`
-
-**Example:**
-
-```typescript
-const { data, error } = await dropthis.request<{ ok: true }>("POST", "/some/endpoint", {
-  body: { key: "value" },
-});
-```
-
-### requestSignedUpload(url, bytes, headers)
-
-Upload bytes to a presigned URL. Used internally by the staged upload flow.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `url` | `string` | Yes | Presigned upload URL |
-| `bytes` | `Uint8Array \| Blob \| ReadableStream` | Yes | Content to upload |
-| `headers` | `Record<string, string>` | Yes | Headers required by the presigned URL |
-
-**Returns:** `DropthisResult<{ etag: string | null }>`
-
 ## Notes
 
 - String inputs are auto-detected in priority order: an `http(s)` URL → server-fetched (source_url); multiline/oversized → inline content; otherwise stat the path (file/dir) → staged upload; a path-shaped miss → `file_not_found`; else inline prose.
 - A bare `http(s)` URL string (or a `URL` object, or `{ kind: "source_url" }`) publishes a server-fetched copy. Pass the URL directly -- do NOT fetch it yourself.
 - To publish multiple files, pass `string[]` paths or `{ kind: "files", files: [...] }`. Do NOT inline CSS/JS into one HTML blob.
 - `publish()` returns BOTH `data.id` (the `drop_…` id) and `data.slug` (the URL token). Pass `data.id` to `deploy(dropId, …)`, `update(dropId, …)`, and `drops.get/update/delete(dropId)` — the slug is NOT accepted as a drop id. Retain `data.id` for all follow-up operations.
-- The staged upload flow uses presigned URLs for direct-to-R2 uploads. The SDK handles this entirely.
+- The staged upload flow uses presigned URLs for direct-to-R2 uploads (single PUT per file). The SDK handles this entirely.
 - For files larger than 10 MB, SHA-256 checksums are computed automatically for integrity verification.
+- The public API is `prepare` / `publish` / `deploy` / `update` plus the resource getters. There is no generic `request()` escape hatch and no `requestSignedUpload()` — those low-level methods are not part of the public surface.

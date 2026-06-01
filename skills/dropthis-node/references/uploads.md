@@ -1,9 +1,13 @@
 # Uploads
 
-Low-level upload session management. Accessed via `dropthis.uploads`.
+Low-level upload session management. Accessed via `dropthis.uploads` — `create`, `get`, `complete`, `cancel`.
 
-Most users should use `dropthis.publish()` or `dropthis.update()` instead, which handle
-the entire staged upload flow (create session, upload files, complete, finalize) automatically.
+**Most users never call this directly.** `dropthis.publish()` and `dropthis.deploy()` handle the
+entire staged upload flow (create session, upload files, complete, finalize) internally. Reach for
+`dropthis.uploads.*` only if you are building a custom upload pipeline.
+
+Staging uploads to a single object via a presigned **single PUT**. There is no multipart / part-target
+flow in this SDK.
 
 ## Methods
 
@@ -37,7 +41,7 @@ Each `UploadManifestFile`:
 
 **Returns:** `DropthisResult<CreateUploadSessionResponse>`
 
-The response includes presigned upload URLs for each file:
+The response includes a presigned single-PUT upload target for each file:
 
 ```typescript
 const { data, error } = await dropthis.uploads.create({
@@ -48,6 +52,7 @@ const { data, error } = await dropthis.uploads.create({
 });
 if (!error) {
   // data.uploadId -- session ID
+  // data.files[0].upload.strategy -- always "single_put"
   // data.files[0].upload.url -- presigned PUT URL
   // data.files[0].upload.headers -- headers to include in PUT
 }
@@ -74,57 +79,23 @@ if (!error) {
 }
 ```
 
-### createPartTargets(uploadId, body)
-
-Request presigned URLs for multipart upload parts. Used when a file is too large for a single PUT.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `uploadId` | `string` | Yes | Upload session ID |
-| `body` | `CreateUploadPartTargetsRequest` | Yes | Part target request |
-
-`CreateUploadPartTargetsRequest` shape:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `fileId` | `string` | Yes | File ID from the create response |
-| `partNumbers` | `number[]` | Yes | Part numbers to get URLs for |
-
-**Returns:** `DropthisResult<CreateUploadPartTargetsResponse>`
-
-**Example:**
-
-```typescript
-const { data, error } = await dropthis.uploads.createPartTargets("upl_abc123", {
-  fileId: "file_xyz",
-  partNumbers: [1, 2, 3],
-});
-if (!error) {
-  for (const part of data.parts) {
-    // PUT bytes to part.url with part.headers
-  }
-}
-```
-
 ### complete(uploadId, body, options?)
 
-Complete an upload session after all files have been uploaded.
+Complete an upload session after all files have been uploaded to their presigned URLs.
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `uploadId` | `string` | Yes | Upload session ID |
-| `body` | `CompleteUploadSessionRequest` | Yes | Completion body with optional part ETags |
+| `body` | `CompleteUploadSessionRequest` | Yes | Completion body |
 | `options.idempotencyKey` | `string` | No | Idempotency key |
 
 `CompleteUploadSessionRequest` shape:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `files` | `Record<string, { parts?: Array<{ partNumber: number; etag: string }> \| null }>` | No | Map of fileId to part ETags (for multipart uploads) |
+| `files` | `Record<string, { parts?: Array<{ partNumber: number; etag: string }> \| null }>` | No | Reserved; the single-PUT flow sends an empty object (`{ files: {} }`) |
 
 **Returns:** `DropthisResult<UploadSessionResponse>`
 
@@ -132,9 +103,7 @@ Complete an upload session after all files have been uploaded.
 
 ```typescript
 const { data, error } = await dropthis.uploads.complete("upl_abc123", {
-  files: {
-    file_xyz: { parts: [{ partNumber: 1, etag: '"abc"' }] },
-  },
+  files: {},
 });
 ```
 
@@ -158,7 +127,7 @@ const { error } = await dropthis.uploads.cancel("upl_abc123");
 
 ## Notes
 
-- The full staged upload flow is: `create` -> upload files via presigned URLs -> `complete` -> use `uploadId` with `drops.create()` or `deployments.create()`.
-- `dropthis.publish()` and `dropthis.update()` handle this entire flow automatically.
-- For multipart uploads, the server sets the `strategy` to `"multipart"` and provides `partSize` and `partCount` in the upload target.
-- Part target requests are batched in groups of up to 100 part numbers.
+- The staged upload flow is: `create` → PUT each file to its presigned `single_put` URL → `complete` → finalize the drop with the `uploadId`.
+- `dropthis.publish()` and `dropthis.deploy()` run this entire flow internally — they finalize the drop for you using the resulting `uploadId`. You don't pass an `uploadId` anywhere yourself.
+- `dropthis.update()` is metadata-only (title, slug, visibility, etc.) and does **not** touch the upload flow.
+- Staging always uses a single PUT per file (`strategy: "single_put"`). There is no multipart / part-target API and no `partSize`/`partCount` — those were removed.

@@ -1,53 +1,12 @@
 # Drops
 
-CRUD operations on drops. Accessed via `dropthis.drops`.
+Read and manage existing drops. Accessed via `dropthis.drops` — `list`, `get`, `update`, `delete`.
+
+This resource does **not** create drops. To publish a NEW drop, call `dropthis.publish(input, options)`.
+To redeploy new content to an existing drop, call `dropthis.deploy(dropId, input, options)`. See
+[publish.md](publish.md).
 
 ## Methods
-
-### create(body, options?)
-
-Create a drop using a raw request body (low-level). Keys are automatically converted to snake_case.
-Most users should use `dropthis.publish()` instead.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `body` | `unknown` | Yes | Request body (camelCase keys auto-converted to snake_case) |
-| `options.idempotencyKey` | `string` | No | Idempotency key for safe retries |
-
-**Returns:** `DropthisResult<DropResponse>`
-
-**Example:**
-
-```typescript
-const { data, error } = await dropthis.drops.create({
-  uploadId: "upl_abc123",
-  options: { title: "My Drop" },
-});
-```
-
-### createRaw(body, options?)
-
-Create a drop using a raw request body without snake_case conversion.
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `body` | `unknown` | Yes | Request body (sent as-is) |
-| `options.idempotencyKey` | `string` | No | Idempotency key for safe retries |
-
-**Returns:** `DropthisResult<DropResponse>`
-
-**Example:**
-
-```typescript
-const { data, error } = await dropthis.drops.createRaw({
-  upload_id: "upl_abc123",
-  options: { title: "My Drop" },
-});
-```
 
 ### list(params?)
 
@@ -99,7 +58,7 @@ if (!error) console.log(data.title, data.url);
 ### update(dropId, options?)
 
 Update drop metadata (title, visibility, password, etc.). Does **not** change content --
-use `dropthis.deploy(dropId, newContent)` or `deployments.create()` for content changes.
+use `dropthis.deploy(dropId, newContent)` for content changes.
 
 **Parameters:**
 
@@ -141,6 +100,7 @@ if (error) console.error("Delete failed:", error.message);
 
 ## Notes
 
-- `drops.update()` is metadata-only.
+- The `drops` resource is `list` / `get` / `update` / `delete` only — there is no `drops.create()`. Publishing a NEW drop is `dropthis.publish(input, options)`.
+- `drops.update()` is metadata-only. `dropthis.update(dropId, options)` is a convenience wrapper that delegates to `drops.update()` — both are metadata-only.
 - For updating content, use `dropthis.deploy(dropId, newContent)` which creates a new deployment.
 - `idempotencyKey` and `ifRevision` are fields in the options object.
