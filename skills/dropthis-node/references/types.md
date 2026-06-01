@@ -431,34 +431,28 @@ type RequestControls = {
 ### PublishInput
 
 ```typescript
-type PublishInput = string | Uint8Array | ExplicitPublishInput;
+type PublishInput =
+  | string
+  | string[]
+  | URL
+  | Uint8Array
+  | { kind: "content"; content: string; contentType?: string; path?: string }
+  | { kind: "source_url"; sourceUrl: string }
+  | { kind: "files"; files: PublishFileInput[]; entry?: string };
 ```
 
-### ExplicitPublishInput
+### PublishFileInput
+
+Each file supplies its bytes via exactly one of `content`, `contentBase64`, or `bytes`. `contentType` is optional (auto-detected if omitted).
 
 ```typescript
-type ExplicitPublishInput =
-  | {
-      content: string;
-      contentType?: string;
-      title?: string;
-      visibility?: "public" | "unlisted";
-      metadata?: Record<string, unknown>;
-      entry?: string;
-    }
-  | {
-      files: Array<{
-        path: string;
-        content?: string;
-        contentBase64?: string;
-        bytes?: Uint8Array;
-        contentType: string;
-      }>;
-      title?: string;
-      visibility?: "public" | "unlisted";
-      metadata?: Record<string, unknown>;
-      entry?: string;
-    };
+type PublishFileInput = {
+  path: string;
+  contentType?: string;
+  content?: string;
+  contentBase64?: string;
+  bytes?: Uint8Array;
+};
 ```
 
 ### PublishOptions

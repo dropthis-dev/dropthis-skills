@@ -93,12 +93,15 @@ console.log(prepared.manifest.files); // list of files that would be uploaded
 
 | Input | Type | Description |
 |-------|------|-------------|
-| HTML string | `string` | `"<h1>Hello</h1>"` -- auto-detected as HTML |
+| HTML/text string | `string` | `"<h1>Hello</h1>"` -- auto-detected as inline content |
 | File path | `string` | `"./report.html"` -- detected via filesystem stat |
 | Directory path | `string` | `"./dist"` -- all files collected recursively |
+| File path list | `string[]` | `["index.html", "style.css"]` -- bundled into one drop |
+| Public URL | `string` \| `URL` | `"https://example.com/page.html"` -- server fetches it (source_url flow) |
 | Raw bytes | `Uint8Array` | Binary content |
-| Explicit content | `{ content: string; contentType?: string }` | String with explicit content type |
-| Explicit files | `{ files: Array<{ path, content?, contentBase64?, bytes?, contentType }> }` | Multiple files with inline content |
+| Inline content | `{ kind: "content"; content; contentType?; path? }` | Explicit inline content |
+| Source URL | `{ kind: "source_url"; sourceUrl }` | Explicit server-fetched URL |
+| Explicit files | `{ kind: "files"; files: PublishFileInput[]; entry? }` | Multi-file bundle (do NOT inline assets into one file) |
 
 ## PublishOptions
 
@@ -231,7 +234,8 @@ Upload bytes to a presigned URL. Used internally by the staged upload flow.
 
 ## Notes
 
-- String inputs are auto-detected: if the string resolves to a file or directory on disk, it is treated as a path. Otherwise it is treated as inline content.
-- URL strings are **not supported**. Fetch the content first, then pass the result.
+- String inputs are auto-detected in priority order: an `http(s)` URL → server-fetched (source_url); multiline/oversized → inline content; otherwise stat the path (file/dir) → staged upload; a path-shaped miss → `file_not_found`; else inline prose.
+- A bare `http(s)` URL string (or a `URL` object, or `{ kind: "source_url" }`) publishes a server-fetched copy. Pass the URL directly -- do NOT fetch it yourself.
+- To publish multiple files, pass `string[]` paths or `{ kind: "files", files: [...] }`. Do NOT inline CSS/JS into one HTML blob.
 - The staged upload flow uses presigned URLs for direct-to-R2 uploads. The SDK handles this entirely.
 - For files larger than 10 MB, SHA-256 checksums are computed automatically for integrity verification.

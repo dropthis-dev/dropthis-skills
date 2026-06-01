@@ -155,15 +155,24 @@ const { data } = await dropthis.publish(new Uint8Array([...]), {
 });
 ```
 
-### Publish explicit files
+### Publish explicit files (multi-file bundle)
 
 ```typescript
 const { data } = await dropthis.publish({
+  kind: "files",
   files: [
-    { path: "index.html", content: "<h1>Hi</h1>", contentType: "text/html" },
-    { path: "style.css", content: "body{}", contentType: "text/css" },
+    { path: "index.html", content: "<h1>Hi</h1>" },
+    { path: "style.css", content: "body{}" },
   ],
+  entry: "index.html",
 });
+```
+
+### Publish a public URL (server fetches it)
+
+```typescript
+const { data } = await dropthis.publish("https://example.com/page.html");
+// or: await dropthis.publish({ kind: "source_url", sourceUrl: "https://example.com/page.html" });
 ```
 
 ### Deploy new content to an existing drop
@@ -208,7 +217,7 @@ for await (const drop of page.data) {
 |---------|-----|
 | Accessing `data` without checking `error` | Always check `if (error)` first |
 | Using `drops.update()` to push new content | Use `dropthis.deploy(id, newContent)` for content changes; `drops.update()` and `dropthis.update()` are both metadata-only |
-| Passing a URL string to `publish()` | URLs are not supported; fetch the content first, then pass the string/bytes |
+| Fetching a URL before publishing | Pass the `http(s)` URL straight to `publish()` (or `{ kind: "source_url", sourceUrl }`) -- the server fetches it. Do NOT download it yourself first. |
 | Forgetting `ifRevision` on concurrent updates | Pass `ifRevision` from the previous response to get optimistic concurrency |
 | Using `uploads.*` directly for simple publishes | Use `dropthis.publish()` which handles the staged upload flow automatically |
 | Importing from subpaths | Import everything from `"@dropthis/node"` -- there are no public subpath exports |
