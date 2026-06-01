@@ -186,6 +186,6 @@ dropthis ./page.html --json
 - When piping stdin, `--content-type` and `--path` are strongly recommended. If omitted, the SDK auto-detects the content type (HTML detected from tags, else `text/plain`) and picks an entry filename (`index.html` for HTML, `index.txt` otherwise). Set them explicitly for deterministic output.
 - `--url` and `--dry-run` are mutually exclusive.
 - `--metadata` and `--metadata-file` are mutually exclusive.
-- An idempotency key is auto-generated (`cli_pub_<uuid>`) if not provided.
+- An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
 - Maximum 200 files per bundle.
 - In non-TTY environments (pipes, CI), output defaults to JSON automatically.

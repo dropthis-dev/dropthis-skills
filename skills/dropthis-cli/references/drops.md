@@ -219,7 +219,7 @@ dropthis drops update drop_abc123 --metadata '{"campaign":"winter-2025"}'
 - When no `[input]` is provided, only metadata flags (title, visibility, password, etc.) are applied without creating a new deployment.
 - When `[input]` is provided, a new deployment is created. Metadata flags can be combined.
 - `--if-revision` enables optimistic concurrency -- the update fails with `revision_conflict` if the drop has been modified since the specified revision.
-- An idempotency key is auto-generated (`cli_upd_<uuid>`) if not provided.
+- An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
 
 ---
 

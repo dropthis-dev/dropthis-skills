@@ -1,7 +1,8 @@
 # Tool reference
 
-All tools are namespaced `dropthis_`. Mutating tools return `url` first. Errors come back
-in-band with `code`, `suggestion`, and `request_id`.
+All tools are namespaced `dropthis_`. The publish/redeploy/update/get tools return the drop's
+`DropResponse` (camelCase, including `url`); `delete` returns `{ deleted, drop_id }` and the list
+tools return `{ items, nextCursor }`. Errors come back in-band with `code`, `suggestion`, and `request_id`.
 
 ## dropthis_publish
 
