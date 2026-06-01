@@ -139,11 +139,19 @@ const { data } = await dropthis.publish("./dist");
 ```typescript
 const { data } = await dropthis.publish("./dist", {
   title: "Q4 Report",
-  slug: "q4-report",
   visibility: "unlisted",
   password: "s3cret",
   expiresAt: "2026-12-31T00:00:00Z",
 });
+```
+
+### Set a vanity slug
+
+`slug` is NOT a `publish()` option — `publish()` ignores it. Publish first, then set the slug via `update(dropId, { slug })`:
+
+```typescript
+const { data } = await dropthis.publish("./dist");
+await dropthis.update(data.id, { slug: "q4-report" });
 ```
 
 ### Publish bytes
