@@ -145,6 +145,9 @@ dropthis ./dist --url
 # Multiple files
 dropthis index.html styles.css app.js --url
 
+# Publish a copy of a public URL (server fetches it — SSRF-guarded)
+dropthis https://example.com/page.html --url
+
 # Stdin (explicit publish required)
 echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index.html --url
 ```
@@ -198,7 +201,7 @@ dropthis ./report.html --password s3cret --url
 |---|---------|-----|
 | 1 | **Forgetting `--url` or `--json`** | Without either flag, the CLI prints human-friendly output that's hard to parse. Always use `--url` for agents. |
 | 2 | **Not checking exit code 3** | Exit 3 means auth required. Run `dropthis whoami` first, then prompt for login if needed. |
-| 3 | **Passing a URL as input** | URL inputs are not supported. Fetch the content first, save to a file, then publish the file. |
+| 3 | **Assuming URLs aren't supported** | A bare `http(s)` URL IS a valid input: `dropthis https://example.com/page.html --url` publishes a server-fetched copy (source_url flow). Pass the URL directly -- do NOT fetch it yourself first. |
 | 4 | **Missing `--content-type` with stdin** | When piping content via stdin (`-`), `--content-type` and `--path` are required. |
 
 ## After Setup
