@@ -12,6 +12,6 @@
   },
   "devDependencies": {
     "@dropthis/cli": "^0.6.1",
-    "@dropthis/mcp": "0.2.0"
+    "@dropthis/mcp": "^0.2.2"
   }
 }
