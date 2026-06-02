@@ -8,27 +8,29 @@ tools return `{ items, nextCursor }`. Errors come back in-band with `code`, `sug
 
 Publish NEW content → permanent public URL.
 
-- Inputs: exactly one of `content` (string) · `source_url` (http(s) URL) · `files` (array of `{path, content|content_base64, content_type?}` + optional `entry`) · `file` (local path, stdio only). Optional: `title`, `password` (Pro), `noindex`, `visibility` (`public` | `unlisted`), `expires_at`, `metadata`, `idempotency_key`.
+- Inputs: exactly one of `content` (string) · `source_url` (http(s) URL) · `files` (array of `{path, content|content_base64, content_type?}` + optional `entry`) · `file` (local file or directory; a directory publishes as a complete multi-file site; stdio only) · `paths` (array of local file/directory paths published as one bundle; stdio only). Optional: `title`, `password` (Pro), `noindex`, `visibility` (`public` | `unlisted`), `expires_at`, `metadata`, `idempotency_key`.
 - Output: the full camelCase `DropResponse` — `url`, `id`, `slug`, `deploymentId`, `expiresAt`, `createdAt`, `contentType`, `sizeBytes`, `badgeApplied`, `persistent`, `tier`, `limitations` (no `password`). Keep the `id` (not the `slug`/`url`) — every id-based tool takes it as `drop_id`.
 
 ## dropthis_redeploy
 
-Publish a new content version to an existing drop, keeping its URL/slug.
+Publish a new content version to an existing drop, keeping its URL/slug. **Content-only** — it
+ships a new content version and never changes settings. To change settings (title, visibility,
+password, noindex, vanity slug, expiry, metadata), use `dropthis_update`.
 
-- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); exactly one of `content`, `source_url`, `files` (+ optional `entry`), or `file` (stdio only). Optional: `expires_at`, `metadata`, `idempotency_key`, `if_revision`.
+- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); exactly one of `content`, `source_url`, `files` (+ optional `entry`), `file` (local file or directory; stdio only), or `paths` (array of local file/directory paths; stdio only). Optional: `idempotency_key`, `if_revision`. Does NOT accept `expires_at` or `metadata` (those are settings — use `dropthis_update`).
 - Output: the updated `DropResponse` — `url`, `id`, `revision`, `deploymentId`, `createdAt` (there is NO `updatedAt` field).
 
 ## dropthis_update
 
 Update settings only — never content.
 
-- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); optional `title`, `visibility`, `password` (Pro; `null` clears), `noindex` (`null` clears), `vanity_slug` (Pro).
+- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); optional `title`, `visibility`, `password` (Pro; `null` clears), `noindex` (`null` clears), `vanity_slug` (Pro), `expires_at`, `metadata`. This is where expiry and metadata are managed (redeploy no longer accepts them).
 - Output: the updated `DropResponse` — `url`, `id`, `slug`, `title`, `visibility`, `revision` (there is NO `updatedAt` field).
 
 ## dropthis_get
 
 - Input: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token).
-- Output: the full camelCase `DropResponse` — `id`, `slug`, `url`, `deploymentId`, `title`, `visibility`, `status`, `revision`, `contentType`, `sizeBytes`, `createdAt`, `expiresAt`, `accessible`, `persistent`, `badgeApplied`, `tier`, `limitations`. **The password is never returned** (write-only — `DropResponse` has no password field). Read-only.
+- Output: the full camelCase `DropResponse` — `id`, `slug`, `url`, `deploymentId`, `title`, `visibility`, `status`, `revision`, `contentType`, `sizeBytes`, `createdAt`, `expiresAt`, `accessible`, `persistent`, `badgeApplied`, `tier`, `limitations`, plus the settings read-back fields `noindex` (bool), `passwordProtected` (bool), and `metadata` (object). **The raw password is never returned** — only `passwordProtected` tells you whether one is set. The summary flags access state, e.g. `[unlisted, password-protected, noindex]`. Read-only.
 
 ## dropthis_list
 
@@ -66,10 +68,10 @@ Inputs: `cursor`, `limit`
 Inputs: `drop_id` (required), `cursor`, `limit`
 
 ### `dropthis_publish`
-Inputs: `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `title`, `password`, `noindex`, `visibility`, `expires_at`, `metadata`, `idempotency_key`
+Inputs: `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `paths`, `title`, `password`, `noindex`, `visibility`, `expires_at`, `metadata`, `idempotency_key`
 
 ### `dropthis_redeploy`
-Inputs: `drop_id` (required), `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `expires_at`, `metadata`, `idempotency_key`, `if_revision`
+Inputs: `drop_id` (required), `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `paths`, `idempotency_key`, `if_revision`
 
 ### `dropthis_update`
 Inputs: `drop_id` (required), `title`, `visibility`, `password`, `noindex`, `vanity_slug`, `expires_at`, `metadata`

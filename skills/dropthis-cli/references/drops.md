@@ -85,11 +85,11 @@ dropthis drops get drop_abc123
 
 ### drops update
 
-Update an existing drop by id. Can replace content, update metadata, or both. This is the single command for all updates to a drop -- content deployment and metadata changes.
+Update an existing drop by id. Updates content **OR** settings -- not both in one call. This is the single command for updates to a drop, but each invocation is one or the other.
 
-- When `[input]` is provided (file, directory, stdin), a new deployment is created with the new content.
-- When only metadata flags are provided (no input), only metadata is updated without a new deployment.
-- Both can be combined: new content + metadata changes in one command.
+- When `[input]` is provided (file, directory, stdin), a new content version is deployed -- **content-only**, no settings flags allowed.
+- When only settings flags are provided (no input), settings are updated without a new deployment.
+- Mixing `[input]` with settings flags is **rejected**. To change both, run the command twice: once with an `[input]` to deploy new content, then again with settings flags.
 
 #### Usage
 
@@ -98,7 +98,7 @@ dropthis drops update <dropId> [input] [flags]
 ```
 
 - `<dropId>` is a drop id (must start with `drop_`), obtained from `--json` output of `publish` or `drops get`.
-- `[input]` is an optional file, directory, or `-` for stdin. If omitted, only metadata flags are applied.
+- `[input]` is an optional file, directory, or `-` for stdin. When provided, the call is content-only and settings flags are rejected. If omitted, only settings flags are applied.
 
 #### Flags
 
@@ -204,8 +204,9 @@ dropthis drops update drop_abc123 --slug new-slug --json
 # Dry-run to preview what would change
 dropthis drops update drop_abc123 ./dist --dry-run
 
-# Update content and metadata in one command
-dropthis drops update drop_abc123 ./dist-v2 --title "v2 Release" --url
+# Update content and settings: run twice (content-only, then settings-only)
+dropthis drops update drop_abc123 ./dist-v2 --url
+dropthis drops update drop_abc123 --title "v2 Release" --json
 
 # Remove password
 dropthis drops update drop_abc123 --no-password
@@ -216,8 +217,8 @@ dropthis drops update drop_abc123 --metadata '{"campaign":"winter-2025"}'
 
 #### Notes
 
-- When no `[input]` is provided, only metadata flags (title, visibility, password, etc.) are applied without creating a new deployment.
-- When `[input]` is provided, a new deployment is created. Metadata flags can be combined.
+- When no `[input]` is provided, only settings flags (title, visibility, password, noindex, slug, expires-at, metadata) are applied without creating a new deployment.
+- When `[input]` is provided, a new content version is deployed -- the call is content-only and settings flags are rejected. To change content and settings, run the command twice.
 - `--if-revision` enables optimistic concurrency -- the update fails with `revision_conflict` if the drop has been modified since the specified revision.
 - An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
 
@@ -261,5 +262,5 @@ dropthis drops delete drop_abc123 --yes
 ## Notes
 
 - All `drops` subcommands require authentication.
-- `drops update` handles both content deployment and metadata updates. Provide `[input]` for new content, metadata flags for metadata changes, or both.
+- `drops update` handles content deployment and settings updates, but each call is one or the other: provide `[input]` for new content (content-only), or settings flags for settings changes. Mixing the two in one call is rejected -- run it twice to change both.
 - The `drops delete --yes` flag is mandatory in non-interactive (non-TTY) environments. Agents must always include it.

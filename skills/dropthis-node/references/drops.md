@@ -48,17 +48,22 @@ Get a single drop by ID.
 
 **Returns:** `DropthisResult<DropResponse>`
 
+`DropResponse` includes settings read-back fields: `noindex` (boolean), `passwordProtected`
+(boolean — the raw password is never returned), and `metadata` (object). See
+[types.md](types.md).
+
 **Example:**
 
 ```typescript
 const { data, error } = await dropthis.drops.get("drop_abc123");
-if (!error) console.log(data.title, data.url);
+if (!error) console.log(data.title, data.url, data.noindex, data.passwordProtected);
 ```
 
 ### update(dropId, options?)
 
-Update drop metadata (title, visibility, password, etc.). Does **not** change content --
-use `dropthis.deploy(dropId, newContent)` for content changes.
+Update drop settings (title, visibility, password, noindex, slug, expiry, metadata). Does
+**not** change content -- use `dropthis.deploy(dropId, newContent)` for content changes
+(`deploy()` is content-only and never touches settings).
 
 **Parameters:**
 
@@ -101,6 +106,6 @@ if (error) console.error("Delete failed:", error.message);
 ## Notes
 
 - The `drops` resource is `list` / `get` / `update` / `delete` only — there is no `drops.create()`. Publishing a NEW drop is `dropthis.publish(input, options)`.
-- `drops.update()` is metadata-only. `dropthis.update(dropId, options)` is a convenience wrapper that delegates to `drops.update()` — both are metadata-only.
-- For updating content, use `dropthis.deploy(dropId, newContent)` which creates a new deployment.
+- `drops.update()` is settings-only. `dropthis.update(dropId, options)` is a convenience wrapper that delegates to `drops.update()` — both change settings only, never content.
+- For updating content, use `dropthis.deploy(dropId, newContent)` which creates a new deployment and never changes settings.
 - `idempotencyKey` and `ifRevision` are fields in the options object.

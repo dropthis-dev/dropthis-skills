@@ -89,10 +89,17 @@ type DropResponse = {
   accessible: boolean;
   persistent: boolean;
   badgeApplied: boolean;
+  noindex: boolean;
+  passwordProtected: boolean;
+  metadata: Record<string, unknown>;
   tier: TierInfo;
   limitations: Limitations;
 };
 ```
+
+Settings read-back: `noindex`, `passwordProtected`, and `metadata` reflect the drop's current
+settings. The raw `password` is **never** returned — `passwordProtected` is the only signal of
+whether one is set.
 
 ### TierInfo
 

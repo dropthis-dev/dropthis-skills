@@ -4,7 +4,8 @@ Deployment history for a drop. Each time content is redeployed, a new deployment
 The `dropthis.deployments` resource is **read-only** -- it lists and fetches deployment history.
 
 To publish a NEW content version (redeploy), call `dropthis.deploy(dropId, input, options)`.
-To update settings only, call `dropthis.update(dropId, options)` (metadata-only; never content).
+`deploy()` is **content-only** — it ships a new content version and never changes drop settings.
+To update settings only, call `dropthis.update(dropId, options)` (settings-only; never content).
 
 ## Methods
 
@@ -69,7 +70,10 @@ if (!error) {
 `dropthis.deployments` does not create deployments. To publish a new content version to an
 existing drop -- keeping its URL and slug -- call `dropthis.deploy(dropId, input, options)`.
 It accepts the same `PublishInput` as `dropthis.publish()` and handles the full staged upload
-flow automatically.
+flow automatically. `deploy()` is **content-only**: its `options` are `DeployOptions`
+(content-prep fields + `entry` + `idempotencyKey`/`ifRevision` only) — it carries no drop
+settings. Settings (title, visibility, password, noindex, slug, expiry, metadata) are managed
+separately via `dropthis.update()`.
 
 ```typescript
 const { data, error } = await dropthis.deploy(
@@ -82,9 +86,9 @@ if (!error) {
 }
 ```
 
-To change settings (title, visibility, password, noindex, slug) WITHOUT changing content, use
-`dropthis.update("drop_abc123", { title: "New title" })` -- it is metadata-only and never
-creates a content deployment.
+To change settings (title, visibility, password, noindex, slug, expiry, metadata) WITHOUT
+changing content, use `dropthis.update("drop_abc123", { title: "New title" })` -- it is
+settings-only and never creates a content deployment.
 
 ## Notes
 

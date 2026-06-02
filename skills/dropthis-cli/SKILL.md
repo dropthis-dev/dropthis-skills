@@ -117,7 +117,7 @@ dropthis publish ./dist --url
 | `publish <input>` | Same as above, explicit form |
 | `drops list` | List your drops |
 | `drops get <id>` | Get drop details |
-| `drops update <id> [input]` | Update content, metadata, or both |
+| `drops update <id> [input]` | Update content OR settings (not both in one call) |
 | `drops delete <id>` | Delete a drop |
 | `deployments list <drop-id>` | List deployments |
 | `deployments get <drop-id> <dep-id>` | Get deployment details |
@@ -188,10 +188,18 @@ dropthis /tmp/generated-page.html --url --title "Generated Report"
 dropthis ./dist --url --title "Preview Deploy"
 ```
 
-**Update existing content:**
+**Update existing content (content-only — no settings flags):**
 ```bash
 dropthis drops update drop_abc123 ./dist-v2 --url
 ```
+
+**Change settings only (no input — settings-only):**
+```bash
+dropthis drops update drop_abc123 --title "v2 Release" --visibility unlisted --json
+```
+
+> `drops update` is content OR settings, never both in one call. To do both, run it twice:
+> once with an `[input]` to ship new content, then again with settings flags.
 
 **Password-protected drop:**
 ```bash
