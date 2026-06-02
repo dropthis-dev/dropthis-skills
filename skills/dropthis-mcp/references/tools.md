@@ -1,7 +1,7 @@
 # Tool reference
 
 All tools are namespaced `dropthis_`. The publish/redeploy/update/get tools return the drop's
-`DropResponse` (camelCase, including `url`); `delete` returns `{ deleted, drop_id }` and the list
+`DropResponse` (camelCase, including `url`); `delete` returns `{ deleted, dropId }` and the list
 tools return `{ items, nextCursor }`. Errors come back in-band with `code`, `suggestion`, and `request_id`.
 
 ## dropthis_publish
@@ -39,7 +39,7 @@ Update settings only — never content.
 Permanently delete a drop and its public URL. Destructive.
 
 - Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token), `confirm: true` (required).
-- Output: a small result envelope `{ "deleted": true, "drop_id": "drop_abc123" }` (snake_case `drop_id`) — NOT a `DropResponse`. The DropResponse-returning tools (`dropthis_publish`, `dropthis_redeploy`, `dropthis_update`, `dropthis_get`) pass through the camelCase `DropResponse` fields; the list tools (`dropthis_list`, `dropthis_list_deployments`) return projected `{ items, nextCursor }` envelopes; `dropthis_delete` returns this tool-specific `{ deleted, drop_id }` result.
+- Output: a small result envelope `{ "deleted": true, "dropId": "drop_abc123" }` (camelCase) — NOT a `DropResponse`. The DropResponse-returning tools (`dropthis_publish`, `dropthis_redeploy`, `dropthis_update`, `dropthis_get`) pass through the camelCase `DropResponse` fields; the list tools (`dropthis_list`, `dropthis_list_deployments`) return projected `{ items, nextCursor }` envelopes; `dropthis_delete` returns this tool-specific `{ deleted, dropId }` result.
 - Confirm with the user before calling.
 
 ## dropthis_whoami
