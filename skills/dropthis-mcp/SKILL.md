@@ -84,7 +84,7 @@ duplicate. Instead:
   Content-only: it takes the same content inputs (`content`, `source_url`, `files`, `file`, or
   `paths`) and never changes settings. Not idempotent — a retry creates another deployment
   unless you pass the same `idempotency_key`.
-- `dropthis_update_settings` — change title, visibility, password, noindex, vanity slug,
+- `dropthis_update_settings` — change title, visibility, password, noindex,
   expiry, or metadata, without touching content. Idempotent.
 
 **Retain the `id` from the publish response for all follow-up operations.** Every id-based
@@ -107,13 +107,12 @@ If you only have the slug/URL, call `dropthis_list` to recover the `id`.
 
 **Glossary:** a **Drop** is one published artifact at a permanent URL. A **deployment** is one
 content version of a Drop (`dropthis_update_content` ships a new deployment; see them with
-`dropthis_list_deployments`). A **Vanity Slug** is a custom path; a **Package** is a multi-file
-bundle (the `files` input).
+`dropthis_list_deployments`). A **Package** is a multi-file bundle (the `files` input).
 
 ## Auth and limits
 
 Call `dropthis_account` first if you need to know the plan (Free vs Pro) before publishing.
-Pro-only inputs (`password`, `vanity_slug`, custom domains) return an in-band upgrade nudge
+Pro-only inputs (`password`, custom domains) return an in-band upgrade nudge
 on Free — read the `suggestion` field in the tool result and relay it.
 
 ## Errors

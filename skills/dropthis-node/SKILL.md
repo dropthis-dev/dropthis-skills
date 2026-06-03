@@ -110,7 +110,7 @@ The SDK uses Stripe-style resource namespaces — every lifecycle method hangs o
 |--------|------|-----------|
 | `client.drops.publish(input, opts?)` | Create a NEW drop → URL. Never takes an id | [publish.md](references/publish.md) |
 | `client.drops.updateContent(id, input, opts?)` | Replace a drop's content, same URL (new deployment). Settings unchanged | [publish.md](references/publish.md) |
-| `client.drops.updateSettings(id, patch)` | Change title/visibility/password/slug/expiry/metadata. Content unchanged | [drops.md](references/drops.md) |
+| `client.drops.updateSettings(id, patch)` | Change title/visibility/password/expiry/metadata. Content unchanged | [drops.md](references/drops.md) |
 | `client.drops.get(id)` | Fetch one drop (settings round-trip back into `updateSettings`) | [drops.md](references/drops.md) |
 | `client.drops.list(params?)` | List drops (cursor-paginated, auto-paging iterable) | [drops.md](references/drops.md) |
 | `client.drops.delete(id)` | Delete a drop | [drops.md](references/drops.md) |
@@ -158,15 +158,6 @@ const { data } = await dropthis.drops.publish("./dist", {
   password: "s3cret",
   expiresAt: "2026-12-31T00:00:00Z",
 });
-```
-
-### Set a vanity slug
-
-`slug` is NOT a `drops.publish()` option — it's ignored there. Publish first, then set the slug via `drops.updateSettings(id, { slug })`:
-
-```typescript
-const { data } = await dropthis.drops.publish("./dist");
-await dropthis.drops.updateSettings(data.id, { slug: "q4-report" });
 ```
 
 ### Publish bytes

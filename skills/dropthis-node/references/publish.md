@@ -16,7 +16,7 @@ Publish new content and get a URL back.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `input` | `PublishInput` | Yes | Content to publish (see Input types below) |
-| `options` | `PublishOptions` | No | Publish options (title, visibility, password, noindex, expiresAt, etc.). `slug` is NOT settable here — `publish()` ignores it; set the vanity slug afterward via `drops.updateSettings(dropId, { slug })`. |
+| `options` | `PublishOptions` | No | Publish options (title, visibility, password, noindex, expiresAt, etc.). |
 
 **Returns:** `DropthisResult<DropResponse>`
 
@@ -25,16 +25,13 @@ Publish new content and get a URL back.
 ```typescript
 const { data, error } = await dropthis.drops.publish("<h1>Hello</h1>");
 if (!error) console.log(data.url);
-
-// Set a vanity slug AFTER publishing (slug is update-only):
-await dropthis.drops.updateSettings(data.id, { slug: "my-slug" });
 ```
 
 ### drops.updateContent(dropId, input, options?)
 
 Replace the content of an existing drop, creating a new deployment. **Content-only** — it ships
 a new content version and never changes drop settings. To change settings (title, visibility,
-password, noindex, slug, expiry, metadata), use `drops.updateSettings(dropId, patch)`.
+password, noindex, expiry, metadata), use `drops.updateSettings(dropId, patch)`.
 
 **Parameters:**
 
@@ -56,7 +53,7 @@ const { data, error } = await dropthis.drops.updateContent("drop_abc123", "./dis
 
 ### drops.updateSettings(dropId, patch?)
 
-Update drop settings only (title, slug, visibility, etc.). Does not create a new deployment.
+Update drop settings only (title, visibility, etc.). Does not create a new deployment.
 
 **Parameters:**
 
@@ -122,7 +119,6 @@ if (prepared.kind === "staged") {
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `slug` | `string` | Change the vanity slug (update only) |
 | `title` | `string` | Drop title |
 | `visibility` | `"public" \| "unlisted"` | public (default) or unlisted |
 | `password` | `string \| null` | Require password to view (`null` to remove) |
@@ -163,7 +159,7 @@ if (prepared.kind === "staged") {
 | `ifRevision` | `number` | Fail if current revision doesn't match -- optimistic lock |
 
 `DeployOptions` carries **no** drop settings (no `title`, `visibility`, `password`, `noindex`,
-`slug`, `expiresAt`, `metadata`). Manage those with `drops.updateSettings(dropId, patch)`.
+`expiresAt`, `metadata`). Manage those with `drops.updateSettings(dropId, patch)`.
 
 ## Resource accessors
 

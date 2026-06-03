@@ -85,7 +85,7 @@ dropthis get drop_abc123
 
 ### update-content
 
-Replace a drop's content with a new version — same URL and slug, new deployment. Settings (title, visibility, password, slug, expiry, metadata) are left unchanged. To change settings, use `update-settings` instead.
+Replace a drop's content with a new version — same URL and slug, new deployment. Settings (title, visibility, password, expiry, metadata) are left unchanged. To change settings, use `update-settings` instead.
 
 #### Usage
 
@@ -171,7 +171,7 @@ dropthis update-content drop_abc123 ./dist --dry-run
 
 #### Notes
 
-- `update-content` ships a new deployment but never changes settings. Use `update-settings` for title/visibility/password/slug/expiry/metadata.
+- `update-content` ships a new deployment but never changes settings. Use `update-settings` for title/visibility/password/expiry/metadata.
 - `--if-revision` enables optimistic concurrency -- the update fails with `revision_conflict` if the drop has been modified since the specified revision.
 - An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
 
@@ -179,7 +179,7 @@ dropthis update-content drop_abc123 ./dist --dry-run
 
 ### update-settings
 
-Change a drop's settings — title, visibility, password, vanity slug, expiry, noindex, or metadata. Content is left unchanged (no new deployment). To replace content, use `update-content` instead.
+Change a drop's settings — title, visibility, password, expiry, noindex, or metadata. Content is left unchanged (no new deployment). To replace content, use `update-content` instead.
 
 #### Usage
 
@@ -193,7 +193,6 @@ dropthis update-settings <dropId> [flags]
 
 | Flag | Required | Description |
 |------|----------|-------------|
-| `--slug` `<slug>` | No | Change the vanity slug |
 | `--title` `<title>` | No | Drop title |
 | `--visibility` `<public\|unlisted>` | No | public (default) or unlisted |
 | `--password` `<password>` | No | Require password to view |
@@ -244,9 +243,6 @@ dropthis update-settings drop_abc123 --title "Updated Title" --json
 # Change visibility and set password
 dropthis update-settings drop_abc123 --visibility unlisted --password s3cret --json
 
-# Change the vanity slug
-dropthis update-settings drop_abc123 --slug new-slug --json
-
 # Remove password
 dropthis update-settings drop_abc123 --no-password
 
@@ -260,7 +256,7 @@ dropthis update-settings drop_abc123 --title "v2 Release" --json
 
 #### Notes
 
-- `update-settings` applies settings changes (title, visibility, password, noindex, slug, expires-at, metadata) without creating a new deployment.
+- `update-settings` applies settings changes (title, visibility, password, noindex, expires-at, metadata) without creating a new deployment.
 - `--if-revision` enables optimistic concurrency -- the update fails with `revision_conflict` if the drop has been modified since the specified revision.
 - An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
 
@@ -304,5 +300,5 @@ dropthis delete drop_abc123 --yes
 ## Notes
 
 - All drop commands require authentication.
-- Content and settings are separate commands: `update-content <id> <input>` replaces the files at the URL (new deployment, settings unchanged); `update-settings <id> --<setting>` changes title/visibility/password/slug/expiry/metadata (content unchanged). To change both, run both.
+- Content and settings are separate commands: `update-content <id> <input>` replaces the files at the URL (new deployment, settings unchanged); `update-settings <id> --<setting>` changes title/visibility/password/expiry/metadata (content unchanged). To change both, run both.
 - The `delete --yes` flag is mandatory in non-interactive (non-TTY) environments. Agents must always include it.

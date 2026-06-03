@@ -2,7 +2,7 @@
   "commands": [
     {
       "name": "publish",
-      "description": "Publish files, folders, URLs, strings, or stdin.\nMultiple files are bundled into one drop.\nUse - to read stdin explicitly, or pipe without args.",
+      "description": "Publish content to a permanent public URL (also: share, post, put online, make public, get a link).\nFiles, folders, URLs, strings, or stdin; multiple files bundle into one drop. Use - for stdin, or pipe without args.\nCreates a NEW drop each run — to change one you already published, use update-content (the files) or update-settings (title/visibility/password/expiry/metadata) with its drop_… id, not publish again.",
       "arguments": [
         "input"
       ],
@@ -32,7 +32,7 @@
     },
     {
       "name": "update-content",
-      "description": "Replace a drop's content, same URL (pass the full drop_… id, not the slug).\nShips a new deployment. Settings stay unchanged — use update-settings for title, visibility, password, slug, expiry, or metadata.",
+      "description": "Replace a drop's content, same URL (pass the full drop_… id, not the slug).\nShips a new deployment. Settings stay unchanged — use update-settings for title, visibility, password, expiry, or metadata.",
       "arguments": [
         "dropId",
         "input"
@@ -54,12 +54,11 @@
     },
     {
       "name": "update-settings",
-      "description": "Change a drop's title, visibility, password, vanity slug, expiry, or metadata (pass the full drop_… id, not the slug).\nContent stays unchanged — use update-content to replace the files at the URL.",
+      "description": "Change a drop's title, visibility, password, expiry, or metadata (pass the full drop_… id, not the slug).\nContent stays unchanged — use update-content to replace the files at the URL.",
       "arguments": [
         "dropId"
       ],
       "options": [
-        "--slug",
         "--title",
         "--visibility",
         "--password",

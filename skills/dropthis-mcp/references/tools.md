@@ -8,7 +8,7 @@ tools return `{ items, nextCursor }`. Errors come back in-band with `code`, `sug
 
 Publish NEW content → permanent public URL. Creates a NEW drop every call and never takes a
 `drop_id`. To change something you already published, use `dropthis_update_content` (the files
-at the URL) or `dropthis_update_settings` (title, visibility, password, slug, expiry, metadata)
+at the URL) or `dropthis_update_settings` (title, visibility, password, expiry, metadata)
 with the `drop_…` id from this call's response — do NOT call publish again (that makes a duplicate).
 
 - Inputs: exactly one of `content` (string) · `source_url` (http(s) URL) · `files` (array of `{path, content|content_base64, content_type?}` + optional `entry`) · `file` (local file or directory; a directory publishes as a complete multi-file site; stdio only) · `paths` (array of local file/directory paths published as one bundle; stdio only). Optional: `title`, `password` (Pro), `noindex`, `visibility` (`public` | `unlisted`), `expires_at`, `metadata`, `idempotency_key`.
@@ -18,7 +18,7 @@ with the `drop_…` id from this call's response — do NOT call publish again (
 
 Replace the content of an EXISTING drop, keeping its URL/slug (ships a new deployment). **Content-only** — it
 ships a new content version and never changes settings. To change settings (title, visibility,
-password, noindex, vanity slug, expiry, metadata), use `dropthis_update_settings`; to create a
+password, noindex, expiry, metadata), use `dropthis_update_settings`; to create a
 brand-new drop use `dropthis_publish`.
 
 - Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); exactly one of `content`, `source_url`, `files` (+ optional `entry`), `file` (local file or directory; stdio only), or `paths` (array of local file/directory paths; stdio only). Optional: `idempotency_key`, `if_revision`. Does NOT accept `expires_at` or `metadata` (those are settings — use `dropthis_update_settings`).
@@ -31,7 +31,7 @@ Update settings only — never content. To replace the content at the URL use
 `dropthis_update_content`; to create a new drop use `dropthis_publish`. Idempotent — applying
 the same values again is a no-op.
 
-- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); optional `title`, `visibility`, `password` (Pro; `null` clears), `noindex` (`null` clears), `vanity_slug` (Pro), `expires_at`, `metadata`. This is where expiry and metadata are managed (`dropthis_update_content` does not accept them).
+- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); optional `title`, `visibility`, `password` (Pro; `null` clears), `noindex` (`null` clears), `expires_at`, `metadata`. This is where expiry and metadata are managed (`dropthis_update_content` does not accept them).
 - Output: the updated `DropResponse` — `url`, `id`, `slug`, `title`, `visibility`, `revision` (there is NO `updatedAt` field).
 
 ## dropthis_get
@@ -85,12 +85,12 @@ Inputs: `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file
 Inputs: `drop_id` (required), `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `paths`, `idempotency_key`, `if_revision`
 
 ### `dropthis_update_settings`
-Inputs: `drop_id` (required), `title`, `visibility`, `password`, `noindex`, `vanity_slug`, `expires_at`, `metadata`
+Inputs: `drop_id` (required), `title`, `visibility`, `password`, `noindex`, `expires_at`, `metadata`
 
 <!-- END GENERATED TOOLS -->
 
 ## Free vs Pro
 
-Free: 3-day TTL, badge, 5 MB/drop. Pro: persistent, no badge, 100 MB/drop, password, vanity
-slugs, custom domains, noindex control. Free-tier misuse returns the server's `suggestion` as
+Free: 3-day TTL, badge, 5 MB/drop. Pro: persistent, no badge, 100 MB/drop, password,
+custom domains, noindex control. Free-tier misuse returns the server's `suggestion` as
 an upgrade nudge — relay it.

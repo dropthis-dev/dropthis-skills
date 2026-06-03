@@ -80,19 +80,6 @@
 		"tags": ["auth", "ci", "env"]
 	},
 	{
-		"id": "publish-with-vanity-slug",
-		"prompt": "Publish with a custom slug so I get a nice URL",
-		"expected_tool": "dropthis.publish() then dropthis.update()",
-		"expected_input": "publish first, then update(dropId, { slug }) -- slug is NOT a publish() option",
-		"example": "const { data, error } = await dropthis.publish(\"./dist\", {\n  title: \"My Project\",\n});\nif (!error) {\n  await dropthis.update(data.id, { slug: \"my-project\" });\n}",
-		"expectations": [
-			"Calls dropthis.publish() WITHOUT a slug option (publish() ignores slug)",
-			"Sets the vanity slug via dropthis.update(data.id, { slug }) AFTER publishing",
-			"Passes data.id (the drop_… id), NOT data.slug or the URL token, to update()"
-		],
-		"tags": ["publish", "slug", "update", "options"]
-	},
-	{
 		"id": "update-metadata-only",
 		"prompt": "Change the title of drop_abc123 without uploading new content",
 		"expected_tool": "dropthis.update() or dropthis.drops.update()",

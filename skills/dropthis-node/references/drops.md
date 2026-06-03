@@ -61,7 +61,7 @@ if (!error) console.log(data.title, data.url, data.noindex, data.passwordProtect
 
 ### updateSettings(dropId, patch?)
 
-Update drop settings (title, visibility, password, noindex, slug, expiry, metadata). Does
+Update drop settings (title, visibility, password, noindex, expiry, metadata). Does
 **not** change content -- use `dropthis.drops.updateContent(dropId, newContent)` for content changes
 (`updateContent()` is content-only and never touches settings).
 
@@ -106,6 +106,6 @@ if (error) console.error("Delete failed:", error.message);
 ## Notes
 
 - The `drops` resource exposes `publish` / `updateContent` / `updateSettings` / `get` / `list` / `delete`. Publishing a NEW drop is `dropthis.drops.publish(input, options)`.
-- `drops.updateSettings()` is settings-only — it changes title/visibility/password/slug/expiry/metadata, never content.
+- `drops.updateSettings()` is settings-only — it changes title/visibility/password/expiry/metadata, never content.
 - For updating content, use `dropthis.drops.updateContent(dropId, newContent)` which creates a new deployment and never changes settings.
 - `idempotencyKey` and `ifRevision` are fields in the patch/options object.
