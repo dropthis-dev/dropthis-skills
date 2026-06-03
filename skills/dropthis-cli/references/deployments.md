@@ -1,6 +1,6 @@
 # deployments
 
-Deployment commands for listing and inspecting deployment history of a drop. Each time content is published or updated via `dropthis drops update`, a new deployment is created.
+Deployment commands for listing and inspecting deployment history of a drop. Each time content is published or replaced via `dropthis update-content`, a new deployment is created.
 
 ## deployments
 
@@ -80,5 +80,5 @@ dropthis deployments get drop_abc123 dep_xyz789
 
 - `<dropId>` is the full `drop_…` id (the `id` from publish `--json`), NOT the slug or URL token.
 - All `deployments` subcommands require authentication.
-- Deployments are immutable snapshots. Each `dropthis drops update` with content creates a new one.
-- The `revision` field is useful with `dropthis drops update --if-revision` for optimistic concurrency.
+- Deployments are immutable snapshots. Each `dropthis update-content` creates a new one.
+- The `revision` field is useful with `dropthis update-content --if-revision` for optimistic concurrency.

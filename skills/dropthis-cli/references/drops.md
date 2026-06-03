@@ -1,17 +1,17 @@
 # drops
 
-Drop resource commands for listing, inspecting, updating metadata, and deleting drops.
+Top-level commands for listing, inspecting, updating, and deleting drops. These verbs are flat — there is no `drops` parent command.
 
-## drops
+## Commands
 
-### drops list
+### list
 
 List your drops with pagination.
 
 #### Usage
 
 ```bash
-dropthis drops list [flags]
+dropthis list [flags]
 ```
 
 #### Flags
@@ -32,25 +32,25 @@ dropthis drops list [flags]
 
 ```bash
 # List drops
-dropthis drops list
+dropthis list
 
 # List with page size
-dropthis drops list --limit 10
+dropthis list --limit 10
 
 # Paginate
-dropthis drops list --cursor "eyJsYXN0X2lkIjoiZHJvcF8xMjMifQ"
+dropthis list --cursor "eyJsYXN0X2lkIjoiZHJvcF8xMjMifQ"
 ```
 
 ---
 
-### drops get
+### get
 
 Get details for a single drop.
 
 #### Usage
 
 ```bash
-dropthis drops get <dropId> [flags]
+dropthis get <dropId> [flags]
 ```
 
 #### Flags
@@ -78,42 +78,28 @@ The `drop` object is the full SDK `DropResponse`. Notable fields:
 
 ```bash
 # Get drop details
-dropthis drops get drop_abc123
+dropthis get drop_abc123
 ```
 
 ---
 
-### drops update
+### update-content
 
-Update an existing drop by id. Updates content **OR** settings -- not both in one call. This is the single command for updates to a drop, but each invocation is one or the other.
-
-- When `[input]` is provided (file, directory, stdin), a new content version is deployed -- **content-only**, no settings flags allowed.
-- When only settings flags are provided (no input), settings are updated without a new deployment.
-- Mixing `[input]` with settings flags is **rejected**. To change both, run the command twice: once with an `[input]` to deploy new content, then again with settings flags.
+Replace a drop's content with a new version — same URL and slug, new deployment. Settings (title, visibility, password, slug, expiry, metadata) are left unchanged. To change settings, use `update-settings` instead.
 
 #### Usage
 
 ```bash
-dropthis drops update <dropId> [input] [flags]
+dropthis update-content <dropId> [input] [flags]
 ```
 
-- `<dropId>` is a drop id (must start with `drop_`), obtained from `--json` output of `publish` or `drops get`.
-- `[input]` is an optional file, directory, or `-` for stdin. When provided, the call is content-only and settings flags are rejected. If omitted, only settings flags are applied.
+- `<dropId>` is a drop id (must start with `drop_`), obtained from `--json` output of `publish` or `get`.
+- `[input]` is a file, directory, or `-` for stdin. If omitted in a non-TTY environment, piped stdin is read automatically.
 
 #### Flags
 
 | Flag | Required | Description |
 |------|----------|-------------|
-| `--slug` `<slug>` | No | Change the vanity slug |
-| `--title` `<title>` | No | Drop title |
-| `--visibility` `<public\|unlisted>` | No | public (default) or unlisted |
-| `--password` `<password>` | No | Require password to view |
-| `--no-password` | No | Remove password protection |
-| `--noindex` | No | Prevent search-engine indexing |
-| `--index` | No | Allow search-engine indexing (default) |
-| `--expires-at` `<datetime>` | No | Auto-delete after this ISO 8601 date |
-| `--metadata` `<json>` | No | Attach JSON key-value pairs, e.g. '{"source":"ci"}' |
-| `--metadata-file` `<path>` | No | Read metadata JSON from a file |
 | `--entry` `<path>` | No | Entry file for multi-file bundles (default: index.html) |
 | `--content-type` `<mime>` | No | Override MIME type (auto-detected from extension) |
 | `--path` `<path>` | No | Set filename when publishing from stdin |
@@ -143,7 +129,7 @@ https://dropthis.app/abc123
 Updated: https://dropthis.app/abc123
 ```
 
-##### Dry-run with content
+##### Dry-run
 
 ```json
 {
@@ -161,7 +147,76 @@ Updated: https://dropthis.app/abc123
 }
 ```
 
-##### Dry-run without content (metadata-only)
+##### Revision conflict error
+
+```json
+{"ok":false,"error":{"code":"revision_conflict","message":"Revision mismatch","current_revision":3,"next_action":"Fetch the drop, merge your changes, and retry with the current revision."}}
+```
+
+#### Examples
+
+```bash
+# Replace the content of a drop (same URL)
+dropthis update-content drop_abc123 ./dist-v2 --url
+
+# Replace content with optimistic concurrency
+dropthis update-content drop_abc123 ./new-content --if-revision 2 --url
+
+# Replace content from stdin
+echo "<h1>New content</h1>" | dropthis update-content drop_abc123 - --content-type text/html --path index.html --url
+
+# Dry-run to preview what would change
+dropthis update-content drop_abc123 ./dist --dry-run
+```
+
+#### Notes
+
+- `update-content` ships a new deployment but never changes settings. Use `update-settings` for title/visibility/password/slug/expiry/metadata.
+- `--if-revision` enables optimistic concurrency -- the update fails with `revision_conflict` if the drop has been modified since the specified revision.
+- An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
+
+---
+
+### update-settings
+
+Change a drop's settings — title, visibility, password, vanity slug, expiry, noindex, or metadata. Content is left unchanged (no new deployment). To replace content, use `update-content` instead.
+
+#### Usage
+
+```bash
+dropthis update-settings <dropId> [flags]
+```
+
+- `<dropId>` is a drop id (must start with `drop_`), obtained from `--json` output of `publish` or `get`.
+
+#### Flags
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--slug` `<slug>` | No | Change the vanity slug |
+| `--title` `<title>` | No | Drop title |
+| `--visibility` `<public\|unlisted>` | No | public (default) or unlisted |
+| `--password` `<password>` | No | Require password to view |
+| `--no-password` | No | Remove password protection |
+| `--noindex` | No | Prevent search-engine indexing |
+| `--index` | No | Allow search-engine indexing (default) |
+| `--expires-at` `<datetime>` | No | Auto-delete after this ISO 8601 date |
+| `--metadata` `<json>` | No | Attach JSON key-value pairs, e.g. '{"source":"ci"}' |
+| `--metadata-file` `<path>` | No | Read metadata JSON from a file |
+| `--idempotency-key` `<key>` | No | Prevent duplicate updates on retry (auto-generated plain UUID) |
+| `--if-revision` `<n>` | No | Fail if current revision doesn't match -- optimistic lock |
+| `--dry-run` | No | Show what would change without applying |
+| `--json` | No | Force JSON output |
+
+#### Output
+
+##### Default (non-TTY / JSON)
+
+```json
+{"ok":true,"drop":{"url":"https://dropthis.app/abc123","id":"drop_abc123"}}
+```
+
+##### Dry-run
 
 ```json
 {
@@ -183,55 +238,42 @@ Updated: https://dropthis.app/abc123
 #### Examples
 
 ```bash
-# Update content of a drop
-dropthis drops update drop_abc123 ./dist-v2 --url
-
-# Update only metadata (no content change)
-dropthis drops update drop_abc123 --title "Updated Title" --json
-
-# Update with optimistic concurrency
-dropthis drops update drop_abc123 ./new-content --if-revision 2 --url
-
-# Update from stdin
-echo "<h1>New content</h1>" | dropthis drops update drop_abc123 - --content-type text/html --path index.html --url
+# Update only the title (no content change)
+dropthis update-settings drop_abc123 --title "Updated Title" --json
 
 # Change visibility and set password
-dropthis drops update drop_abc123 --visibility unlisted --password s3cret --json
+dropthis update-settings drop_abc123 --visibility unlisted --password s3cret --json
 
 # Change the vanity slug
-dropthis drops update drop_abc123 --slug new-slug --json
-
-# Dry-run to preview what would change
-dropthis drops update drop_abc123 ./dist --dry-run
-
-# Update content and settings: run twice (content-only, then settings-only)
-dropthis drops update drop_abc123 ./dist-v2 --url
-dropthis drops update drop_abc123 --title "v2 Release" --json
+dropthis update-settings drop_abc123 --slug new-slug --json
 
 # Remove password
-dropthis drops update drop_abc123 --no-password
+dropthis update-settings drop_abc123 --no-password
 
 # Set metadata
-dropthis drops update drop_abc123 --metadata '{"campaign":"winter-2025"}'
+dropthis update-settings drop_abc123 --metadata '{"campaign":"winter-2025"}'
+
+# Update content and settings: run both commands
+dropthis update-content drop_abc123 ./dist-v2 --url
+dropthis update-settings drop_abc123 --title "v2 Release" --json
 ```
 
 #### Notes
 
-- When no `[input]` is provided, only settings flags (title, visibility, password, noindex, slug, expires-at, metadata) are applied without creating a new deployment.
-- When `[input]` is provided, a new content version is deployed -- the call is content-only and settings flags are rejected. To change content and settings, run the command twice.
+- `update-settings` applies settings changes (title, visibility, password, noindex, slug, expires-at, metadata) without creating a new deployment.
 - `--if-revision` enables optimistic concurrency -- the update fails with `revision_conflict` if the drop has been modified since the specified revision.
 - An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
 
 ---
 
-### drops delete
+### delete
 
 Delete a drop permanently.
 
 #### Usage
 
 ```bash
-dropthis drops delete <dropId> [flags]
+dropthis delete <dropId> [flags]
 ```
 
 #### Flags
@@ -253,14 +295,14 @@ dropthis drops delete <dropId> [flags]
 
 ```bash
 # Delete a drop (interactive prompt)
-dropthis drops delete drop_abc123
+dropthis delete drop_abc123
 
 # Delete without confirmation (required for agents/CI)
-dropthis drops delete drop_abc123 --yes
+dropthis delete drop_abc123 --yes
 ```
 
 ## Notes
 
-- All `drops` subcommands require authentication.
-- `drops update` handles content deployment and settings updates, but each call is one or the other: provide `[input]` for new content (content-only), or settings flags for settings changes. Mixing the two in one call is rejected -- run it twice to change both.
-- The `drops delete --yes` flag is mandatory in non-interactive (non-TTY) environments. Agents must always include it.
+- All drop commands require authentication.
+- Content and settings are separate commands: `update-content <id> <input>` replaces the files at the URL (new deployment, settings unchanged); `update-settings <id> --<setting>` changes title/visibility/password/slug/expiry/metadata (content unchanged). To change both, run both.
+- The `delete --yes` flag is mandatory in non-interactive (non-TTY) environments. Agents must always include it.

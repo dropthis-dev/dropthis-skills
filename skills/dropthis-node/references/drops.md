@@ -1,9 +1,9 @@
 # Drops
 
-Read and manage existing drops. Accessed via `dropthis.drops` — `list`, `get`, `update`, `delete`.
+Read and manage existing drops. Accessed via `dropthis.drops` — `list`, `get`, `updateSettings`, `delete` (plus `publish` and `updateContent`, covered in [publish.md](publish.md)).
 
-This resource does **not** create drops. To publish a NEW drop, call `dropthis.publish(input, options)`.
-To redeploy new content to an existing drop, call `dropthis.deploy(dropId, input, options)`. See
+This resource is where drops are created and changed. To publish a NEW drop, call `dropthis.drops.publish(input, options)`.
+To update the content of an existing drop, call `dropthis.drops.updateContent(dropId, input, options)`. See
 [publish.md](publish.md).
 
 ## Methods
@@ -59,25 +59,25 @@ const { data, error } = await dropthis.drops.get("drop_abc123");
 if (!error) console.log(data.title, data.url, data.noindex, data.passwordProtected);
 ```
 
-### update(dropId, options?)
+### updateSettings(dropId, patch?)
 
 Update drop settings (title, visibility, password, noindex, slug, expiry, metadata). Does
-**not** change content -- use `dropthis.deploy(dropId, newContent)` for content changes
-(`deploy()` is content-only and never touches settings).
+**not** change content -- use `dropthis.drops.updateContent(dropId, newContent)` for content changes
+(`updateContent()` is content-only and never touches settings).
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `dropId` | `string` | Yes | Drop ID |
-| `options` | `DropOptions & RequestControls` | No | Fields to update |
+| `patch` | `DropOptions & RequestControls` | No | Fields to update |
 
 **Returns:** `DropthisResult<DropResponse>`
 
 **Example:**
 
 ```typescript
-const { data, error } = await dropthis.drops.update("drop_abc123", {
+const { data, error } = await dropthis.drops.updateSettings("drop_abc123", {
   title: "Updated title",
   visibility: "unlisted",
   ifRevision: 3,
@@ -105,7 +105,7 @@ if (error) console.error("Delete failed:", error.message);
 
 ## Notes
 
-- The `drops` resource is `list` / `get` / `update` / `delete` only — there is no `drops.create()`. Publishing a NEW drop is `dropthis.publish(input, options)`.
-- `drops.update()` is settings-only. `dropthis.update(dropId, options)` is a convenience wrapper that delegates to `drops.update()` — both change settings only, never content.
-- For updating content, use `dropthis.deploy(dropId, newContent)` which creates a new deployment and never changes settings.
-- `idempotencyKey` and `ifRevision` are fields in the options object.
+- The `drops` resource exposes `publish` / `updateContent` / `updateSettings` / `get` / `list` / `delete`. Publishing a NEW drop is `dropthis.drops.publish(input, options)`.
+- `drops.updateSettings()` is settings-only — it changes title/visibility/password/slug/expiry/metadata, never content.
+- For updating content, use `dropthis.drops.updateContent(dropId, newContent)` which creates a new deployment and never changes settings.
+- `idempotencyKey` and `ifRevision` are fields in the patch/options object.

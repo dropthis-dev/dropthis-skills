@@ -24,78 +24,141 @@
       ],
       "auth": "required",
       "examples": [
-        "dropthis ./file.html",
+        "dropthis ./report.html",
         "dropthis publish ./site --json",
         "dropthis publish ./site --url",
         "dropthis publish ./dist --dry-run"
       ]
     },
     {
-      "name": "drops",
-      "description": "Manage published drops",
+      "name": "update-content",
+      "description": "Replace a drop's content, same URL (pass the full drop_… id, not the slug).\nShips a new deployment. Settings stay unchanged — use update-settings for title, visibility, password, slug, expiry, or metadata.",
+      "arguments": [
+        "dropId",
+        "input"
+      ],
+      "options": [
+        "--entry",
+        "--content-type",
+        "--path",
+        "--if-revision",
+        "--url",
+        "--dry-run",
+        "--json",
+        "--idempotency-key"
+      ],
       "auth": "required",
       "examples": [
-        "dropthis drops list --json",
-        "dropthis drops update drop_abc ./site --json",
-        "dropthis drops update drop_abc --title 'New Title' --dry-run"
+        "dropthis update-content drop_abc ./site --json"
+      ]
+    },
+    {
+      "name": "update-settings",
+      "description": "Change a drop's title, visibility, password, vanity slug, expiry, or metadata (pass the full drop_… id, not the slug).\nContent stays unchanged — use update-content to replace the files at the URL.",
+      "arguments": [
+        "dropId"
+      ],
+      "options": [
+        "--slug",
+        "--title",
+        "--visibility",
+        "--password",
+        "--no-password",
+        "--noindex",
+        "--index",
+        "--expires-at",
+        "--metadata",
+        "--metadata-file",
+        "--if-revision",
+        "--url",
+        "--dry-run",
+        "--json",
+        "--idempotency-key"
+      ],
+      "auth": "required",
+      "examples": [
+        "dropthis update-settings drop_abc --title 'Launch' --json"
+      ]
+    },
+    {
+      "name": "get",
+      "description": "Show drop details (pass the full drop_… id)",
+      "arguments": [
+        "dropId"
+      ],
+      "options": [
+        "--json"
+      ],
+      "auth": "required",
+      "examples": [
+        "dropthis get drop_abc --json"
+      ]
+    },
+    {
+      "name": "list",
+      "description": "List your drops",
+      "options": [
+        "--limit",
+        "--cursor",
+        "--json"
+      ],
+      "auth": "required",
+      "examples": [
+        "dropthis list --json"
+      ]
+    },
+    {
+      "name": "delete",
+      "description": "Delete a drop (pass the full drop_… id)",
+      "arguments": [
+        "dropId"
+      ],
+      "options": [
+        "--yes",
+        "--json"
+      ],
+      "auth": "required",
+      "examples": [
+        "dropthis delete drop_abc --yes --json"
+      ]
+    },
+    {
+      "name": "deployments",
+      "description": "View deployment history",
+      "auth": "required",
+      "examples": [
+        "dropthis deployments drop_abc --json"
       ],
       "subcommands": [
         {
           "name": "list",
-          "description": "List your drops",
+          "description": "List deployments for a drop",
+          "arguments": [
+            "dropId"
+          ],
           "options": [
             "--limit",
             "--cursor",
             "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis deployments list drop_abc --json"
           ]
         },
         {
           "name": "get",
-          "description": "Show drop details",
-          "arguments": [
-            "dropId"
-          ],
-          "options": [
-            "--json"
-          ]
-        },
-        {
-          "name": "update",
-          "description": "Update content or metadata",
+          "description": "Show deployment details",
           "arguments": [
             "dropId",
-            "input"
+            "deploymentId"
           ],
           "options": [
-            "--slug",
-            "--title",
-            "--visibility",
-            "--password",
-            "--no-password",
-            "--noindex",
-            "--index",
-            "--expires-at",
-            "--content-type",
-            "--entry",
-            "--metadata",
-            "--metadata-file",
-            "--path",
-            "--if-revision",
-            "--url",
-            "--dry-run",
-            "--json",
-            "--idempotency-key"
-          ]
-        },
-        {
-          "name": "delete",
-          "description": "Delete a drop",
-          "arguments": [
-            "dropId"
-          ],
-          "options": [
-            "--yes",
             "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis deployments get drop_abc dep_abc --json"
           ]
         }
       ]
@@ -132,44 +195,6 @@
           "options": [
             "--yes",
             "--json"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "deployments",
-      "description": "View deployment history",
-      "auth": "required",
-      "subcommands": [
-        {
-          "name": "list",
-          "description": "List deployments for a drop",
-          "arguments": [
-            "dropId"
-          ],
-          "options": [
-            "--limit",
-            "--cursor",
-            "--json"
-          ],
-          "auth": "required",
-          "examples": [
-            "dropthis deployments list drop_abc --json"
-          ]
-        },
-        {
-          "name": "get",
-          "description": "Show deployment details",
-          "arguments": [
-            "dropId",
-            "deploymentId"
-          ],
-          "options": [
-            "--json"
-          ],
-          "auth": "required",
-          "examples": [
-            "dropthis deployments get drop_abc dep_abc --json"
           ]
         }
       ]

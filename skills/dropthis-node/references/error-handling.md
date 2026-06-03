@@ -6,7 +6,7 @@ always returned in the `error` field.
 ## Pattern
 
 ```typescript
-const { data, error, headers } = await dropthis.publish("<h1>Hello</h1>");
+const { data, error, headers } = await dropthis.drops.publish("<h1>Hello</h1>");
 
 if (error) {
   console.error(error.code, error.message);
@@ -61,7 +61,7 @@ Use `ifRevision` to prevent overwriting concurrent changes:
 
 ```typescript
 const { data } = await dropthis.drops.get("drop_abc123");
-const { error } = await dropthis.drops.update("drop_abc123", {
+const { error } = await dropthis.drops.updateSettings("drop_abc123", {
   title: "Updated",
   ifRevision: data.revision,
 });
@@ -77,7 +77,7 @@ if (error?.code === "http_409") {
 Pass `idempotencyKey` for safe retries of create/publish operations:
 
 ```typescript
-const { data, error } = await dropthis.publish("<h1>Hello</h1>", {
+const { data, error } = await dropthis.drops.publish("<h1>Hello</h1>", {
   idempotencyKey: "my-unique-key-123",
 });
 // Safe to retry with the same key -- will return the same result
