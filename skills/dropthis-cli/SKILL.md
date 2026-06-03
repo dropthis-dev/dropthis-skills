@@ -119,7 +119,7 @@ Lifecycle verbs are flat and top-level — they mirror the MCP tool names 1:1.
 | `<input>` | Publish content, get a URL (default command) |
 | `publish <input>` | Create a NEW drop. Never takes an id. Same as above, explicit form |
 | `update-content <id> [input]` | Replace a drop's content, same URL (ships a new deployment). Settings unchanged |
-| `update-settings <id> [flags]` | Change title, visibility, password, vanity slug, expiry, or metadata. Content unchanged |
+| `update-settings <id> [flags]` | Change title, visibility, password, expiry, or metadata. Content unchanged |
 | `get <id>` | Show drop details |
 | `list` | List your drops |
 | `delete <id>` | Delete a drop |
@@ -206,7 +206,7 @@ dropthis update-settings drop_abc123 --title "v2 Release" --visibility unlisted 
 ```
 
 > Content and settings are separate commands. `update-content <id> <input>` replaces the files
-> at the URL; `update-settings <id> --title/--visibility/--password/--slug/--expires-at/…`
+> at the URL; `update-settings <id> --title/--visibility/--password/--expires-at/…`
 > changes settings only. To do both, run both — first `update-content` to ship new content,
 > then `update-settings` for the settings.
 
@@ -224,7 +224,7 @@ dropthis ./report.html --password s3cret --url
 | 3 | **Assuming URLs aren't supported** | A bare `http(s)` URL IS a valid input: `dropthis https://example.com/page.html --url` publishes a server-fetched copy (source_url flow). Pass the URL directly -- do NOT fetch it yourself first. |
 | 4 | **Relying on stdin auto-detection** | When piping content via stdin (`-`), set `--content-type` and `--path` explicitly for deterministic output. Without them the SDK auto-detects content type and entry filename. |
 | 5 | **Using the slug/URL token as the drop id** | `get`/`update-content`/`update-settings`/`delete` and `deployments list/get` take the full `drop_…` id (the `.drop.id` field in publish `--json` output), NOT the slug or URL token. Capture `.drop.id` from publish; if you only have the slug, run `dropthis list --json` to find the id. |
-| 6 | **Calling `publish` again to change a drop** | `publish` always creates a NEW drop and makes a duplicate. To change something you already published, use `update-content <id>` (the files at the URL) or `update-settings <id>` (title/visibility/password/slug/expiry/metadata) with its `drop_…` id. |
+| 6 | **Calling `publish` again to change a drop** | `publish` always creates a NEW drop and makes a duplicate. To change something you already published, use `update-content <id>` (the files at the URL) or `update-settings <id>` (title/visibility/password/expiry/metadata) with its `drop_…` id. |
 
 ## After Setup
 

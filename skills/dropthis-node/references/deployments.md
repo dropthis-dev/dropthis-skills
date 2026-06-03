@@ -72,7 +72,7 @@ existing drop -- keeping its URL and slug -- call `dropthis.drops.updateContent(
 It accepts the same `PublishInput` as `dropthis.drops.publish()` and handles the full staged upload
 flow automatically. `updateContent()` is **content-only**: its `options` are `DeployOptions`
 (content-prep fields + `entry` + `idempotencyKey`/`ifRevision` only) — it carries no drop
-settings. Settings (title, visibility, password, noindex, slug, expiry, metadata) are managed
+settings. Settings (title, visibility, password, noindex, expiry, metadata) are managed
 separately via `dropthis.drops.updateSettings()`.
 
 ```typescript
@@ -86,7 +86,7 @@ if (!error) {
 }
 ```
 
-To change settings (title, visibility, password, noindex, slug, expiry, metadata) WITHOUT
+To change settings (title, visibility, password, noindex, expiry, metadata) WITHOUT
 changing content, use `dropthis.drops.updateSettings("drop_abc123", { title: "New title" })` -- it is
 settings-only and never creates a content deployment.
 

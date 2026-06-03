@@ -378,7 +378,6 @@ type CompleteUploadSessionRequest = {
 
 ```typescript
 type DropOptions = {
-  slug?: string;
   title?: string;
   visibility?: "public" | "unlisted";
   password?: string | null;
