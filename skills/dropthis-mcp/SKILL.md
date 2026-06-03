@@ -1,15 +1,14 @@
 ---
 name: dropthis-mcp
 description: >
-  Publish anything online through the dropthis MCP server — inline HTML/content, a
-  public URL to fetch, or (locally) a file — and get a permanent URL back. Use when the
-  user wants to publish, update, or manage drops via MCP tools (`dropthis_publish`,
-  `dropthis_redeploy`, `dropthis_update`, `dropthis_get`, `dropthis_list`,
-  `dropthis_list_deployments`, `dropthis_delete`, `dropthis_whoami`, `dropthis_account`)
-  in Claude Code, Claude Desktop, Cursor, Windsurf,
-  ChatGPT, or n8n, or when configuring the dropthis MCP server (local stdio or the hosted
-  remote connector). Load this before calling dropthis tools — it covers input selection,
-  auth, and the free/Pro contract.
+  Use when the user wants to publish, share, post, put online, make public, host, or get a
+  shareable link for content — HTML, a report, dashboard, slide deck, site, or file — through
+  the dropthis MCP server, even if they don't say "drop". Also use to update, edit, rename,
+  password-protect, list, or delete published drops. Tools: `dropthis_publish`,
+  `dropthis_update_content`, `dropthis_update_settings`, `dropthis_get`, `dropthis_list`,
+  `dropthis_list_deployments`, `dropthis_delete`, `dropthis_account` — in Claude Code, Claude
+  Desktop, Cursor, Windsurf, ChatGPT, or n8n. Also use when configuring the dropthis MCP server
+  (local stdio or the hosted remote connector).
 license: MIT
 metadata:
   author: dropthis
@@ -74,14 +73,22 @@ OAuth (approve a 6-digit email login). Automation (n8n, CI) sends `Authorization
 - `file` — a local file path **or directory** (a directory publishes as a complete multi-file site). **Local/stdio only**; not available on the remote connector.
 - `paths` — a list of local file/directory paths published together as one bundle. **Local/stdio only**; not available on the remote connector.
 
-To change settings (title, visibility, password, noindex, vanity slug) without changing
-content, use `dropthis_update`. To ship a new content version to the same URL, use
-`dropthis_redeploy`. **Redeploy is content-only** — it takes the same content inputs
-(`content`, `source_url`, `files`, `file`, or `paths`) and never changes settings; manage
-settings with `dropthis_update`.
+## The publish-vs-update contract (read this)
+
+`dropthis_publish` creates a **NEW** drop on every call and **never takes a `drop_id`**.
+Updating an existing drop needs its full `drop_…` id (from the publish response). To change
+something you already published, do **not** call `dropthis_publish` again — that makes a
+duplicate. Instead:
+
+- `dropthis_update_content` — replace the files at the URL (ships a new deployment, same URL).
+  Content-only: it takes the same content inputs (`content`, `source_url`, `files`, `file`, or
+  `paths`) and never changes settings. Not idempotent — a retry creates another deployment
+  unless you pass the same `idempotency_key`.
+- `dropthis_update_settings` — change title, visibility, password, noindex, vanity slug,
+  expiry, or metadata, without touching content. Idempotent.
 
 **Retain the `id` from the publish response for all follow-up operations.** Every id-based
-tool — `dropthis_redeploy`, `dropthis_update`, `dropthis_get`, `dropthis_delete`,
+tool — `dropthis_update_content`, `dropthis_update_settings`, `dropthis_get`, `dropthis_delete`,
 `dropthis_list_deployments` — takes the full `drop_…` id as `drop_id`, NOT the slug or the
 URL token. `dropthis_publish` returns both `id` and `slug` (and `url`); keep the `id`.
 
@@ -91,16 +98,21 @@ URL token. `dropthis_publish` returns both `id` and `slug` (and `url`); keep the
 ```
 
 ```text
-# Redeploy uses the id, NOT the slug:
-dropthis_redeploy { "drop_id": "drop_6hRcUUok5PYeEK6jJQY5Is", "content": "<h1>v2</h1>" }
-# WRONG: dropthis_redeploy { "drop_id": "0izsioo", ... }  → fails (slug is not a drop id)
+# update_content uses the id, NOT the slug:
+dropthis_update_content { "drop_id": "drop_6hRcUUok5PYeEK6jJQY5Is", "content": "<h1>v2</h1>" }
+# WRONG: dropthis_update_content { "drop_id": "0izsioo", ... }  → fails (slug is not a drop id)
 ```
 
 If you only have the slug/URL, call `dropthis_list` to recover the `id`.
 
+**Glossary:** a **Drop** is one published artifact at a permanent URL. A **deployment** is one
+content version of a Drop (`dropthis_update_content` ships a new deployment; see them with
+`dropthis_list_deployments`). A **Vanity Slug** is a custom path; a **Package** is a multi-file
+bundle (the `files` input).
+
 ## Auth and limits
 
-Call `dropthis_whoami` first if you need to know the plan (Free vs Pro) before publishing.
+Call `dropthis_account` first if you need to know the plan (Free vs Pro) before publishing.
 Pro-only inputs (`password`, `vanity_slug`, custom domains) return an in-band upgrade nudge
 on Free — read the `suggestion` field in the tool result and relay it.
 

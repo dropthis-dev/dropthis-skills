@@ -1,12 +1,13 @@
 ---
 name: dropthis-cli
 description: >
-  Publish anything online from the terminal — HTML files, directories, or generated
-  content — and get a permanent URL back. One command in, one URL out. Use when the
-  user wants to publish, update, or manage drops via the `dropthis` CLI, or when an
-  AI agent generates content that should be viewable at a URL. Always load this skill
-  before running `dropthis` commands — it contains the non-interactive flag contract
-  and auth resolution order.
+  Use when the user wants to publish, share, post, put online, make public, host, or get a
+  shareable link for content — an HTML file, a directory/built site, or generated content —
+  from the terminal with the `dropthis` CLI, even if they don't say "drop". Also use to
+  update, edit, rename, password-protect, list, or delete published drops via
+  `dropthis publish`, `dropthis update-content`, `dropthis update-settings`, `dropthis get`,
+  `dropthis list`, and `dropthis delete`. Load this before running `dropthis` commands — it
+  covers the non-interactive flag contract and auth resolution order.
 license: MIT
 metadata:
   author: dropthis
@@ -111,25 +112,31 @@ dropthis publish ./dist --url
 
 ## Available Commands
 
+Lifecycle verbs are flat and top-level — they mirror the MCP tool names 1:1.
+
 | Command | What it does |
 |---------|-------------|
 | `<input>` | Publish content, get a URL (default command) |
-| `publish <input>` | Same as above, explicit form |
-| `drops list` | List your drops |
-| `drops get <id>` | Get drop details |
-| `drops update <id> [input]` | Update content OR settings (not both in one call) |
-| `drops delete <id>` | Delete a drop |
-| `deployments list <drop-id>` | List deployments |
-| `deployments get <drop-id> <dep-id>` | Get deployment details |
+| `publish <input>` | Create a NEW drop. Never takes an id. Same as above, explicit form |
+| `update-content <id> [input]` | Replace a drop's content, same URL (ships a new deployment). Settings unchanged |
+| `update-settings <id> [flags]` | Change title, visibility, password, vanity slug, expiry, or metadata. Content unchanged |
+| `get <id>` | Show drop details |
+| `list` | List your drops |
+| `delete <id>` | Delete a drop |
+| `deployments list <id>` | List deployments (content history) for a drop |
+| `deployments get <id> <dep-id>` | Show deployment details |
 | `login` | Authenticate with email OTP |
 | `logout` | Remove stored credentials |
 | `whoami` | Show current auth status |
-| `account` | Account details |
-| `api-keys create` | Create an API key |
-| `api-keys list` | List API keys |
-| `api-keys delete <id>` | Delete an API key |
+| `account get` / `account update` / `account delete` | Show or manage your account |
+| `api-keys create` / `api-keys list` / `api-keys delete <id>` | Manage API keys |
 | `doctor` | Report CLI diagnostics |
 | `commands` | Print machine-readable command metadata |
+
+> `update-content` and `update-settings` both require the full `drop_…` id from the publish
+> response — not the slug or URL token. `publish` creates a NEW drop every call and never takes
+> an id; updating an existing drop needs its id. To recover an id you only have the slug for,
+> run `dropthis list --json`.
 
 ## Publish
 
@@ -154,7 +161,7 @@ echo "<h1>Hello</h1>" | dropthis --content-type text/html --path index.html --ur
 echo "<h1>Hello</h1>" | dropthis - --content-type text/html --path index.html --url
 ```
 
-> Capture the drop **id** from publish output for later edits: `ID=$(dropthis ./page.html --json | jq -r '.drop.id')` — then `dropthis drops update "$ID" ...` / `dropthis deployments list "$ID"`. Follow-up commands need the `drop_…` id, not the slug.
+> Capture the drop **id** from publish output for later edits: `ID=$(dropthis ./page.html --json | jq -r '.drop.id')` — then `dropthis update-content "$ID" ...` / `dropthis update-settings "$ID" ...` / `dropthis deployments list "$ID"`. Follow-up commands need the `drop_…` id, not the slug.
 
 ### Publish Options
 
@@ -188,18 +195,20 @@ dropthis /tmp/generated-page.html --url --title "Generated Report"
 dropthis ./dist --url --title "Preview Deploy"
 ```
 
-**Update existing content (content-only — no settings flags):**
+**Replace a drop's content (same URL, new deployment — settings unchanged):**
 ```bash
-dropthis drops update drop_abc123 ./dist-v2 --url
+dropthis update-content drop_abc123 ./dist-v2 --url
 ```
 
-**Change settings only (no input — settings-only):**
+**Change settings only (content unchanged):**
 ```bash
-dropthis drops update drop_abc123 --title "v2 Release" --visibility unlisted --json
+dropthis update-settings drop_abc123 --title "v2 Release" --visibility unlisted --json
 ```
 
-> `drops update` is content OR settings, never both in one call. To do both, run it twice:
-> once with an `[input]` to ship new content, then again with settings flags.
+> Content and settings are separate commands. `update-content <id> <input>` replaces the files
+> at the URL; `update-settings <id> --title/--visibility/--password/--slug/--expires-at/…`
+> changes settings only. To do both, run both — first `update-content` to ship new content,
+> then `update-settings` for the settings.
 
 **Password-protected drop:**
 ```bash
@@ -214,7 +223,8 @@ dropthis ./report.html --password s3cret --url
 | 2 | **Not checking exit code 3** | Exit 3 means auth required. Run `dropthis whoami` first, then prompt for login if needed. |
 | 3 | **Assuming URLs aren't supported** | A bare `http(s)` URL IS a valid input: `dropthis https://example.com/page.html --url` publishes a server-fetched copy (source_url flow). Pass the URL directly -- do NOT fetch it yourself first. |
 | 4 | **Relying on stdin auto-detection** | When piping content via stdin (`-`), set `--content-type` and `--path` explicitly for deterministic output. Without them the SDK auto-detects content type and entry filename. |
-| 5 | **Using the slug/URL token as the drop id** | `drops get/update/delete` and `deployments list/get` take the full `drop_…` id (the `id` field in publish `--json` output), NOT the slug or URL token. Capture `.drop.id` from publish; if you only have the slug, run `dropthis drops list --json` to find the id. |
+| 5 | **Using the slug/URL token as the drop id** | `get`/`update-content`/`update-settings`/`delete` and `deployments list/get` take the full `drop_…` id (the `.drop.id` field in publish `--json` output), NOT the slug or URL token. Capture `.drop.id` from publish; if you only have the slug, run `dropthis list --json` to find the id. |
+| 6 | **Calling `publish` again to change a drop** | `publish` always creates a NEW drop and makes a duplicate. To change something you already published, use `update-content <id>` (the files at the URL) or `update-settings <id>` (title/visibility/password/slug/expiry/metadata) with its `drop_…` id. |
 
 ## After Setup
 

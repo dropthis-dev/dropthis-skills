@@ -1,9 +1,12 @@
 ---
 name: dropthis-node
 description: >
-  Official Node.js SDK for dropthis -- publish content online and get a URL back.
-  Use when the user wants to publish HTML, files, or directories to a permanent URL
-  from Node.js code. Covers publish, update, delete, auth, and all API resources.
+  Use when the user wants to publish, share, post, put online, make public, host, or get a
+  shareable link for content — HTML, files, or directories — from Node.js or TypeScript code
+  with the official dropthis SDK (`@dropthis/node`), even if they don't say "drop". Also use to
+  update, edit, rename, password-protect, list, or delete published drops via
+  `client.drops.publish`, `client.drops.updateContent`, `client.drops.updateSettings`,
+  `client.drops.get/list/delete`, `client.deployments.*`, and `client.account.*`.
 license: MIT
 metadata:
   author: dropthis
@@ -73,7 +76,7 @@ All API keys use the `sk_` prefix.
 import { Dropthis } from "@dropthis/node";
 
 const dropthis = new Dropthis();
-const { data, error } = await dropthis.publish("<h1>Hello world</h1>");
+const { data, error } = await dropthis.drops.publish("<h1>Hello world</h1>");
 if (!error) console.log(data.url);
 ```
 
@@ -90,7 +93,7 @@ type DropthisResult<T> =
 Always check `error` before accessing `data`:
 
 ```typescript
-const { data, error } = await dropthis.publish("<h1>Hello</h1>");
+const { data, error } = await dropthis.drops.publish("<h1>Hello</h1>");
 if (error) {
   // error.code, error.message, error.statusCode
   throw new Error(error.message);
@@ -100,44 +103,56 @@ console.log(data.url);
 
 ## Available resources
 
-| Resource | Accessor | Reference | Description |
-|----------|----------|-----------|-------------|
-| Publish | `dropthis.publish()` | [publish.md](references/publish.md) | High-level publish and update |
-| Drops | `dropthis.drops` | [drops.md](references/drops.md) | CRUD operations on drops |
-| Deployments | `dropthis.deployments` | [deployments.md](references/deployments.md) | Deployment history per drop |
-| Uploads | `dropthis.uploads` | [uploads.md](references/uploads.md) | Low-level upload session management |
-| Auth | `dropthis.auth` | [auth.md](references/auth.md) | Email OTP login and logout |
-| API Keys | `dropthis.apiKeys` | [auth.md](references/auth.md) | Create, list, delete API keys |
-| Account | `dropthis.account` | [auth.md](references/auth.md) | Get, update, delete account |
-| Types | -- | [types.md](references/types.md) | All exported TypeScript types |
-| Deploy | `dropthis.deploy()` | [publish.md](references/publish.md) | Deploy new content to existing drop |
-| Errors | -- | [error-handling.md](references/error-handling.md) | Error codes and handling |
+The SDK uses Stripe-style resource namespaces — every lifecycle method hangs off a resource
+(there are no top-level `publish`/`deploy`/`update` methods).
+
+| Method | Does | Reference |
+|--------|------|-----------|
+| `client.drops.publish(input, opts?)` | Create a NEW drop → URL. Never takes an id | [publish.md](references/publish.md) |
+| `client.drops.updateContent(id, input, opts?)` | Replace a drop's content, same URL (new deployment). Settings unchanged | [publish.md](references/publish.md) |
+| `client.drops.updateSettings(id, patch)` | Change title/visibility/password/slug/expiry/metadata. Content unchanged | [drops.md](references/drops.md) |
+| `client.drops.get(id)` | Fetch one drop (settings round-trip back into `updateSettings`) | [drops.md](references/drops.md) |
+| `client.drops.list(params?)` | List drops (cursor-paginated, auto-paging iterable) | [drops.md](references/drops.md) |
+| `client.drops.delete(id)` | Delete a drop | [drops.md](references/drops.md) |
+| `client.deployments.list(dropId, params?)` | Content history for a drop | [deployments.md](references/deployments.md) |
+| `client.deployments.get(dropId, depId)` | One deployment's details | [deployments.md](references/deployments.md) |
+| `client.account.get()` / `client.account.update(patch)` / `client.account.delete()` | Account read/update/delete | [auth.md](references/auth.md) |
+| `client.apiKeys` | Create, list, delete API keys | [auth.md](references/auth.md) |
+| `client.auth` | Email OTP login and logout | [auth.md](references/auth.md) |
+| `client.uploads` | Low-level upload session management (rarely needed) | [uploads.md](references/uploads.md) |
+| — | All exported TypeScript types | [types.md](references/types.md) |
+| — | Error codes and handling | [error-handling.md](references/error-handling.md) |
+
+**Contract:** `client.drops.publish` creates a NEW drop and never takes an id; updating an
+existing drop needs its full `drop_…` id (the `data.id` from the publish response — not
+`data.slug` or the URL token). `updateContent` ships a new **deployment** (a content version);
+`updateSettings` never touches content.
 
 ## Common patterns
 
 ### Publish a string
 
 ```typescript
-const { data } = await dropthis.publish("<h1>Hello</h1>");
+const { data } = await dropthis.drops.publish("<h1>Hello</h1>");
 console.log(data.url);
 ```
 
 ### Publish a file
 
 ```typescript
-const { data } = await dropthis.publish("./report.html");
+const { data } = await dropthis.drops.publish("./report.html");
 ```
 
 ### Publish a directory
 
 ```typescript
-const { data } = await dropthis.publish("./dist");
+const { data } = await dropthis.drops.publish("./dist");
 ```
 
 ### Publish with options
 
 ```typescript
-const { data } = await dropthis.publish("./dist", {
+const { data } = await dropthis.drops.publish("./dist", {
   title: "Q4 Report",
   visibility: "unlisted",
   password: "s3cret",
@@ -147,17 +162,17 @@ const { data } = await dropthis.publish("./dist", {
 
 ### Set a vanity slug
 
-`slug` is NOT a `publish()` option — `publish()` ignores it. Publish first, then set the slug via `update(dropId, { slug })`:
+`slug` is NOT a `drops.publish()` option — it's ignored there. Publish first, then set the slug via `drops.updateSettings(id, { slug })`:
 
 ```typescript
-const { data } = await dropthis.publish("./dist");
-await dropthis.update(data.id, { slug: "q4-report" });
+const { data } = await dropthis.drops.publish("./dist");
+await dropthis.drops.updateSettings(data.id, { slug: "q4-report" });
 ```
 
 ### Publish bytes
 
 ```typescript
-const { data } = await dropthis.publish(new Uint8Array([...]), {
+const { data } = await dropthis.drops.publish(new Uint8Array([...]), {
   contentType: "application/pdf",
   path: "report.pdf",
 });
@@ -166,7 +181,7 @@ const { data } = await dropthis.publish(new Uint8Array([...]), {
 ### Publish explicit files (multi-file bundle)
 
 ```typescript
-const { data } = await dropthis.publish({
+const { data } = await dropthis.drops.publish({
   kind: "files",
   files: [
     { path: "index.html", content: "<h1>Hi</h1>" },
@@ -179,23 +194,24 @@ const { data } = await dropthis.publish({
 ### Publish a public URL (server fetches it)
 
 ```typescript
-const { data } = await dropthis.publish("https://example.com/page.html");
-// or: await dropthis.publish({ kind: "source_url", sourceUrl: "https://example.com/page.html" });
+const { data } = await dropthis.drops.publish("https://example.com/page.html");
+// or: await dropthis.drops.publish({ kind: "source_url", sourceUrl: "https://example.com/page.html" });
 ```
 
-### Deploy new content to an existing drop
+### Replace a drop's content (same URL, new deployment)
 
 ```typescript
-const created = await dropthis.publish("./dist", { title: "v1" });
-const updated = await dropthis.deploy(created.data.id, "./dist-v2", {
+const created = await dropthis.drops.publish("./dist", { title: "v1" });
+const updated = await dropthis.drops.updateContent(created.data.id, "./dist-v2", {
   ifRevision: created.data.revision,
 });
+// updateContent is content-only and NOT idempotent — pass idempotencyKey to make retries safe.
 ```
 
-### Update metadata only (no new content)
+### Change settings only (no new content)
 
 ```typescript
-await dropthis.update("drop_abc123", { title: "New title" });
+await dropthis.drops.updateSettings("drop_abc123", { title: "New title" });
 ```
 
 ### Delete a drop
@@ -224,9 +240,11 @@ for await (const drop of page.data) {
 | Mistake | Fix |
 |---------|-----|
 | Accessing `data` without checking `error` | Always check `if (error)` first |
-| Using `drops.update()` to push new content | Use `dropthis.deploy(id, newContent)` for content changes; `drops.update()` and `dropthis.update()` are both metadata-only |
-| Fetching a URL before publishing | Pass the `http(s)` URL straight to `publish()` (or `{ kind: "source_url", sourceUrl }`) -- the server fetches it. Do NOT download it yourself first. |
-| Passing the slug/URL token as `dropId` | `deploy(dropId, …)`, `drops.update(dropId, …)`, `drops.get/delete(dropId)` take the `drop_…` id — the `data.id` returned by `publish()`, NOT `data.slug` or the URL token |
+| Calling `drops.publish()` again to change a drop | `publish` always creates a NEW drop (a duplicate). Use `drops.updateContent(id, newContent)` for content or `drops.updateSettings(id, patch)` for settings |
+| Using `drops.updateSettings()` to push new content | `updateSettings` is settings-only and never touches content; use `drops.updateContent(id, newContent)` to replace the files at the URL |
+| Fetching a URL before publishing | Pass the `http(s)` URL straight to `drops.publish()` (or `{ kind: "source_url", sourceUrl }`) -- the server fetches it. Do NOT download it yourself first. |
+| Passing the slug/URL token as `dropId` | `drops.updateContent(dropId, …)`, `drops.updateSettings(dropId, …)`, `drops.get/delete(dropId)` take the `drop_…` id — the `data.id` returned by `drops.publish()`, NOT `data.slug` or the URL token |
 | Forgetting `ifRevision` on concurrent updates | Pass `ifRevision` from the previous response to get optimistic concurrency |
-| Using `uploads.*` directly for simple publishes | Use `dropthis.publish()` which handles the staged upload flow automatically |
+| Retrying `updateContent` after a timeout | `updateContent` is not idempotent — a blind retry stacks a duplicate deployment. Pass the same `idempotencyKey` to make retries safe |
+| Using `uploads.*` directly for simple publishes | Use `dropthis.drops.publish()` which handles the staged upload flow automatically |
 | Importing from subpaths | Import everything from `"@dropthis/node"` -- there are no public subpath exports |
