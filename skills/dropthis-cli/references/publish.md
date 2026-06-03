@@ -79,8 +79,8 @@ Key fields present in publish responses:
 |-------|------|-------------|
 | `drop.object` | string | Always `"drop"` |
 | `drop.url` | string | The published URL |
-| `drop.id` | string | Drop ID (starts with `drop_`). Use THIS for `drops get/update/delete` and `deployments` -- not the slug/URL. |
-| `drop.slug` | string | Vanity-able URL token (e.g. `abc123`). NOT a drop id -- do NOT pass it to `drops`/`deployments` commands. |
+| `drop.id` | string | Drop ID (starts with `drop_`). Use THIS for `get`/`update-content`/`update-settings`/`delete` and `deployments` -- not the slug/URL. |
+| `drop.slug` | string | Vanity-able URL token (e.g. `abc123`). NOT a drop id -- do NOT pass it to `get`/`update-content`/`update-settings`/`delete`/`deployments` commands. |
 | `drop.deploymentId` | string \| null | The deployment that produced this content version |
 | `drop.contentType` | string | MIME type of the entry content |
 | `drop.sizeBytes` | number | Total bundle size in bytes |

@@ -2,7 +2,7 @@
 
 Low-level upload session management. Accessed via `dropthis.uploads` — `create`, `get`, `complete`, `cancel`.
 
-**Most users never call this directly.** `dropthis.publish()` and `dropthis.deploy()` handle the
+**Most users never call this directly.** `dropthis.drops.publish()` and `dropthis.drops.updateContent()` handle the
 entire staged upload flow (create session, upload files, complete, finalize) internally. Reach for
 `dropthis.uploads.*` only if you are building a custom upload pipeline.
 
@@ -128,6 +128,6 @@ const { error } = await dropthis.uploads.cancel("upl_abc123");
 ## Notes
 
 - The staged upload flow is: `create` → PUT each file to its presigned `single_put` URL → `complete` → finalize the drop with the `uploadId`.
-- `dropthis.publish()` and `dropthis.deploy()` run this entire flow internally — they finalize the drop for you using the resulting `uploadId`. You don't pass an `uploadId` anywhere yourself.
-- `dropthis.update()` is metadata-only (title, slug, visibility, etc.) and does **not** touch the upload flow.
+- `dropthis.drops.publish()` and `dropthis.drops.updateContent()` run this entire flow internally — they finalize the drop for you using the resulting `uploadId`. You don't pass an `uploadId` anywhere yourself.
+- `dropthis.drops.updateSettings()` is settings-only (title, slug, visibility, etc.) and does **not** touch the upload flow.
 - Staging always uses a single PUT per file (`strategy: "single_put"`). There is no multipart / part-target API and no `partSize`/`partCount` — those were removed.

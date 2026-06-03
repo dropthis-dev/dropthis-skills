@@ -1,11 +1,11 @@
 # Deployments
 
-Deployment history for a drop. Each time content is redeployed, a new deployment is created.
+Deployment history for a drop. Each time the content is updated, a new deployment is created.
 The `dropthis.deployments` resource is **read-only** -- it lists and fetches deployment history.
 
-To publish a NEW content version (redeploy), call `dropthis.deploy(dropId, input, options)`.
-`deploy()` is **content-only** — it ships a new content version and never changes drop settings.
-To update settings only, call `dropthis.update(dropId, options)` (settings-only; never content).
+To publish a NEW content version, call `dropthis.drops.updateContent(dropId, input, options)`.
+`updateContent()` is **content-only** — it ships a new content version and never changes drop settings.
+To update settings only, call `dropthis.drops.updateSettings(dropId, patch)` (settings-only; never content).
 
 ## Methods
 
@@ -65,18 +65,18 @@ if (!error) {
 }
 ```
 
-## Creating a new deployment (redeploy)
+## Creating a new deployment (update the content)
 
 `dropthis.deployments` does not create deployments. To publish a new content version to an
-existing drop -- keeping its URL and slug -- call `dropthis.deploy(dropId, input, options)`.
-It accepts the same `PublishInput` as `dropthis.publish()` and handles the full staged upload
-flow automatically. `deploy()` is **content-only**: its `options` are `DeployOptions`
+existing drop -- keeping its URL and slug -- call `dropthis.drops.updateContent(dropId, input, options)`.
+It accepts the same `PublishInput` as `dropthis.drops.publish()` and handles the full staged upload
+flow automatically. `updateContent()` is **content-only**: its `options` are `DeployOptions`
 (content-prep fields + `entry` + `idempotencyKey`/`ifRevision` only) — it carries no drop
 settings. Settings (title, visibility, password, noindex, slug, expiry, metadata) are managed
-separately via `dropthis.update()`.
+separately via `dropthis.drops.updateSettings()`.
 
 ```typescript
-const { data, error } = await dropthis.deploy(
+const { data, error } = await dropthis.drops.updateContent(
   "drop_abc123",
   "<h1>v2</h1>",
   { ifRevision: 1 },
@@ -87,11 +87,11 @@ if (!error) {
 ```
 
 To change settings (title, visibility, password, noindex, slug, expiry, metadata) WITHOUT
-changing content, use `dropthis.update("drop_abc123", { title: "New title" })` -- it is
+changing content, use `dropthis.drops.updateSettings("drop_abc123", { title: "New title" })` -- it is
 settings-only and never creates a content deployment.
 
 ## Notes
 
 - Deployments are immutable once created. You cannot update or delete individual deployments.
-- `dropthis.deployments.list/get` are read-only. Use `dropthis.deploy(dropId, input, options)` to create a new content version.
+- `dropthis.deployments.list/get` are read-only. Use `dropthis.drops.updateContent(dropId, input, options)` to create a new content version.
 - The `ListDeploymentsResponse` does not use `CursorPage`. Pagination must be handled manually using `nextCursor`.
