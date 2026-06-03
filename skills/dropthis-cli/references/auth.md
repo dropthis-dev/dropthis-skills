@@ -231,7 +231,7 @@ dropthis api-keys delete <keyId> [flags]
 
 ## account
 
-Show account details. This is a direct command (not a subcommand).
+Show account details (`dropthis account`), or update your display name with the `account update` subcommand.
 
 ### Usage
 
@@ -260,6 +260,18 @@ dropthis account
 # Machine-readable account info
 dropthis account --json
 ```
+
+### account update
+
+Update your account display name.
+
+```bash
+dropthis account update --display-name "New Name"
+```
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--display-name` | Yes | New display name |
 
 ---
 
