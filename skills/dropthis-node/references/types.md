@@ -342,14 +342,14 @@ type CreateUploadSessionFileResponse = {
 
 ```typescript
 type UploadTarget = {
-  strategy: "single_put" | "multipart";
+  strategy: "single_put"; // always single_put — one signed PUT per file
   url: string;
   headers: Record<string, string>;
   expiresAt: string;
 };
 ```
 
-The SDK only uploads via `single_put`. There are no `partSize`/`partCount` fields.
+Staging always uses a single signed PUT per file. There is no multipart strategy and no `partSize`/`partCount` fields.
 
 ### UploadSessionResponse
 
@@ -377,16 +377,7 @@ type UploadSessionFileResponse = {
 };
 ```
 
-### CompleteUploadSessionRequest
-
-```typescript
-type CompleteUploadSessionRequest = {
-  files?: Record<
-    string,
-    { parts?: Array<{ partNumber: number; etag: string }> | null }
-  >;
-};
-```
+There is no `CompleteUploadSessionRequest` type — `uploads.complete(uploadId, options?)` sends no request body.
 
 ## Option types
 

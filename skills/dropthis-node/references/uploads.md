@@ -79,32 +79,24 @@ if (!error) {
 }
 ```
 
-### complete(uploadId, body, options?)
+### complete(uploadId, options?)
 
-Complete an upload session after all files have been uploaded to their presigned URLs.
+Complete an upload session after all files have been uploaded to their presigned URLs. Takes **no request
+body** — the server verifies the uploaded bytes against the staged manifest.
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `uploadId` | `string` | Yes | Upload session ID |
-| `body` | `CompleteUploadSessionRequest` | Yes | Completion body |
 | `options.idempotencyKey` | `string` | No | Idempotency key |
-
-`CompleteUploadSessionRequest` shape:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `files` | `Record<string, { parts?: Array<{ partNumber: number; etag: string }> \| null }>` | No | Reserved; the single-PUT flow sends an empty object (`{ files: {} }`) |
 
 **Returns:** `DropthisResult<UploadSessionResponse>`
 
 **Example:**
 
 ```typescript
-const { data, error } = await dropthis.uploads.complete("upl_abc123", {
-  files: {},
-});
+const { data, error } = await dropthis.uploads.complete("upl_abc123");
 ```
 
 ### cancel(uploadId)
