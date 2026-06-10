@@ -46,10 +46,10 @@ console.log(data.url);
 | `network_error` | `null` | DNS failure, connection refused, or other network issue |
 | `http_400` | `400` | Invalid request body |
 | `http_401` | `401` | Invalid or expired API key |
-| `http_403` | `403` | Insufficient permissions |
+| `http_403` | `403` | Insufficient permissions (notably `password_protection_unavailable`: setting a drop password is currently rejected on every plan until the Pro unlock flow ships; clearing with `null` is allowed) |
 | `http_404` | `404` | Resource not found |
 | `http_409` | `409` | Revision conflict -- use `error.currentRevision` to retry |
-| `http_413` | `413` | Drop size exceeds plan limit or account storage cap |
+| `http_413` | `413` | Drop size exceeds plan limit (5 MB free, 100 MB Personal/Pro) or the account storage cap (2 GB on Personal/Pro) |
 | `http_429` | `429` | Rate limited |
 | `upload_target_missing` | `null` | Server did not return an upload target for a file |
 | `unsupported_upload_strategy` | `null` | Server returned a non-`single_put` strategy (the SDK uploads via single PUT only) |

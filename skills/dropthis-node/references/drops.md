@@ -106,6 +106,9 @@ if (error) console.error("Delete failed:", error.message);
 ## Notes
 
 - The `drops` resource exposes `publish` / `updateContent` / `updateSettings` / `get` / `list` / `delete`. Publishing a NEW drop is `dropthis.drops.publish(input, options)`.
-- `drops.updateSettings()` is settings-only — it changes title/visibility/password/expiry/metadata, never content.
+- `drops.updateSettings()` is settings-only — it changes title/visibility/password/expiry/metadata, never content. SETTING a `password` is currently rejected on every plan (403 `password_protection_unavailable`) until the Pro unlock flow ships; clearing one with `password: null` is always allowed.
 - For updating content, use `dropthis.drops.updateContent(dropId, newContent)` which creates a new deployment and never changes settings.
-- `idempotencyKey` and `ifRevision` are fields in the patch/options object.
+- `idempotencyKey` and `ifRevision` are fields in the patch/options object. `get()` returns the drop's current `revision` — feed it back as `ifRevision` for optimistic locking.
+- `delete()` gets a 204 No Content reply (every DELETE in the API returns 204), so `data` is `null` on success.
+- Slug→id resolution: each drop carries its `slug` (the URL token). If you only have a drop's URL, extract the slug and match it against `drops.list()` results — or resolve directly against the REST API: `GET /v1/drops?slug=<slug>` (owner-scoped, returns 0 or 1 drops).
+- Content read-back (REST): `GET /v1/drops/{dropId}/content` returns a JSON manifest of the CURRENT deployment's files; add `?path=<file>` to download one file's exact stored bytes. `GET /v1/drops/{dropId}/deployments/{deploymentId}/content` does the same for any historical deployment (including SUPERSEDED ones) — downloading an old version's files and republishing them with `drops.updateContent()` is the rollback path. Owner-authenticated; works regardless of any viewer password.

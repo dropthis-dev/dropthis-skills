@@ -103,7 +103,9 @@ dropthis_update_content { "drop_id": "drop_6hRcUUok5PYeEK6jJQY5Is", "content": "
 # WRONG: dropthis_update_content { "drop_id": "0izsioo", ... }  → fails (slug is not a drop id)
 ```
 
-If you only have the slug/URL, call `dropthis_list` to recover the `id`.
+If you only have the slug/URL, call `dropthis_list` to recover the `id` — each item carries
+its `slug`, so match the URL's slug against `items[].slug`. (The REST API can also resolve
+directly: `GET /v1/drops?slug=<slug>`, owner-scoped, returns 0 or 1 drops.)
 
 **Glossary:** a **Drop** is one published artifact at a permanent URL. A **deployment** is one
 content version of a Drop (`dropthis_update_content` ships a new deployment; see them with
@@ -111,9 +113,14 @@ content version of a Drop (`dropthis_update_content` ships a new deployment; see
 
 ## Auth and limits
 
-Call `dropthis_account` first if you need to know the plan (Free vs Pro) before publishing.
-Pro-only inputs (`password`, custom domains) return an in-band upgrade nudge
-on Free — read the `suggestion` field in the tool result and relay it.
+Call `dropthis_account` first if you need to size a publish: its `limits` block carries the
+active plan-tier limits (`maxSizeBytes`, `defaultTtlSeconds` — `null` means permanent,
+`maxStorageBytes` — `null` means uncapped). Three plans: Free ($0 — 7-day TTL, badge,
+5 MB/drop) · Personal ($5/mo — permanent while subscribed, no badge, 100 MB/drop, 2 GB
+storage) · Pro ($19/mo — adds custom domains and analytics). Setting a `password` is
+currently rejected on EVERY plan (403 `password_protection_unavailable`) until the Pro
+unlock flow ships; clearing one with `null` still works. Plan-limit errors return the
+server's `suggestion` as an upgrade nudge — read it in the tool result and relay it.
 
 ## Errors
 

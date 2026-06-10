@@ -121,7 +121,7 @@ if (prepared.kind === "staged") {
 |--------|------|-------------|
 | `title` | `string` | Drop title |
 | `visibility` | `"public" \| "unlisted"` | public (default) or unlisted |
-| `password` | `string \| null` | Require password to view (`null` to remove) |
+| `password` | `string \| null` | Require password to view (`null` to remove). SETTING one is currently rejected on every plan (403 `password_protection_unavailable`) until the Pro unlock flow ships; clearing with `null` is always allowed |
 | `noindex` | `boolean \| null` | Prevent search-engine indexing (`null` to allow, default) |
 | `expiresAt` | `string \| Date \| null` | Auto-delete after this ISO 8601 date |
 | `entry` | `string` | Entry file for multi-file bundles (default: index.html) |
@@ -221,5 +221,7 @@ dropthis.account.get();
 - To publish multiple files, pass `string[]` paths or `{ kind: "files", files: [...] }`. Do NOT inline CSS/JS into one HTML blob.
 - `drops.publish()` returns BOTH `data.id` (the `drop_…` id) and `data.slug` (the URL token). Pass `data.id` to `drops.updateContent(dropId, …)`, `drops.updateSettings(dropId, …)`, and `drops.get/delete(dropId)` — the slug is NOT accepted as a drop id. Retain `data.id` for all follow-up operations.
 - The staged upload flow uses presigned URLs for direct-to-R2 uploads (single PUT per file). The SDK handles this entirely.
+- At the REST level the API is staged-only: `POST /v1/drops` (and `POST /v1/drops/{id}/deployments`) accepts exactly one of `upload_id` (from a completed staged upload) or `source_url` — there is no inline-content or multipart mode. The SDK's inline `content` inputs are staged automatically before publishing.
+- The publish response may include `warnings`. A `root_relative_reference` warning names a file referencing assets with root-relative URLs (e.g. `/styles.css`), which break if the drop is ever served under a subpath — prefer relative refs in generated HTML/CSS.
 - For files larger than 10 MB, SHA-256 checksums are computed automatically for integrity verification.
 - The publish surface is `dropthis.prepare()` plus the `drops` resource methods `publish` / `updateContent` / `updateSettings` (and `get` / `list` / `delete`) reached through the resource getters. There is no generic `request()` escape hatch and no `requestSignedUpload()` — those low-level methods are not part of the public surface.

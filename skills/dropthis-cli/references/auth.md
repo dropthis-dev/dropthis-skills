@@ -248,8 +248,13 @@ dropthis account [flags]
 ### Output
 
 ```json
-{"ok":true,"account":{"id":"acc_abc123","email":"user@example.com"}}
+{"ok":true,"account":{"id":"acc_abc123","email":"user@example.com","displayName":null,"plan":"free","status":"active","createdAt":"2026-05-23T12:00:00Z","limits":{"name":"free","maxSizeBytes":5242880,"defaultTtlSeconds":604800,"maxStorageBytes":null}}}
 ```
+
+The `limits` block carries the active plan-tier limits — use them to size a publish before
+uploading: `maxSizeBytes` is the per-drop size cap; `defaultTtlSeconds` is the drop lifetime
+before expiry (`null` = drops are permanent); `maxStorageBytes` is the account-wide storage
+cap (`null` = no cap).
 
 ### Examples
 

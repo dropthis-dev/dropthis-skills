@@ -136,7 +136,8 @@ Lifecycle verbs are flat and top-level — they mirror the MCP tool names 1:1.
 > `update-content` and `update-settings` both require the full `drop_…` id from the publish
 > response — not the slug or URL token. `publish` creates a NEW drop every call and never takes
 > an id; updating an existing drop needs its id. To recover an id you only have the slug for,
-> run `dropthis list --json`.
+> run `dropthis list --json` and match the slug (the API can also resolve it directly:
+> `GET /v1/drops?slug=<slug>` is owner-scoped and returns 0 or 1 drops).
 
 ## Publish
 
@@ -169,7 +170,7 @@ echo "<h1>Hello</h1>" | dropthis - --content-type text/html --path index.html --
 |------|-------------|
 | `--title <title>` | Drop title |
 | `--visibility <public\|unlisted>` | Drop visibility |
-| `--password <password>` | Set password protection |
+| `--password <password>` | Set password protection (currently rejected on every plan — see note below) |
 | `--noindex` | Prevent search engine indexing |
 | `--entry <path>` | Entry file for directories |
 | `--content-type <mime>` | Content type (recommended for stdin; auto-detected if omitted) |
@@ -210,10 +211,15 @@ dropthis update-settings drop_abc123 --title "v2 Release" --visibility unlisted 
 > changes settings only. To do both, run both — first `update-content` to ship new content,
 > then `update-settings` for the settings.
 
-**Password-protected drop:**
+**Low-discoverability sharing:**
 ```bash
-dropthis ./report.html --password s3cret --url
+dropthis ./report.html --visibility unlisted --noindex --url
 ```
+
+> Password protection is not purchasable yet: setting `--password` is rejected on every
+> current plan (403 `password_protection_unavailable`) until the Pro unlock flow ships.
+> Removing an existing password with `--no-password` is always allowed. Use
+> `--visibility unlisted` in the meantime.
 
 ## Common Mistakes
 

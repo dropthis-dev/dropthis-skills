@@ -81,4 +81,6 @@ dropthis deployments get drop_abc123 dep_xyz789
 - `<dropId>` is the full `drop_…` id (the `id` from publish `--json`), NOT the slug or URL token.
 - All `deployments` subcommands require authentication.
 - Deployments are immutable snapshots. Each `dropthis update-content` creates a new one.
-- The `revision` field is useful with `dropthis update-content --if-revision` for optimistic concurrency.
+- The `revision` field is useful with `dropthis update-content --if-revision` for optimistic concurrency. On a `revision_conflict` (409) error, `error.current_revision` carries the value to retry with.
+- Content read-back (REST): `GET /v1/drops/{dropId}/deployments/{deploymentId}/content` returns a JSON manifest of that deployment's files (paths, sizes, content types, entry); add `?path=<file>` to download one file's exact stored bytes with its stored content type. Works for SUPERSEDED deployments too. Owner-authenticated with your `sk_` key.
+- Rollback: there is no rollback verb. Download an old deployment's files via the content read-back route and republish them with `dropthis update-content` -- that IS the rollback path.

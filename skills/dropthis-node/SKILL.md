@@ -155,7 +155,6 @@ const { data } = await dropthis.drops.publish("./dist");
 const { data } = await dropthis.drops.publish("./dist", {
   title: "Q4 Report",
   visibility: "unlisted",
-  password: "s3cret",
   expiresAt: "2026-12-31T00:00:00Z",
 });
 ```
@@ -236,6 +235,7 @@ for await (const drop of page.data) {
 | Fetching a URL before publishing | Pass the `http(s)` URL straight to `drops.publish()` (or `{ kind: "source_url", sourceUrl }`) -- the server fetches it. Do NOT download it yourself first. |
 | Passing the slug/URL token as `dropId` | `drops.updateContent(dropId, …)`, `drops.updateSettings(dropId, …)`, `drops.get/delete(dropId)` take the `drop_…` id — the `data.id` returned by `drops.publish()`, NOT `data.slug` or the URL token |
 | Forgetting `ifRevision` on concurrent updates | Pass `ifRevision` from the previous response to get optimistic concurrency |
+| Setting `password` on publish or `updateSettings` | Currently rejected on EVERY plan (403 `password_protection_unavailable`) until the Pro unlock flow ships. Clearing one with `password: null` is always allowed |
 | Retrying `updateContent` after a timeout | `updateContent` is not idempotent — a blind retry stacks a duplicate deployment. Pass the same `idempotencyKey` to make retries safe |
 | Using `uploads.*` directly for simple publishes | Use `dropthis.drops.publish()` which handles the staged upload flow automatically |
 | Importing from subpaths | Import everything from `"@dropthis/node"` -- there are no public subpath exports |

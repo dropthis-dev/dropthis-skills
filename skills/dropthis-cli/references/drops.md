@@ -41,6 +41,12 @@ dropthis list --limit 10
 dropthis list --cursor "eyJsYXN0X2lkIjoiZHJvcF8xMjMifQ"
 ```
 
+#### Resolving a slug/URL back to a drop id
+
+Each listed drop carries its `slug` (the URL token). If you only have a drop's URL, extract
+the slug and match it against the list output (`dropthis list --json`). The REST API can also
+resolve it directly -- `GET /v1/drops?slug=<slug>` is owner-scoped and returns 0 or 1 drops.
+
 ---
 
 ### get
@@ -62,7 +68,7 @@ dropthis get <dropId> [flags]
 #### Output
 
 ```json
-{"ok":true,"drop":{"id":"drop_abc123","url":"https://dropthis.app/abc123","title":"My Page","visibility":"public","accessible":true,"persistent":false,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
+{"ok":true,"drop":{"id":"drop_abc123","url":"https://dropthis.app/abc123","title":"My Page","visibility":"public","revision":1,"accessible":true,"persistent":false,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
 ```
 
 The `drop` object is the full SDK `DropResponse`. Notable fields:
@@ -70,8 +76,9 @@ The `drop` object is the full SDK `DropResponse`. Notable fields:
 | Field | Type | Description |
 |-------|------|-------------|
 | `accessible` | boolean | Whether the drop is currently accessible (not expired, not deleted) |
-| `persistent` | boolean | `true` for Pro drops (no TTL), `false` for free-tier drops (3-day TTL) |
-| `tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true}`) |
+| `revision` | number | Current drop revision -- pass it as `--if-revision` on `update-content`/`update-settings` for optimistic locking |
+| `persistent` | boolean | `true` for paid-tier (Personal/Pro) drops (no TTL), `false` for free-tier drops (7-day TTL) |
+| `tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true}`) |
 | `limitations` | object | `{"actions":[...]}` -- a list of `DropAction` entries; empty array when there are none |
 
 #### Examples
@@ -195,8 +202,8 @@ dropthis update-settings <dropId> [flags]
 |------|----------|-------------|
 | `--title` `<title>` | No | Drop title |
 | `--visibility` `<public\|unlisted>` | No | public (default) or unlisted |
-| `--password` `<password>` | No | Require password to view |
-| `--no-password` | No | Remove password protection |
+| `--password` `<password>` | No | Require password to view (currently rejected on every plan with 403 `password_protection_unavailable` -- gated until the Pro unlock flow ships) |
+| `--no-password` | No | Remove password protection (always allowed) |
 | `--noindex` | No | Prevent search-engine indexing |
 | `--index` | No | Allow search-engine indexing (default) |
 | `--expires-at` `<datetime>` | No | Auto-delete after this ISO 8601 date |
@@ -240,10 +247,10 @@ dropthis update-settings <dropId> [flags]
 # Update only the title (no content change)
 dropthis update-settings drop_abc123 --title "Updated Title" --json
 
-# Change visibility and set password
-dropthis update-settings drop_abc123 --visibility unlisted --password s3cret --json
+# Change visibility
+dropthis update-settings drop_abc123 --visibility unlisted --json
 
-# Remove password
+# Remove an existing password (always allowed; SETTING one is rejected on every current plan)
 dropthis update-settings drop_abc123 --no-password
 
 # Set metadata
@@ -302,3 +309,4 @@ dropthis delete drop_abc123 --yes
 - All drop commands require authentication.
 - Content and settings are separate commands: `update-content <id> <input>` replaces the files at the URL (new deployment, settings unchanged); `update-settings <id> --<setting>` changes title/visibility/password/expiry/metadata (content unchanged). To change both, run both.
 - The `delete --yes` flag is mandatory in non-interactive (non-TTY) environments. Agents must always include it.
+- Content read-back (REST): `GET /v1/drops/{dropId}/content` returns a JSON manifest of the CURRENT deployment's files (paths, sizes, content types, entry); add `?path=<file>` to download one file's exact stored bytes. Owner-authenticated with your `sk_` key; works regardless of any viewer password. For historical versions see [deployments.md](deployments.md).

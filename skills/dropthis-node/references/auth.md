@@ -56,9 +56,9 @@ if (!error) console.log("Session token:", data.token);
 
 ### logout()
 
-Destroy the current session.
+Destroy the current session. The server replies 204 No Content.
 
-**Returns:** `DropthisResult<{ ok: true }>`
+**Returns:** `DropthisResult<null>`
 
 **Example:**
 
@@ -115,7 +115,7 @@ if (!error) {
 
 ### delete(keyId)
 
-Delete an API key.
+Delete an API key. The server replies 204 No Content (every DELETE in the API returns 204).
 
 **Parameters:**
 
@@ -123,7 +123,7 @@ Delete an API key.
 |-----------|------|----------|-------------|
 | `keyId` | `string` | Yes | API key ID to delete |
 
-**Returns:** `DropthisResult<{ ok: true }>`
+**Returns:** `DropthisResult<null>`
 
 **Example:**
 
@@ -137,17 +137,23 @@ Accessed via `dropthis.account`. Manage the authenticated account.
 
 ### get()
 
-Get the current account details.
+Get the current account details, including the active plan-tier limits.
 
 **Returns:** `DropthisResult<AccountResponse>`
 
-`AccountResponse`: `{ id: string; email: string; displayName: string | null; plan: string; status: string; createdAt: string }`
+`AccountResponse`: `{ id: string; email: string; displayName: string | null; plan: string; status: string; createdAt: string; limits: AccountLimits }`
+
+`AccountLimits` (use these to size a publish before uploading):
+`{ name: string; maxSizeBytes: number; defaultTtlSeconds: number | null; maxStorageBytes: number | null }`
+— `maxSizeBytes` is the per-drop size cap; `defaultTtlSeconds` is the drop lifetime before
+expiry (`null` = drops are permanent); `maxStorageBytes` is the account-wide storage cap
+(`null` = no cap). Free example: `{ name: "free", maxSizeBytes: 5242880, defaultTtlSeconds: 604800, maxStorageBytes: null }`.
 
 **Example:**
 
 ```typescript
 const { data, error } = await dropthis.account.get();
-if (!error) console.log(data.email, data.plan);
+if (!error) console.log(data.email, data.plan, data.limits.maxSizeBytes);
 ```
 
 ### update(input)
@@ -172,7 +178,7 @@ const { data, error } = await dropthis.account.update({
 
 ### delete()
 
-Permanently delete the account.
+Permanently delete the account. The server replies 204 No Content.
 
 **Returns:** `DropthisResult<null>`
 

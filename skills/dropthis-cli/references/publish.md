@@ -36,7 +36,7 @@ When credentials are missing and the terminal is interactive, `publish` prompts 
 |------|----------|-------------|
 | `--title` `<title>` | No | Drop title |
 | `--visibility` `<public\|unlisted>` | No | public (default) or unlisted |
-| `--password` `<password>` | No | Require password to view |
+| `--password` `<password>` | No | Require password to view (currently rejected on every plan with 403 `password_protection_unavailable` — gated until the Pro unlock flow ships) |
 | `--noindex` | No | Prevent search-engine indexing |
 | `--entry` `<path>` | No | Entry file for multi-file bundles (default: index.html) |
 | `--expires-at` `<datetime>` | No | Auto-delete after this ISO 8601 date |
@@ -70,7 +70,7 @@ Retain `drop.id` for all follow-up operations (`drops`/`deployments`); the `slug
 The CLI emits the SDK `DropResponse` under `drop`:
 
 ```json
-{"ok":true,"drop":{"object":"drop","id":"drop_abc123","slug":"abc123","url":"https://dropthis.app/abc123","deploymentId":"dep_xyz789","title":"My Page","contentType":"text/html","visibility":"public","status":"ready","revision":1,"sizeBytes":1234,"createdAt":"2026-05-29T12:00:00Z","expiresAt":"2026-06-01T12:00:00Z","accessible":true,"persistent":false,"badgeApplied":true,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
+{"ok":true,"drop":{"object":"drop","id":"drop_abc123","slug":"abc123","url":"https://dropthis.app/abc123","deploymentId":"dep_xyz789","title":"My Page","contentType":"text/html","visibility":"public","status":"ready","revision":1,"sizeBytes":1234,"createdAt":"2026-05-29T12:00:00Z","expiresAt":"2026-06-05T12:00:00Z","accessible":true,"persistent":false,"badgeApplied":true,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
 ```
 
 Key fields present in publish responses:
@@ -86,10 +86,11 @@ Key fields present in publish responses:
 | `drop.sizeBytes` | number | Total bundle size in bytes |
 | `drop.expiresAt` | string \| null | ISO 8601 auto-delete time, or `null` if persistent |
 | `drop.accessible` | boolean | Whether the drop is currently accessible |
-| `drop.persistent` | boolean | `true` for Pro drops, `false` for free-tier drops (3-day TTL) |
+| `drop.persistent` | boolean | `true` for paid-tier (Personal/Pro) drops (no TTL), `false` for free-tier drops (7-day TTL) |
 | `drop.badgeApplied` | boolean | `true` when the dropthis badge is shown on the drop |
-| `drop.tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (e.g. free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":3,"persistent":false,"badge":true}`) |
+| `drop.tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (e.g. free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true}`) |
 | `drop.limitations` | object | `{"actions":[...]}` -- a list of `DropAction` entries (`code`, `kind`, `priority`, `message`, optional `resolve`). Empty array when there are no actions. |
+| `drop.warnings` | array | Bundle classification warnings. A `root_relative_reference` entry names a file referencing assets with root-relative URLs (e.g. `/styles.css`) that break if the drop is served under a subpath -- prefer relative refs. Empty array when clean. |
 
 #### With `--url`
 
@@ -101,13 +102,13 @@ https://dropthis.app/abc123
 
 ```
 Published: https://dropthis.app/abc123
-  1.2 KB · text/html · expires 2026-06-01
+  1.2 KB · text/html · expires 2026-06-05
 ```
 
 The second line is a dimmed detail line summarizing the drop. It includes, when present:
 the formatted size (`sizeBytes`), the content type (`contentType`, before any `;`),
 `unlisted` when visibility is unlisted, and `expires <date>` when `expiresAt` is set (free
-drops expire after 3 days). Fields that are absent are omitted; if none apply, the line is
+drops expire after 7 days). Fields that are absent are omitted; if none apply, the line is
 not printed.
 
 #### With `--dry-run`
@@ -159,8 +160,8 @@ echo "<h1>Hello</h1>" | dropthis publish - --content-type text/html --path index
 # Pipe without args (stdin auto-detected in non-TTY)
 echo "<h1>Hello</h1>" | dropthis publish --content-type text/html --path index.html --url
 
-# Publish with a custom title and password
-dropthis ./report.html --title "Q4 Report" --password s3cret --url
+# Publish with a custom title
+dropthis ./report.html --title "Q4 Report" --url
 
 # Publish as unlisted with noindex
 dropthis ./draft.html --visibility unlisted --noindex --url
@@ -184,6 +185,8 @@ dropthis ./page.html --json
 ### Notes
 
 - When piping stdin, `--content-type` and `--path` are strongly recommended. If omitted, the SDK auto-detects the content type (HTML detected from tags, else `text/plain`) and picks an entry filename (`index.html` for HTML, `index.txt` otherwise). Set them explicitly for deterministic output.
+- Setting `--password` is currently rejected on every plan (403 `password_protection_unavailable`) until the Pro unlock flow ships. Removing one with `update-settings --no-password` is always allowed.
+- At the REST level the API is staged-only: `POST /v1/drops` accepts exactly one of `upload_id` (from a completed staged upload) or `source_url` -- there is no inline-content or multipart mode. The CLI stages files/strings/stdin for you automatically.
 - `--url` and `--dry-run` are mutually exclusive.
 - `--metadata` and `--metadata-file` are mutually exclusive.
 - An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
