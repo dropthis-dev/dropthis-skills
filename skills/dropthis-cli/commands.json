@@ -80,6 +80,22 @@
       ]
     },
     {
+      "name": "pull",
+      "description": "Download a drop's files into a local directory (accepts the drop_… id, the drop URL, or its slug).\nFetches the current deployment's file manifest and writes every file. Pull, edit, then update-content to ship the changes back to the same URL — also the rollback path.",
+      "arguments": [
+        "target"
+      ],
+      "options": [
+        "--output",
+        "--json"
+      ],
+      "auth": "required",
+      "examples": [
+        "dropthis pull drop_abc -o ./site",
+        "dropthis pull https://abc123.dropthis.app"
+      ]
+    },
+    {
       "name": "get",
       "description": "Show drop details (pass the full drop_… id)",
       "arguments": [

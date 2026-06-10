@@ -78,6 +78,9 @@ Inputs: `drop_id` (required), `confirm` (required)
 ### `dropthis_get`
 Inputs: `drop_id` (required)
 
+### `dropthis_get_content`
+Inputs: `drop_id` (required), `deployment_id`, `path`
+
 ### `dropthis_list`
 Inputs: `cursor`, `limit`
 
