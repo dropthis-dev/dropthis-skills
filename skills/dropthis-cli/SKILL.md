@@ -43,6 +43,7 @@ references:
   - references/auth.md
   - references/error-codes.md
   - references/diagnostics.md
+  - ../../references/domains.md
 ---
 
 # dropthis CLI
@@ -231,6 +232,19 @@ dropthis ./report.html --visibility unlisted --noindex --url
 | 4 | **Relying on stdin auto-detection** | When piping content via stdin (`-`), set `--content-type` and `--path` explicitly for deterministic output. Without them the SDK auto-detects content type and entry filename. |
 | 5 | **Using the slug/URL token as the drop id** | `get`/`update-content`/`update-settings`/`delete` and `deployments list/get` take the full `drop_…` id (the `.drop.id` field in publish `--json` output), NOT the slug or URL token. Capture `.drop.id` from publish; if you only have the slug, run `dropthis list --json` to find the id. |
 | 6 | **Calling `publish` again to change a drop** | `publish` always creates a NEW drop and makes a duplicate. To change something you already published, use `update-content <id>` (the files at the URL) or `update-settings <id>` (title/visibility/password/expiry/metadata) with its `drop_…` id. |
+
+## Custom domains
+
+Serve drops at your own hostname instead of the shared `dropthis.app` pool. Two modes: `path` (many drops at `/{slug}/`) and `dedicated` (hostname = one drop at root).
+
+```bash
+dropthis domains connect reports.example.com --mode path   # connect
+# → add CNAME reports.example.com → edge.dropthis.app at your DNS provider
+dropthis domains verify reports.example.com --wait         # verify (non-blocking, re-call on retry_after)
+dropthis publish ./page.html --domain reports.example.com --slug my-report --url  # publish
+```
+
+See [../../references/domains.md](../../references/domains.md) for the full runbook (dedicated mode, 409 recovery, vanity slug rules, path-safe content).
 
 ## After Setup
 

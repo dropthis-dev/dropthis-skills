@@ -35,6 +35,7 @@ references:
   - references/auth.md
   - references/types.md
   - references/error-handling.md
+  - ../../references/domains.md
 ---
 
 # @dropthis/node -- Agent Skill
@@ -224,6 +225,24 @@ for await (const drop of page.data) {
   console.log(drop.url);
 }
 ```
+
+## Custom domains
+
+Serve drops at your own hostname via `client.domains.*`. Two modes: `path` (many drops at `/{slug}/`) and `dedicated` (hostname = one drop at root).
+
+```typescript
+// Connect → verify → publish loop
+const { data: dom } = await client.domains.connect({ hostname: "reports.example.com", mode: "path" });
+// → add CNAME reports.example.com → edge.dropthis.app
+const { data: verified } = await client.domains.verify("reports.example.com");
+// if verified.status !== "live", wait verified.dns[0].retryAfter seconds and re-call verify
+const { data: drop } = await client.drops.publish("./report.html", {
+  domain: "reports.example.com", slug: "q4-summary",
+});
+// → https://reports.example.com/q4-summary/
+```
+
+Dedicated domain already occupied → 409; use `updateContent(existingId, …)` or `domains.update(hostname, { dropId: newDropId })`. Path-mode content must use relative asset refs (root-relative `/…` → 422 with violations). See [../../references/domains.md](../../references/domains.md) for the full runbook.
 
 ## Common mistakes
 

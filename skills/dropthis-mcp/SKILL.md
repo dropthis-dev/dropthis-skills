@@ -37,6 +37,7 @@ inputs:
     required: true
 references:
   - references/tools.md
+  - ../../references/domains.md
 ---
 
 # dropthis MCP
@@ -110,6 +111,21 @@ directly: `GET /v1/drops?slug=<slug>`, owner-scoped, returns 0 or 1 drops.)
 **Glossary:** a **Drop** is one published artifact at a permanent URL. A **deployment** is one
 content version of a Drop (`dropthis_update_content` ships a new deployment; see them with
 `dropthis_list_deployments`). A **Package** is a multi-file bundle (the `files` input).
+
+## Custom domains
+
+Serve drops at your own hostname. Two modes: `path` (many drops at `/{slug}/`) and `dedicated` (hostname = one drop at root).
+
+```
+dropthis_domains_connect { "hostname": "reports.example.com", "mode": "path" }
+# → add CNAME reports.example.com → edge.dropthis.app at your DNS provider
+dropthis_domains_verify { "idOrHostname": "reports.example.com" }  # re-call after retry_after if not live yet
+dropthis_publish { "content": "<html>…</html>", "domain": "reports.example.com", "slug": "q4" }
+```
+
+Dedicated domain already occupied → 409 with `drop_id` of the occupant; use `dropthis_update_content` to replace its content or `dropthis_domains_update` to repoint. Path-mode publishes require relative asset references (root-relative `/…` → 422 with violations list).
+
+See [../../references/domains.md](../../references/domains.md) for the full runbook.
 
 ## Auth and limits
 
