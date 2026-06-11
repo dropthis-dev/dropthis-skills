@@ -17,6 +17,8 @@
         "--metadata",
         "--metadata-file",
         "--path",
+        "--domain",
+        "--slug",
         "--url",
         "--dry-run",
         "--json",
@@ -174,6 +176,74 @@
           "auth": "required",
           "examples": [
             "dropthis deployments get drop_abc dep_abc --json"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "domains",
+      "description": "Manage custom domains. Loop: connect → create the CNAME at your DNS provider → verify --wait → publish --domain",
+      "subcommands": [
+        {
+          "name": "connect",
+          "description": "Connect a custom domain. Returns DNS records to create at your provider.\nAfter adding them: dropthis domains verify <hostname> --wait",
+          "arguments": [
+            "hostname"
+          ],
+          "options": [
+            "--mode",
+            "--json"
+          ]
+        },
+        {
+          "name": "list",
+          "description": "List connected custom domains",
+          "options": [
+            "--json"
+          ]
+        },
+        {
+          "name": "status",
+          "description": "Show domain details and DNS record status",
+          "arguments": [
+            "hostname"
+          ],
+          "options": [
+            "--json"
+          ]
+        },
+        {
+          "name": "verify",
+          "description": "Trigger a DNS verification check. With --wait, polls until live or failed.\nUse after adding the DNS records from: dropthis domains connect",
+          "arguments": [
+            "hostname"
+          ],
+          "options": [
+            "--wait",
+            "--timeout",
+            "--json"
+          ]
+        },
+        {
+          "name": "update",
+          "description": "Update a domain — repoint to a different drop (dedicated mode) or set/clear as account default (path mode). At least one option required.",
+          "arguments": [
+            "hostname"
+          ],
+          "options": [
+            "--drop",
+            "--default",
+            "--json"
+          ]
+        },
+        {
+          "name": "remove",
+          "description": "Remove a custom domain. IMPORTANT: also delete the DNS CNAME at your provider to prevent DNS hijacking.",
+          "arguments": [
+            "hostname"
+          ],
+          "options": [
+            "--json"
           ]
         }
       ]

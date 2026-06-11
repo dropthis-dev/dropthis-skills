@@ -75,6 +75,21 @@ Inputs: (none)
 ### `dropthis_delete`
 Inputs: `drop_id` (required), `confirm` (required)
 
+### `dropthis_domains_connect`
+Inputs: `hostname` (required), `mode` (required)
+
+### `dropthis_domains_delete`
+Inputs: `domain` (required), `confirm` (required)
+
+### `dropthis_domains_list`
+Inputs: (none)
+
+### `dropthis_domains_update`
+Inputs: `domain` (required), `drop_id`, `default`
+
+### `dropthis_domains_verify`
+Inputs: `domain` (required)
+
 ### `dropthis_get`
 Inputs: `drop_id` (required)
 
@@ -88,7 +103,7 @@ Inputs: `cursor`, `limit`
 Inputs: `drop_id` (required), `cursor`, `limit`
 
 ### `dropthis_publish`
-Inputs: `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `paths`, `title`, `password`, `noindex`, `visibility`, `expires_at`, `metadata`, `idempotency_key`
+Inputs: `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `paths`, `title`, `password`, `noindex`, `visibility`, `expires_at`, `metadata`, `domain`, `slug`, `idempotency_key`
 
 ### `dropthis_update_content`
 Inputs: `drop_id` (required), `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `paths`, `idempotency_key`, `if_revision`
