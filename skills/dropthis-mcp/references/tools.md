@@ -118,7 +118,7 @@ Three tiers — read the live numbers from `dropthis_account` → `limits`:
 
 - **Free ($0):** 7-day TTL, dropthis badge, 5 MB/drop.
 - **Personal ($5/mo):** drops stay live while subscribed (no TTL), no badge, 100 MB/drop, 2 GB account storage.
-- **Pro ($19/mo):** everything in Personal plus custom domains and analytics. Password
+- **Pro ($19/mo):** everything in Personal plus analytics. Custom domains are ungated (available on all plans). Password
   protection belongs to Pro but is NOT purchasable yet — the server rejects setting a
   password on EVERY plan (403 `password_protection_unavailable`) until the viewer unlock
   flow ships. Clearing an existing password (`password: null`) is always allowed.

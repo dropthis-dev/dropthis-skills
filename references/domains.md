@@ -50,10 +50,10 @@ dropthis domains verify reports.example.com --wait --timeout 300
 # SDK
 const { data } = await client.domains.verify("reports.example.com");
 // data.status: "pending_dns" | "verifying" | "live" | "failed"
-// data.dns[0].retry_after: seconds to wait before re-calling
+// data.dns[0].retryAfter: seconds to wait before re-calling
 
 # MCP
-dropthis_domains_verify { idOrHostname: "reports.example.com" }
+dropthis_domains_verify { domain: "reports.example.com" }
 
 # REST
 POST /v1/domains/reports.example.com/verify
@@ -116,7 +116,7 @@ Generates a 422 with `violations` list when path-unsafe content is published to 
 
 ```json
 {
-  "code": "path_safety_violation",
+  "code": "validation_error",
   "violations": [
     { "path": "index.html", "line": 12, "ref": "/styles/app.css", "attr": "href" }
   ]
@@ -178,7 +178,7 @@ await client.domains.update("mybio.example.com", { dropId: "drop_abc123" });
 await client.domains.update("reports.example.com", { default: true });
 
 # MCP
-dropthis_domains_update { idOrHostname: "mybio.example.com", dropId: "drop_abc123" }
+dropthis_domains_update { domain: "mybio.example.com", drop_id: "drop_abc123" }
 
 # REST: PATCH /v1/domains/mybio.example.com  { "drop_id": "drop_abc123" }
 ```
@@ -191,25 +191,24 @@ Repointing a dedicated domain unmounts the previous occupant (drop status → `u
 dropthis domains remove reports.example.com
 
 # SDK: await client.domains.delete("reports.example.com")
-# MCP: dropthis_domains_delete { idOrHostname: "reports.example.com", confirm: true }
+# MCP: dropthis_domains_delete { domain: "reports.example.com", confirm: true }
 # REST: DELETE /v1/domains/reports.example.com
 ```
 
-**After deleting:** remove the CNAME from your DNS provider. The delete response carries an explicit warning: "remove your DNS record pointing reports.example.com → edge.dropthis.app". Drops mounted on the domain are unmounted (status → `unmounted`). The `is_default` flag is cleared; no auto-promotion of another domain.
+**After deleting:** remove the CNAME from your DNS provider. The delete response carries an explicit warning: "Remove your DNS record for reports.example.com: while your CNAME still points at edge.dropthis.app, the hostname could be re-connected by another dropthis account." Drops mounted on the domain are unmounted (status → `unmounted`). The `is_default` flag is cleared; no auto-promotion of another domain.
 
 ---
 
 ## Error reference
 
-| Code | HTTP | Meaning | Fix |
-|------|------|---------|-----|
-| `domain_conflict` | 409 | Hostname owned by another account | Use a different hostname |
-| `dedicated_occupied` | 409 | Dedicated domain already has a drop | Use `update_content` or repoint with `domains.update` |
-| `domain_not_live` | 422 | Domain not verified yet | Run `verify` and wait for `live` |
-| `vanity_slug_requires_domain` | 422 | `slug` passed on shared-pool publish | Add `domain` param pointing to a path-mode domain |
-| `mode_immutable` | 422 | Tried to change mode | Delete and reconnect with the desired mode |
-| `path_safety_violation` | 422 | Root-relative refs in content | Fix refs to relative paths, re-publish |
-| `slug_collision` | 409 | Explicit rename target already taken | Choose a different slug |
+| HTTP | Code | Discriminator | Meaning | Fix |
+|------|------|---------------|---------|-----|
+| 409 | `conflict` | `extra.drop_id` present | Dedicated domain occupied — `extra.drop_id` is the current occupant | Call `update_content(extra.drop_id, …)` to replace its content, or `domains.update(hostname, { drop_id: newDropId })` to repoint |
+| 409 | `conflict` | No `extra.drop_id` | Hostname already connected to a different account | Use a different hostname |
+| 422 | `validation_error` | `violations[]` present | Path-safe content gate failed — `violations[{path, line, ref, attr}]` lists root-relative refs | Change root-relative refs to relative (`./styles.css`, not `/styles.css`), then re-publish |
+| 422 | `validation_error` | `detail` contains "mode is immutable" | Tried to change mode on an existing domain | Delete the domain and reconnect with the desired mode |
+| 422 | `validation_error` | Other | Request field invalid (see `param`) | Fix the named field and retry |
+| 404 | `not_found` | — | Domain id or hostname not found | Check the id/hostname and retry |
 
 ---
 
@@ -218,7 +217,8 @@ dropthis domains remove reports.example.com
 ```bash
 dropthis list --json | jq '[.drops[] | select(.url | startswith("https://reports.example.com"))]'
 # REST: GET /v1/drops?domain=reports.example.com
-# SDK: client.drops.list({ domain: "reports.example.com" })
+# curl: curl -H "Authorization: Bearer $DROPTHIS_API_KEY" "https://api.dropthis.app/v1/drops?domain=reports.example.com"
+# SDK: ListDropsParams has no domain filter — use the REST endpoint or the CLI jq pattern above
 ```
 
 ---

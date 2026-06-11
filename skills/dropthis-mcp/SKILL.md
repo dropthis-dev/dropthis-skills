@@ -119,7 +119,7 @@ Serve drops at your own hostname. Two modes: `path` (many drops at `/{slug}/`) a
 ```
 dropthis_domains_connect { "hostname": "reports.example.com", "mode": "path" }
 # → add CNAME reports.example.com → edge.dropthis.app at your DNS provider
-dropthis_domains_verify { "idOrHostname": "reports.example.com" }  # re-call after retry_after if not live yet
+dropthis_domains_verify { "domain": "reports.example.com" }  # re-call after retry_after if not live yet
 dropthis_publish { "content": "<html>…</html>", "domain": "reports.example.com", "slug": "q4" }
 ```
 
@@ -133,7 +133,7 @@ Call `dropthis_account` first if you need to size a publish: its `limits` block 
 active plan-tier limits (`maxSizeBytes`, `defaultTtlSeconds` — `null` means permanent,
 `maxStorageBytes` — `null` means uncapped). Three plans: Free ($0 — 7-day TTL, badge,
 5 MB/drop) · Personal ($5/mo — permanent while subscribed, no badge, 100 MB/drop, 2 GB
-storage) · Pro ($19/mo — adds custom domains and analytics). Setting a `password` is
+storage) · Pro ($19/mo — adds analytics). Setting a `password` is
 currently rejected on EVERY plan (403 `password_protection_unavailable`) until the Pro
 unlock flow ships; clearing one with `null` still works. Plan-limit errors return the
 server's `suggestion` as an upgrade nudge — read it in the tool result and relay it.
