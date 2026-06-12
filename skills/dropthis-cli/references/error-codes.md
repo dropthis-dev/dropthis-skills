@@ -6,10 +6,12 @@
 |-----------|----------|---------|
 | 0 | -- | Success |
 | 1 | `api_error`, `generic_error`, `credential_storage_unavailable` | API error or generic failure |
-| 2 | `invalid_usage` | Invalid usage (bad flags, conflicting options) |
+| 2 | `invalid_usage` | Invalid usage (bad flags, conflicting options, command-like typo guard) |
 | 3 | `auth_error` | Authentication required (no API key found) |
-| 4 | `local_input_error` | Local input error (file not found, too many files, etc.) |
-| 5 | `network_error` | Network error (cannot reach API) |
+| 4 | `local_input_error` | Local input error (file or directory not found — including the SDK's `file_not_found` on publish inputs — or too many files) |
+| 5 | `network_error` | Network error (cannot reach the API; the SDK's `network_error` code maps here) |
+| 6 | `verify_pending` | Domain verification pending (`domains verify` one-shot while DNS/TLS is not live yet) |
+| 7 | `verify_timeout` | Domain verification timeout (`domains verify --wait` exceeded `--timeout`) |
 
 ## Error Output Format
 
@@ -46,9 +48,15 @@ All errors are written to stderr as a single-line JSON object:
 | `invalid_usage` | 2 | Bad flags or conflicting options |
 | `local_input_error` | 4 | File not found, directory error, file count exceeded |
 | `network_error` | 5 | Cannot reach the API |
+| `verify_pending` | 6 | Domain verification not yet live (one-shot `domains verify`) |
+| `verify_timeout` | 7 | `domains verify --wait` timed out |
 | `api_error` | 1 | API returned an error |
 | `generic_error` | 1 | Catch-all for unexpected failures |
 | `credential_storage_unavailable` | 1 | Cannot read/write credential store |
+
+Two SDK-side codes keep their own `error.code` in the envelope but map onto the
+exit-code contract: `file_not_found` (a publish input that names a missing
+file/directory) exits 4, and `network_error` (transport failure) exits 5.
 
 ## API Error Codes (from server)
 

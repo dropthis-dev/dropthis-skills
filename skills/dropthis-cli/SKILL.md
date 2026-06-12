@@ -80,8 +80,10 @@ The CLI outputs JSON in non-TTY environments. Exit codes are stable.
 | 1 | API or generic error |
 | 2 | Invalid usage |
 | 3 | Auth required |
-| 4 | Local input error (file not found, etc.) |
-| 5 | Network error |
+| 4 | Local input error (file or directory not found — including `file_not_found` publish inputs — or too many files) |
+| 5 | Network error (`network_error` — could not reach the API; check network / `DROPTHIS_API_URL`) |
+| 6 | Domain verification pending (`domains verify` one-shot while DNS/TLS is not live yet) |
+| 7 | Domain verification timeout (`domains verify --wait` exceeded `--timeout`) |
 
 ## Authentication
 
@@ -121,9 +123,10 @@ Lifecycle verbs are flat and top-level — they mirror the MCP tool names 1:1.
 | `publish <input>` | Create a NEW drop. Never takes an id. Same as above, explicit form |
 | `update-content <id> [input]` | Replace a drop's content, same URL (ships a new deployment). Settings unchanged |
 | `update-settings <id> [flags]` | Change title, visibility, password, expiry, or metadata. Content unchanged |
-| `get <id>` | Show drop details |
+| `get <id\|url\|slug>` | Show drop details |
 | `list` | List your drops |
-| `delete <id>` | Delete a drop |
+| `delete <id\|url\|slug>` | Delete a drop (`--yes` for scripts) |
+| `pull <id\|url\|slug> [-o <dir>]` | Download a drop's files into a local directory (read-back) |
 | `deployments list <id>` | List deployments (content history) for a drop |
 | `deployments get <id> <dep-id>` | Show deployment details |
 | `login` | Authenticate with email OTP |
@@ -136,9 +139,9 @@ Lifecycle verbs are flat and top-level — they mirror the MCP tool names 1:1.
 
 > `update-content` and `update-settings` both require the full `drop_…` id from the publish
 > response — not the slug or URL token. `publish` creates a NEW drop every call and never takes
-> an id; updating an existing drop needs its id. To recover an id you only have the slug for,
-> run `dropthis list --json` and match the slug (the API can also resolve it directly:
-> `GET /v1/drops?slug=<slug>` is owner-scoped and returns 0 or 1 drops).
+> an id; updating an existing drop needs its id. `get`, `delete`, and `pull` also accept the
+> drop URL or slug (owner-scoped). To recover an id you only have the slug for, run
+> `dropthis get <slug> --json` or `dropthis list --json` and match the slug.
 
 ## Publish
 
@@ -202,6 +205,13 @@ dropthis ./dist --url --title "Preview Deploy"
 dropthis update-content drop_abc123 ./dist-v2 --url
 ```
 
+**Edit loop (pull → edit → update-content):**
+```bash
+dropthis pull drop_abc123 -o ./site      # download what the drop serves
+# edit ./site locally, then ship it back to the same URL:
+dropthis update-content drop_abc123 ./site --url
+```
+
 **Change settings only (content unchanged):**
 ```bash
 dropthis update-settings drop_abc123 --title "v2 Release" --visibility unlisted --json
@@ -230,7 +240,7 @@ dropthis ./report.html --visibility unlisted --noindex --url
 | 2 | **Not checking exit code 3** | Exit 3 means auth required. Run `dropthis whoami` first, then prompt for login if needed. |
 | 3 | **Assuming URLs aren't supported** | A bare `http(s)` URL IS a valid input: `dropthis https://example.com/page.html --url` publishes a server-fetched copy (source_url flow). Pass the URL directly -- do NOT fetch it yourself first. |
 | 4 | **Relying on stdin auto-detection** | When piping content via stdin (`-`), set `--content-type` and `--path` explicitly for deterministic output. Without them the SDK auto-detects content type and entry filename. |
-| 5 | **Using the slug/URL token as the drop id** | `get`/`update-content`/`update-settings`/`delete` and `deployments list/get` take the full `drop_…` id (the `.drop.id` field in publish `--json` output), NOT the slug or URL token. Capture `.drop.id` from publish; if you only have the slug, run `dropthis list --json` to find the id. |
+| 5 | **Using the slug/URL token as the drop id** | `update-content`/`update-settings` and `deployments list/get` take the full `drop_…` id (the `.drop.id` field in publish `--json` output), NOT the slug or URL token. `get`/`delete`/`pull` also accept the drop URL or slug. Capture `.drop.id` from publish; if you only have the slug, `dropthis get <slug> --json` recovers the id. |
 | 6 | **Calling `publish` again to change a drop** | `publish` always creates a NEW drop and makes a duplicate. To change something you already published, use `update-content <id>` (the files at the URL) or `update-settings <id>` (title/visibility/password/expiry/metadata) with its `drop_…` id. |
 
 ## Custom domains
