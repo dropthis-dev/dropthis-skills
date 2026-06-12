@@ -99,7 +99,7 @@
     },
     {
       "name": "get",
-      "description": "Show drop details (pass the full drop_… id)",
+      "description": "Show drop details (accepts the drop_… id, the drop URL, or its slug)",
       "arguments": [
         "dropId"
       ],
@@ -126,7 +126,7 @@
     },
     {
       "name": "delete",
-      "description": "Delete a drop (pass the full drop_… id)",
+      "description": "Delete a drop (accepts the drop_… id, the drop URL, or its slug)",
       "arguments": [
         "dropId"
       ],
@@ -144,7 +144,7 @@
       "description": "View deployment history",
       "auth": "required",
       "examples": [
-        "dropthis deployments drop_abc --json"
+        "dropthis deployments list drop_abc --json"
       ],
       "subcommands": [
         {
@@ -183,6 +183,10 @@
     {
       "name": "domains",
       "description": "Manage custom domains. Loop: connect → create the CNAME at your DNS provider → verify --wait → publish --domain",
+      "auth": "required",
+      "examples": [
+        "dropthis domains list --json"
+      ],
       "subcommands": [
         {
           "name": "connect",
@@ -193,6 +197,10 @@
           "options": [
             "--mode",
             "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis domains connect reports.example.com --mode path --json"
           ]
         },
         {
@@ -200,6 +208,10 @@
           "description": "List connected custom domains",
           "options": [
             "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis domains list --json"
           ]
         },
         {
@@ -210,6 +222,10 @@
           ],
           "options": [
             "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis domains status reports.example.com --json"
           ]
         },
         {
@@ -222,6 +238,10 @@
             "--wait",
             "--timeout",
             "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis domains verify reports.example.com --wait --json"
           ]
         },
         {
@@ -234,16 +254,25 @@
             "--drop",
             "--default",
             "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis domains update reports.example.com --default --json"
           ]
         },
         {
           "name": "remove",
-          "description": "Remove a custom domain. IMPORTANT: also delete the DNS CNAME at your provider to prevent DNS hijacking.",
+          "description": "Remove a custom domain (unmounts its drops). IMPORTANT: also delete the DNS CNAME at your provider to prevent DNS hijacking.",
           "arguments": [
             "hostname"
           ],
           "options": [
+            "--yes",
             "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis domains remove reports.example.com --yes --json"
           ]
         }
       ]
