@@ -11,7 +11,7 @@
     "check": "node scripts/gen-commands.mjs --check && node scripts/gen-tools.mjs --check"
   },
   "devDependencies": {
-    "@dropthis/cli": "0.13.0",
-    "@dropthis/mcp": "0.10.0"
+    "@dropthis/cli": "^0.15.0",
+    "@dropthis/mcp": "^0.12.0"
   }
 }

@@ -255,6 +255,7 @@
           "options": [
             "--drop",
             "--default",
+            "--no-default",
             "--json"
           ],
           "auth": "required",
