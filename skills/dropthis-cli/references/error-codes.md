@@ -66,6 +66,7 @@ These appear in the `error.code` field when the API returns an error:
 |------|-------------|-------------|
 | `missing_api_key` | 401 | Authenticate with `dropthis login` or set `DROPTHIS_API_KEY` |
 | `revision_conflict` | 409 | Fetch the drop, merge your changes, and retry with the current revision |
+| `publish_conflict` | 409 | The drop changed state mid-publish (likely deleted); run the publish again to create a fresh drop |
 | `upload_expired` | 410 | Create a new upload session and retry the publish |
 | `upload_already_used` | 409 | Create a new upload session; upload sessions are single-use |
 | `upload_verification_failed` | 422 | Re-upload the file bytes and complete the upload again |
