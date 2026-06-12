@@ -73,6 +73,7 @@ type DropResponse = {
   id: string;
   slug: string;
   url: string;
+  domain: string | null;
   deploymentId: string | null;
   title: string;
   contentType: string;
@@ -100,6 +101,8 @@ type DropResponse = {
 Settings read-back: `noindex`, `passwordProtected`, and `metadata` reflect the drop's current
 settings. The raw `password` is **never** returned — `passwordProtected` is the only signal of
 whether one is set.
+
+`domain` is the hostname of the custom domain the drop is mounted on (e.g. `"reports.example.com"`), or `null` for drops on the shared `dropthis.app` pool.
 
 ### TierInfo
 

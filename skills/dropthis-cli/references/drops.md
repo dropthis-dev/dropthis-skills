@@ -68,7 +68,7 @@ dropthis get <dropId> [flags]
 #### Output
 
 ```json
-{"ok":true,"drop":{"id":"drop_abc123","url":"https://dropthis.app/abc123","title":"My Page","visibility":"public","revision":1,"accessible":true,"persistent":false,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
+{"ok":true,"drop":{"id":"drop_abc123","url":"https://dropthis.app/abc123","domain":null,"title":"My Page","visibility":"public","revision":1,"accessible":true,"persistent":false,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
 ```
 
 The `drop` object is the full SDK `DropResponse`. Notable fields:
@@ -76,6 +76,7 @@ The `drop` object is the full SDK `DropResponse`. Notable fields:
 | Field | Type | Description |
 |-------|------|-------------|
 | `accessible` | boolean | Whether the drop is currently accessible (not expired, not deleted) |
+| `domain` | string \| null | Hostname of the custom domain the drop is mounted on (e.g. `"reports.example.com"`), or `null` for shared-pool drops |
 | `revision` | number | Current drop revision -- pass it as `--if-revision` on `update-content`/`update-settings` for optimistic locking |
 | `persistent` | boolean | `true` for paid-tier (Personal/Pro) drops (no TTL), `false` for free-tier drops (7-day TTL) |
 | `tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true}`) |

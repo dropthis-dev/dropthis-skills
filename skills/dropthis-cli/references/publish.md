@@ -70,7 +70,7 @@ Retain `drop.id` for all follow-up operations (`drops`/`deployments`); the `slug
 The CLI emits the SDK `DropResponse` under `drop`:
 
 ```json
-{"ok":true,"drop":{"object":"drop","id":"drop_abc123","slug":"abc123","url":"https://dropthis.app/abc123","deploymentId":"dep_xyz789","title":"My Page","contentType":"text/html","visibility":"public","status":"ready","revision":1,"sizeBytes":1234,"createdAt":"2026-05-29T12:00:00Z","expiresAt":"2026-06-05T12:00:00Z","accessible":true,"persistent":false,"badgeApplied":true,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
+{"ok":true,"drop":{"object":"drop","id":"drop_abc123","slug":"abc123","url":"https://dropthis.app/abc123","domain":null,"deploymentId":"dep_xyz789","title":"My Page","contentType":"text/html","visibility":"public","status":"ready","revision":1,"sizeBytes":1234,"createdAt":"2026-05-29T12:00:00Z","expiresAt":"2026-06-05T12:00:00Z","accessible":true,"persistent":false,"badgeApplied":true,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
 ```
 
 Key fields present in publish responses:
@@ -81,6 +81,7 @@ Key fields present in publish responses:
 | `drop.url` | string | The published URL |
 | `drop.id` | string | Drop ID (starts with `drop_`). Use THIS for `get`/`update-content`/`update-settings`/`delete` and `deployments` -- not the slug/URL. |
 | `drop.slug` | string | The drop's URL token (e.g. `abc123`). NOT a drop id -- do NOT pass it to `get`/`update-content`/`update-settings`/`delete`/`deployments` commands. |
+| `drop.domain` | string \| null | Hostname of the custom domain the drop is mounted on (e.g. `"reports.example.com"`), or `null` for shared-pool drops |
 | `drop.deploymentId` | string \| null | The deployment that produced this content version |
 | `drop.contentType` | string | MIME type of the entry content |
 | `drop.sizeBytes` | number | Total bundle size in bytes |
