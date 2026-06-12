@@ -73,9 +73,9 @@ These appear in the `error.code` field when the API returns an error:
 | `too_many_active_uploads` | 429 | Cancel unused uploads or wait for expired uploads to be cleaned |
 | `upload_not_complete` | 422 | Complete the upload session before publishing |
 | `quota_exceeded` | 429 | Reduce the upload size or upgrade the account limit |
-| `size_limit_exceeded` | 413 | Drop size exceeds the plan limit (5 MB free, 100 MB Personal/Pro); reduce content size or upgrade |
-| `storage_limit_exceeded` | 413 | Account storage cap reached (2 GB on Personal/Pro); delete unused drops |
-| `password_protection_unavailable` | 403 | Setting a drop password is rejected on every current plan until the Pro unlock flow ships; remove `--password` (clearing with `--no-password` is allowed) |
+| `size_limit_exceeded` | 413 | Drop size exceeds the plan limit (5 MB Free, 100 MB Pro); reduce content size or upgrade |
+| `storage_limit_exceeded` | 413 | Account storage cap reached (500 MB Free, 10 GB Pro); delete unused drops or upgrade |
+| `password_protection_unavailable` | 403 | Password protection is Pro-only; remove `--password` or upgrade (clearing with `--no-password` is always allowed) |
 | HTTP 422 | 422 | Fix the input shown in the error detail and retry |
 | HTTP 5xx | 5xx | Retry the request with the same idempotency key, or contact support with the request id |
 

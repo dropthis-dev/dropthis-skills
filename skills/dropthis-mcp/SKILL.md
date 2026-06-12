@@ -132,11 +132,12 @@ See [../../references/domains.md](../../references/domains.md) for the full runb
 
 Call `dropthis_account` first if you need to size a publish: its `limits` block carries the
 active plan-tier limits (`maxSizeBytes`, `defaultTtlSeconds` — `null` means permanent,
-`maxStorageBytes` — `null` means uncapped). Three plans: Free ($0 — 7-day TTL, badge,
-5 MB/drop) · Personal ($5/mo — permanent while subscribed, no badge, 100 MB/drop, 2 GB
-storage) · Pro ($19/mo — adds analytics). Setting a `password` is
-currently rejected on EVERY plan (403 `password_protection_unavailable`) until the Pro
-unlock flow ships; clearing one with `null` still works. Plan-limit errors return the
+`maxStorageBytes`). Two plans: **Free** (7-day TTL, dropthis badge, 5 MB/drop, 500 MB
+active storage, no custom domains, no passwords) · **Pro** (never expires, no badge,
+100 MB/drop, 10 GB storage, 1 custom hostname, password-protected drops allowed). Pro is
+invite-only — upgrade via https://dropthis.app/pricing. Setting a `password` is
+Pro-only; on Free it returns 403 `password_protection_unavailable` with an `upgrade_url`.
+Clearing one with `null` is always allowed. Plan-limit errors return the
 server's `suggestion` as an upgrade nudge — read it in the tool result and relay it.
 
 ## Errors

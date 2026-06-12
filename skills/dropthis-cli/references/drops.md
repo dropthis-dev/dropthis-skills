@@ -78,7 +78,7 @@ The `drop` object is the full SDK `DropResponse`. Notable fields:
 | `accessible` | boolean | Whether the drop is currently accessible (not expired, not deleted) |
 | `domain` | string \| null | Hostname of the custom domain the drop is mounted on (e.g. `"reports.example.com"`), or `null` for shared-pool drops |
 | `revision` | number | Current drop revision -- pass it as `--if-revision` on `update-content`/`update-settings` for optimistic locking |
-| `persistent` | boolean | `true` for paid-tier (Personal/Pro) drops (no TTL), `false` for free-tier drops (7-day TTL) |
+| `persistent` | boolean | `true` for Pro drops (no TTL), `false` for Free drops (7-day TTL) |
 | `tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true}`) |
 | `limitations` | object | `{"actions":[...]}` -- a list of `DropAction` entries; empty array when there are none |
 
@@ -203,7 +203,7 @@ dropthis update-settings <dropId> [flags]
 |------|----------|-------------|
 | `--title` `<title>` | No | Drop title |
 | `--visibility` `<public\|unlisted>` | No | public (default) or unlisted |
-| `--password` `<password>` | No | Require password to view (currently rejected on every plan with 403 `password_protection_unavailable` -- gated until the Pro unlock flow ships) |
+| `--password` `<password>` | No | Require password to view (Pro-only — Free returns 403 `password_protection_unavailable` with an `upgrade_url`) |
 | `--no-password` | No | Remove password protection (always allowed) |
 | `--noindex` | No | Prevent search-engine indexing |
 | `--index` | No | Allow search-engine indexing (default) |
@@ -251,7 +251,7 @@ dropthis update-settings drop_abc123 --title "Updated Title" --json
 # Change visibility
 dropthis update-settings drop_abc123 --visibility unlisted --json
 
-# Remove an existing password (always allowed; SETTING one is rejected on every current plan)
+# Remove an existing password (always allowed; SETTING one is Pro-only)
 dropthis update-settings drop_abc123 --no-password
 
 # Set metadata

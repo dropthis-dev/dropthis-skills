@@ -121,7 +121,7 @@ if (prepared.kind === "staged") {
 |--------|------|-------------|
 | `title` | `string` | Drop title |
 | `visibility` | `"public" \| "unlisted"` | public (default) or unlisted |
-| `password` | `string \| null` | Require password to view (`null` to remove). SETTING one is currently rejected on every plan (403 `password_protection_unavailable`) until the Pro unlock flow ships; clearing with `null` is always allowed |
+| `password` | `string \| null` | Require password to view (`null` to remove). Pro-only — Free returns 403 `password_protection_unavailable` with `upgrade_url`; clearing with `null` is always allowed |
 | `noindex` | `boolean \| null` | Prevent search-engine indexing (`null` to allow, default) |
 | `expiresAt` | `string \| Date \| null` | Auto-delete after this ISO 8601 date |
 | `entry` | `string` | Entry file for multi-file bundles (default: index.html) |

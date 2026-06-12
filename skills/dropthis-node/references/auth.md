@@ -144,10 +144,10 @@ Get the current account details, including the active plan-tier limits.
 `AccountResponse`: `{ id: string; email: string; displayName: string | null; plan: string; status: string; createdAt: string; limits: AccountLimits }`
 
 `AccountLimits` (use these to size a publish before uploading):
-`{ name: string; maxSizeBytes: number; defaultTtlSeconds: number | null; maxStorageBytes: number | null }`
+`{ name: string; maxSizeBytes: number; defaultTtlSeconds: number | null; maxStorageBytes: number; maxCustomHostnames: number }`
 — `maxSizeBytes` is the per-drop size cap; `defaultTtlSeconds` is the drop lifetime before
-expiry (`null` = drops are permanent); `maxStorageBytes` is the account-wide storage cap
-(`null` = no cap). Free example: `{ name: "free", maxSizeBytes: 5242880, defaultTtlSeconds: 604800, maxStorageBytes: null }`.
+expiry (`null` = drops are permanent); `maxStorageBytes` is the account-wide storage cap;
+`maxCustomHostnames` is the custom hostname cap (0 on Free, 1 on Pro). Free example: `{ name: "free", maxSizeBytes: 5242880, defaultTtlSeconds: 604800, maxStorageBytes: 524288000, maxCustomHostnames: 0 }`.
 
 **Example:**
 

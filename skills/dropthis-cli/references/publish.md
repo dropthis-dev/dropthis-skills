@@ -36,7 +36,7 @@ When credentials are missing and the terminal is interactive, `publish` prompts 
 |------|----------|-------------|
 | `--title` `<title>` | No | Drop title |
 | `--visibility` `<public\|unlisted>` | No | public (default) or unlisted |
-| `--password` `<password>` | No | Require password to view (currently rejected on every plan with 403 `password_protection_unavailable` — gated until the Pro unlock flow ships) |
+| `--password` `<password>` | No | Require password to view (Pro-only — Free returns 403 `password_protection_unavailable` with an `upgrade_url`) |
 | `--noindex` | No | Prevent search-engine indexing |
 | `--entry` `<path>` | No | Entry file for multi-file bundles (default: index.html) |
 | `--expires-at` `<datetime>` | No | Auto-delete after this ISO 8601 date |
@@ -87,7 +87,7 @@ Key fields present in publish responses:
 | `drop.sizeBytes` | number | Total bundle size in bytes |
 | `drop.expiresAt` | string \| null | ISO 8601 auto-delete time, or `null` if persistent |
 | `drop.accessible` | boolean | Whether the drop is currently accessible |
-| `drop.persistent` | boolean | `true` for paid-tier (Personal/Pro) drops (no TTL), `false` for free-tier drops (7-day TTL) |
+| `drop.persistent` | boolean | `true` for Pro drops (no TTL), `false` for Free drops (7-day TTL) |
 | `drop.badgeApplied` | boolean | `true` when the dropthis badge is shown on the drop |
 | `drop.tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (e.g. free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true}`) |
 | `drop.limitations` | object | `{"actions":[...]}` -- a list of `DropAction` entries (`code`, `kind`, `priority`, `message`, optional `resolve`). Empty array when there are no actions. |
@@ -186,7 +186,7 @@ dropthis ./page.html --json
 ### Notes
 
 - When piping stdin, `--content-type` and `--path` are strongly recommended. If omitted, the SDK auto-detects the content type (HTML detected from tags, else `text/plain`) and picks an entry filename (`index.html` for HTML, `index.txt` otherwise). Set them explicitly for deterministic output.
-- Setting `--password` is currently rejected on every plan (403 `password_protection_unavailable`) until the Pro unlock flow ships. Removing one with `update-settings --no-password` is always allowed.
+- Setting `--password` is Pro-only (Free returns 403 `password_protection_unavailable` with an `upgrade_url`). Removing one with `update-settings --no-password` is always allowed.
 - At the REST level the API is staged-only: `POST /v1/drops` accepts exactly one of `upload_id` (from a completed staged upload) or `source_url` -- there is no inline-content or multipart mode. The CLI stages files/strings/stdin for you automatically.
 - `--url` and `--dry-run` are mutually exclusive.
 - `--metadata` and `--metadata-file` are mutually exclusive.

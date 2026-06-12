@@ -11,7 +11,7 @@ Publish NEW content → permanent public URL. Creates a NEW drop every call and 
 at the URL) or `dropthis_update_settings` (title, visibility, password, expiry, metadata)
 with the `drop_…` id from this call's response — do NOT call publish again (that makes a duplicate).
 
-- Inputs: exactly one of `content` (string) · `source_url` (http(s) URL) · `files` (array of `{path, content|content_base64, content_type?}` + optional `entry`) · `file` (local file or directory; a directory publishes as a complete multi-file site; stdio only) · `paths` (array of local file/directory paths published as one bundle; stdio only). Optional: `title`, `password` (currently rejected on every plan — see Plans and limits), `noindex`, `visibility` (`public` | `unlisted`), `expires_at`, `metadata`, `idempotency_key`.
+- Inputs: exactly one of `content` (string) · `source_url` (http(s) URL) · `files` (array of `{path, content|content_base64, content_type?}` + optional `entry`) · `file` (local file or directory; a directory publishes as a complete multi-file site; stdio only) · `paths` (array of local file/directory paths published as one bundle; stdio only). Optional: `title`, `password` (Pro-only — Free returns 403 `password_protection_unavailable`; see Plans and limits), `noindex`, `visibility` (`public` | `unlisted`), `expires_at`, `metadata`, `idempotency_key`.
 - Output: the full camelCase `DropResponse` — `url`, `id`, `slug`, `domain` (custom-domain hostname or `null`), `deploymentId`, `expiresAt`, `createdAt`, `contentType`, `sizeBytes`, `badgeApplied`, `persistent`, `tier`, `limitations` (no `password`), plus a `next` object echoing the `drop_id` for the update tools. Keep the `id` (not the `slug`/`url`) — every id-based tool takes it as `drop_id`.
 - The response may include `warnings` (omitted when empty). A `root_relative_reference` warning names a file that references assets with root-relative URLs (e.g. `/styles.css`) — those break if the drop is ever served under a subpath. Prefer relative refs (`styles.css`, `./styles.css`) in generated HTML/CSS.
 
@@ -33,7 +33,7 @@ Update settings only — never content. To replace the content at the URL use
 `dropthis_update_content`; to create a new drop use `dropthis_publish`. Idempotent — applying
 the same values again is a no-op.
 
-- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); optional `title`, `visibility`, `password` (SETTING one is currently rejected on every plan with 403 `password_protection_unavailable`; `null` clears an existing password and is always allowed), `noindex` (`null` clears), `expires_at`, `metadata`. This is where expiry and metadata are managed (`dropthis_update_content` does not accept them).
+- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); optional `title`, `visibility`, `password` (Pro-only — setting one on Free returns 403 `password_protection_unavailable` with `upgrade_url`; `null` clears an existing password and is always allowed), `noindex` (`null` clears), `expires_at`, `metadata`. This is where expiry and metadata are managed (`dropthis_update_content` does not accept them).
 - Output: the updated `DropResponse` — `url`, `id`, `slug`, `title`, `visibility`, `revision` (there is NO `updatedAt` field).
 
 ## dropthis_get
@@ -61,8 +61,8 @@ Permanently delete a drop and its public URL. Destructive.
 
 ## dropthis_account
 
-- Output: the account profile — `id`, `email`, `displayName`, `plan` (`free` | `personal` | `pro`), `status`, `createdAt`, and a `limits` block with the active plan-tier limits. Read-only.
-- `limits` shape (camelCase): `{ name, maxSizeBytes, defaultTtlSeconds, maxStorageBytes }` — `maxSizeBytes` is the per-drop size cap; `defaultTtlSeconds` is the drop lifetime before expiry (`null` = drops are permanent); `maxStorageBytes` is the account-wide storage cap (`null` = no cap). Free example: `{ "name": "free", "maxSizeBytes": 5242880, "defaultTtlSeconds": 604800, "maxStorageBytes": null }`.
+- Output: the account profile — `id`, `email`, `displayName`, `plan` (`free` | `pro`), `status`, `createdAt`, a `limits` block with the active plan-tier limits, a `usage` block (`storagUsedBytes`, `customDomainsUsed`), and `upgrade_url` (`null` on Pro). Read-only.
+- `limits` shape (camelCase): `{ name, maxSizeBytes, defaultTtlSeconds, maxStorageBytes, maxCustomHostnames }` — `maxSizeBytes` is the per-drop size cap; `defaultTtlSeconds` is the drop lifetime before expiry (`null` = drops are permanent); `maxStorageBytes` is the account-wide storage cap; `maxCustomHostnames` is the custom hostname cap (0 on Free, 1 on Pro). Free example: `{ "name": "free", "maxSizeBytes": 5242880, "defaultTtlSeconds": 604800, "maxStorageBytes": 524288000, "maxCustomHostnames": 0 }`.
 - Call first to size a publish before uploading.
 
 <!-- BEGIN GENERATED TOOLS -->
@@ -132,13 +132,11 @@ There is no rollback verb: downloading an old deployment's files and republishin
 
 ## Plans and limits
 
-Three tiers — read the live numbers from `dropthis_account` → `limits`:
+Two tiers — read the live numbers from `dropthis_account` → `limits`:
 
-- **Free ($0):** 7-day TTL, dropthis badge, 5 MB/drop.
-- **Personal ($5/mo):** drops stay live while subscribed (no TTL), no badge, 100 MB/drop, 2 GB account storage.
-- **Pro ($19/mo):** everything in Personal plus analytics. Custom domains are ungated (available on all plans). Password
-  protection belongs to Pro but is NOT purchasable yet — the server rejects setting a
-  password on EVERY plan (403 `password_protection_unavailable`) until the viewer unlock
-  flow ships. Clearing an existing password (`password: null`) is always allowed.
+- **Free:** 7-day TTL, dropthis badge, 5 MB/drop, 500 MB active storage, no custom domains, no password protection.
+- **Pro:** never expires, no badge, 100 MB/drop, 10 GB storage, 1 custom hostname, password-protected drops allowed. Pro is invite-only — upgrade via https://dropthis.app/pricing.
+
+Passwords are Pro-only: setting one on Free returns 403 `password_protection_unavailable` with an `upgrade_url`. Clearing an existing password (`password: null`) is always allowed on any plan.
 
 Plan-limit errors return the server's `suggestion` as an upgrade nudge — relay it.

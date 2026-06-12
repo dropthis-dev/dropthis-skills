@@ -228,10 +228,10 @@ dropthis update-settings drop_abc123 --title "v2 Release" --visibility unlisted 
 dropthis ./report.html --visibility unlisted --noindex --url
 ```
 
-> Password protection is not purchasable yet: setting `--password` is rejected on every
-> current plan (403 `password_protection_unavailable`) until the Pro unlock flow ships.
-> Removing an existing password with `--no-password` is always allowed. Use
-> `--visibility unlisted` in the meantime.
+> Password protection is Pro-only: setting `--password` on a Free account returns
+> 403 `password_protection_unavailable` with an `upgrade_url`. Removing an existing
+> password with `--no-password` is always allowed. Use `--visibility unlisted`
+> for low-discoverability sharing on Free.
 
 ## Common Mistakes
 

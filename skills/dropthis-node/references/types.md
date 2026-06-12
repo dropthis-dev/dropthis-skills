@@ -284,15 +284,15 @@ type AccountResponse = {
 ### AccountLimits
 
 The active plan-tier limits — use them to size a publish before uploading.
-`defaultTtlSeconds: null` means drops are permanent; `maxStorageBytes: null` means no
-account-level storage cap.
+`defaultTtlSeconds: null` means drops are permanent; `maxCustomHostnames` is 0 on Free, 1 on Pro.
 
 ```typescript
 type AccountLimits = {
   name: string;
   maxSizeBytes: number;
   defaultTtlSeconds: number | null;
-  maxStorageBytes: number | null;
+  maxStorageBytes: number;
+  maxCustomHostnames: number;
 };
 ```
 
