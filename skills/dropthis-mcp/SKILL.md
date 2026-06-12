@@ -107,6 +107,7 @@ dropthis_update_content { "drop_id": "drop_6hRcUUok5PYeEK6jJQY5Is", "content": "
 If you only have the slug/URL, call `dropthis_list` to recover the `id` — each item carries
 its `slug`, so match the URL's slug against `items[].slug`. (The REST API can also resolve
 directly: `GET /v1/drops?slug=<slug>`, owner-scoped, returns 0 or 1 drops.)
+Pass `domain` to `dropthis_list` to scope results to a custom hostname: `dropthis_list { "domain": "reports.example.com" }`.
 
 **Glossary:** a **Drop** is one published artifact at a permanent URL. A **deployment** is one
 content version of a Drop (`dropthis_update_content` ships a new deployment; see them with

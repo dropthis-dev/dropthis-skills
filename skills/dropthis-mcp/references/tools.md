@@ -100,7 +100,7 @@ Inputs: `drop_id` (required)
 Inputs: `drop_id` (required), `deployment_id`, `path`
 
 ### `dropthis_list`
-Inputs: `cursor`, `limit`
+Inputs: `cursor`, `limit`, `domain`
 
 ### `dropthis_list_deployments`
 Inputs: `drop_id` (required), `cursor`, `limit`

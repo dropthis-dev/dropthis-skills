@@ -117,11 +117,13 @@
       "options": [
         "--limit",
         "--cursor",
+        "--domain",
         "--json"
       ],
       "auth": "required",
       "examples": [
-        "dropthis list --json"
+        "dropthis list --json",
+        "dropthis list --domain reports.example.com --json"
       ]
     },
     {
@@ -416,6 +418,17 @@
       ],
       "examples": [
         "dropthis doctor --json"
+      ]
+    },
+    {
+      "name": "upgrade",
+      "description": "Update the CLI to the latest version from npm",
+      "options": [
+        "--json"
+      ],
+      "examples": [
+        "dropthis upgrade",
+        "dropthis upgrade --json"
       ]
     },
     {

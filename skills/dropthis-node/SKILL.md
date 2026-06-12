@@ -224,6 +224,9 @@ const allDrops = await page.data.autoPagingToArray({ limit: 100 });
 for await (const drop of page.data) {
   console.log(drop.url);
 }
+
+// Filter to a custom domain
+const domainPage = await dropthis.drops.list({ domain: "reports.example.com" });
 ```
 
 ## Custom domains

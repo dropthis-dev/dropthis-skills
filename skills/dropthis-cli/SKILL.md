@@ -124,7 +124,7 @@ Lifecycle verbs are flat and top-level — they mirror the MCP tool names 1:1.
 | `update-content <id> [input]` | Replace a drop's content, same URL (ships a new deployment). Settings unchanged |
 | `update-settings <id> [flags]` | Change title, visibility, password, expiry, or metadata. Content unchanged |
 | `get <id\|url\|slug>` | Show drop details |
-| `list` | List your drops |
+| `list [--domain <hostname>]` | List your drops (optionally filtered to a custom domain) |
 | `delete <id\|url\|slug>` | Delete a drop (`--yes` for scripts) |
 | `pull <id\|url\|slug> [-o <dir>]` | Download a drop's files into a local directory (read-back) |
 | `deployments list <id>` | List deployments (content history) for a drop |
@@ -134,6 +134,7 @@ Lifecycle verbs are flat and top-level — they mirror the MCP tool names 1:1.
 | `whoami` | Show current auth status |
 | `account get` / `account update` / `account delete` | Show or manage your account |
 | `api-keys create` / `api-keys list` / `api-keys delete <id>` | Manage API keys |
+| `upgrade` | Update the CLI to the latest version from npm |
 | `doctor` | Report CLI diagnostics |
 | `commands` | Print machine-readable command metadata |
 

@@ -212,14 +212,17 @@ dropthis domains remove reports.example.com
 
 ---
 
-## DNS lookup filter
+## List the drops on a domain
 
 ```bash
-dropthis list --json | jq '[.drops[] | select(.url | startswith("https://reports.example.com"))]'
+dropthis list --domain reports.example.com --json
 # REST: GET /v1/drops?domain=reports.example.com
 # curl: curl -H "Authorization: Bearer $DROPTHIS_API_KEY" "https://api.dropthis.app/v1/drops?domain=reports.example.com"
-# SDK: ListDropsParams has no domain filter — use the REST endpoint or the CLI jq pattern above
+# SDK: await client.drops.list({ domain: "reports.example.com" })
+# MCP: dropthis_list with domain="reports.example.com"
 ```
+
+The recovery path when you have a custom-domain URL but lost the `drop_…` id.
 
 ---
 
@@ -243,5 +246,5 @@ dropthis publish ./q4.html --domain reports.example.com --slug q4-summary --url
 dropthis update-content drop_abc123 ./q4-v2.html --url
 
 # 6. List drops on this domain
-dropthis list --json  # filter by url prefix
+dropthis list --domain reports.example.com --json
 ```

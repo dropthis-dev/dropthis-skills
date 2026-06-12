@@ -188,7 +188,7 @@ Concrete implementation of `ListPage<T>` in `src/pagination.ts`. Returned by `dr
 ### ListDropsParams
 
 ```typescript
-type ListDropsParams = { cursor?: string | null; limit?: number };
+type ListDropsParams = { cursor?: string | null; limit?: number; domain?: string };
 ```
 
 ### ListDeploymentsParams
