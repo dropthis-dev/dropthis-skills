@@ -74,6 +74,29 @@ OAuth (approve a 6-digit email login). Automation (n8n, CI) sends `Authorization
 - `file` — a local file path **or directory** (a directory publishes as a complete multi-file site). **Local/stdio only**; not available on the remote connector.
 - `paths` — a list of local file/directory paths published together as one bundle. **Local/stdio only**; not available on the remote connector.
 
+## What a drop URL serves (canonical view vs raw bytes)
+
+Every drop's canonical `url` is **always a branded view** carrying the dropthis badge — there is
+no user-agent sniffing and no `/_raw/` route:
+
+- **HTML** → the page renders as-is (badge injected).
+- **Single non-HTML file** (one `.md`, `.json`, `.csv`, `.png`, …) → a **branded preview** page
+  at the canonical URL (image inline; markdown/JSON/CSV/text/code as escaped **source**, not
+  re-rendered; opaque binary as a download affordance). The file's **raw bytes** live at the
+  **natural path** under the drop and come back as `rawUrl` in the result.
+- **Collection** (multiple files, no HTML entry) → a **branded index** at the canonical URL
+  linking each file's natural path; a `README.md`/`index.md` is shown atop the index.
+
+Hand the **canonical `url` to humans** (badge) and **`rawUrl` to agents** (exact bytes). The
+publish result includes a `next` hint spelling this out. For collections, `rawUrl` is `null` —
+the per-file natural paths come from the branded index (or fetch bytes with
+`dropthis_get_content`). Append `?download=1` to any natural-path URL to force a download.
+
+dropthis publishes **agent-readable artifacts**, not files-for-transfer. The dividing line is
+**publish vs transfer**, gated only by the **per-drop size cap** (5 MB Free / 100 MB Pro) — there
+is no content/extension policy and no type allow/deny list. A `handoff.md` or several JSON files
+publish fine; a multi-GB rip is blocked by price, not type.
+
 ## The publish-vs-update contract (read this)
 
 `dropthis_publish` creates a **NEW** drop on every call and **never takes a `drop_id`**.
