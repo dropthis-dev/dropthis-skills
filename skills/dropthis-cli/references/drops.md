@@ -77,6 +77,7 @@ The `drop` object is the full SDK `DropResponse`. Notable fields:
 |-------|------|-------------|
 | `accessible` | boolean | Whether the drop is currently accessible (not expired, not deleted) |
 | `domain` | string \| null | Hostname of the custom domain the drop is mounted on (e.g. `"reports.example.com"`), or `null` for shared-pool drops |
+| `rawUrl` | string \| null | For a single non-HTML file drop, the natural-path URL serving the file's raw bytes (hand it to agents); `null` for HTML drops and collections. The canonical `url` is always the branded view for humans |
 | `revision` | number | Current drop revision -- pass it as `--if-revision` on `update-content`/`update-settings` for optimistic locking |
 | `persistent` | boolean | `true` for Pro drops (no TTL), `false` for Free drops (7-day TTL) |
 | `tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true}`) |

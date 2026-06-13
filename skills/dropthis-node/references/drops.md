@@ -49,8 +49,10 @@ Get a single drop by ID.
 **Returns:** `DropthisResult<DropResponse>`
 
 `DropResponse` includes settings read-back fields: `noindex` (boolean), `passwordProtected`
-(boolean — the raw password is never returned), and `metadata` (object). See
-[types.md](types.md).
+(boolean — the raw password is never returned), and `metadata` (object). It also carries
+`rawUrl` — the natural-path raw-bytes URL for a single non-HTML file drop (`null` for HTML
+drops and collections); `url` is always the branded view for humans, `rawUrl` is the bytes for
+agents. See [types.md](types.md).
 
 **Example:**
 

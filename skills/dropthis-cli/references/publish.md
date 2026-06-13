@@ -82,6 +82,7 @@ Key fields present in publish responses:
 | `drop.id` | string | Drop ID (starts with `drop_`). Use THIS for `get`/`update-content`/`update-settings`/`delete` and `deployments` -- not the slug/URL. |
 | `drop.slug` | string | The drop's URL token (e.g. `abc123`). NOT a drop id -- do NOT pass it to `get`/`update-content`/`update-settings`/`delete`/`deployments` commands. |
 | `drop.domain` | string \| null | Hostname of the custom domain the drop is mounted on (e.g. `"reports.example.com"`), or `null` for shared-pool drops |
+| `drop.rawUrl` | string \| null | For a **single non-HTML file** drop: the natural-path URL serving the file's raw bytes (e.g. `https://dropthis.app/abc123/notes.md`). Hand THIS to agents that want the exact bytes; the canonical `url` is the branded preview for humans. `null` for HTML drops and collections (the page IS the artifact / per-file paths come from the branded index). |
 | `drop.deploymentId` | string \| null | The deployment that produced this content version |
 | `drop.contentType` | string | MIME type of the entry content |
 | `drop.sizeBytes` | number | Total bundle size in bytes |
@@ -111,6 +112,19 @@ the formatted size (`sizeBytes`), the content type (`contentType`, before any `;
 `unlisted` when visibility is unlisted, and `expires <date>` when `expiresAt` is set (free
 drops expire after 7 days). Fields that are absent are omitted; if none apply, the line is
 not printed.
+
+For a **single non-HTML file** drop, a `Raw:` line is also printed with the natural-path raw
+bytes URL (the `rawUrl` field):
+
+```
+Published: https://dropthis.app/abc123
+  3.4 KB · text/markdown
+Raw:       https://dropthis.app/abc123/notes.md
+```
+
+The canonical `Published:` URL is the branded preview (badge) for humans; the `Raw:` URL serves
+the exact bytes for agents. The `Raw:` line is absent for HTML drops and collections (`rawUrl`
+is `null`).
 
 #### With `--dry-run`
 
@@ -185,6 +199,18 @@ dropthis ./page.html --json
 
 ### Notes
 
+- **Canonical view vs raw bytes.** The published `url` is **always a branded view** carrying
+  the dropthis badge (no client detection): an HTML drop renders the page; a single non-HTML
+  file renders a branded **preview** (image inline; text/markdown/json/csv/code as escaped
+  source; opaque binary as a download affordance); a collection renders a branded **index**
+  linking each file's natural path. The raw bytes of a single-file drop live at a **natural
+  path** under the drop and are surfaced as `rawUrl` (e.g. `…/abc123/notes.md`). Give the
+  canonical `url` to humans, `rawUrl` to agents. There is no `/_raw/` route. Append
+  `?download=1` to any natural-path URL to force a download.
+- **Publish vs transfer.** dropthis publishes agent-readable artifacts, not files-for-transfer.
+  The only gate is the per-drop size cap (5 MB Free / 100 MB Pro) — there is no content/extension
+  policy. A `handoff.md` or a handful of JSON/CSV files publish fine; very large binaries are
+  blocked by size, not type.
 - When piping stdin, `--content-type` and `--path` are strongly recommended. If omitted, the SDK auto-detects the content type (HTML detected from tags, else `text/plain`) and picks an entry filename (`index.html` for HTML, `index.txt` otherwise). Set them explicitly for deterministic output.
 - Setting `--password` is Pro-only (Free returns 403 `password_protection_unavailable` with an `upgrade_url`). Removing one with `update-settings --no-password` is always allowed.
 - At the REST level the API is staged-only: `POST /v1/drops` accepts exactly one of `upload_id` (from a completed staged upload) or `source_url` -- there is no inline-content or multipart mode. The CLI stages files/strings/stdin for you automatically.

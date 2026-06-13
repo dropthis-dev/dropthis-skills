@@ -144,6 +144,33 @@ Lifecycle verbs are flat and top-level — they mirror the MCP tool names 1:1.
 > drop URL or slug (owner-scoped). To recover an id you only have the slug for, run
 > `dropthis get <slug> --json` or `dropthis list --json` and match the slug.
 
+## What a drop URL serves (canonical view vs raw bytes)
+
+Every drop has a **human face** (the canonical URL) and, for single-file drops, a **machine
+face** (the raw bytes at a natural path). The canonical URL is **always a branded view** — it
+carries the dropthis badge with no client detection:
+
+- **HTML drop** → the page renders as-is (badge injected). Unchanged.
+- **Single non-HTML file** (e.g. one `.md`, `.json`, `.csv`, `.png`) → a **branded preview**
+  page at the canonical URL: an image is shown inline; markdown / JSON / CSV / text / code is
+  shown as **escaped source** in a styled block (it is NOT re-rendered — the source is the
+  honest, useful form for both a reader and an agent); an opaque binary gets a download
+  affordance. The file's **raw bytes** live at the **natural path** under the drop (e.g.
+  `https://dropthis.app/abc123/notes.md`), surfaced as `rawUrl` in the response.
+- **Collection** (multiple files, no HTML entry) → a **branded index** at the canonical URL
+  linking each file at its natural path; a `README.md`/`index.md` is shown (as source) atop
+  the index.
+
+There is **no `/_raw/` route** and no user-agent sniffing. Give the **canonical URL to
+humans** (they get the badge) and **`rawUrl` to agents** (they get the exact bytes). For
+collections, the per-file natural paths come from the branded index. Force a download of any
+natural-path URL with `?download=1`.
+
+dropthis publishes **agent-readable artifacts**, not files-for-transfer. The dividing line is
+**publish vs transfer**, and it is gated by the **per-drop size cap** (5 MB Free / 100 MB Pro),
+not by any content/extension policy — there is no type allow/deny list. A `handoff.md` or seven
+JSON files sail through; a multi-GB video rip is impossible by price.
+
 ## Publish
 
 `publish` is the default command — you can omit it:
@@ -243,6 +270,8 @@ dropthis ./report.html --visibility unlisted --noindex --url
 | 4 | **Relying on stdin auto-detection** | When piping content via stdin (`-`), set `--content-type` and `--path` explicitly for deterministic output. Without them the SDK auto-detects content type and entry filename. |
 | 5 | **Using the slug/URL token as the drop id** | `update-content`/`update-settings` and `deployments list/get` take the full `drop_…` id (the `.drop.id` field in publish `--json` output), NOT the slug or URL token. `get`/`delete`/`pull` also accept the drop URL or slug. Capture `.drop.id` from publish; if you only have the slug, `dropthis get <slug> --json` recovers the id. |
 | 6 | **Calling `publish` again to change a drop** | `publish` always creates a NEW drop and makes a duplicate. To change something you already published, use `update-content <id>` (the files at the URL) or `update-settings <id>` (title/visibility/password/expiry/metadata) with its `drop_…` id. |
+| 7 | **Handing an agent the canonical URL when it wants the bytes** | For a single non-HTML file, the canonical `url` is the branded preview (HTML page with the badge), NOT the raw file. Give the agent `rawUrl` (the natural-path bytes, e.g. `…/abc123/notes.md`) instead. The canonical `url` stays the right link for a human. |
+| 8 | **Looking for a `/_raw/` URL** | There is no `/_raw/` route. Raw bytes live at the file's natural path under the drop (`rawUrl` for single-file drops; per-file links in the branded index for collections). Append `?download=1` to force a download. |
 
 ## Custom domains
 

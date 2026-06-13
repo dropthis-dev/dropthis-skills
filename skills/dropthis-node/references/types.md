@@ -74,6 +74,7 @@ type DropResponse = {
   slug: string;
   url: string;
   domain: string | null;
+  rawUrl: string | null;
   deploymentId: string | null;
   title: string;
   contentType: string;
@@ -103,6 +104,13 @@ settings. The raw `password` is **never** returned — `passwordProtected` is th
 whether one is set.
 
 `domain` is the hostname of the custom domain the drop is mounted on (e.g. `"reports.example.com"`), or `null` for drops on the shared `dropthis.app` pool.
+
+`rawUrl` is the natural-path URL serving the **raw bytes** of a **single non-HTML file** drop
+(e.g. `https://dropthis.app/abc123/notes.md`) — hand it to agents that want the exact bytes.
+It is `null` for HTML drops and collections. The canonical `url` is **always a branded view**
+(the badge), so give `url` to humans and `rawUrl` to agents; to fetch a collection's bytes, use
+the content read-back (`GET /v1/drops/{dropId}/content?path=<file>`, see [drops.md](drops.md)).
+There is no `/_raw/` route.
 
 ### TierInfo
 

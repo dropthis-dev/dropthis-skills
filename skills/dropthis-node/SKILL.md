@@ -129,6 +129,30 @@ existing drop needs its full `drop_…` id (the `data.id` from the publish respo
 `data.slug` or the URL token). `updateContent` ships a new **deployment** (a content version);
 `updateSettings` never touches content.
 
+## What a drop URL serves (canonical view vs raw bytes)
+
+Every drop's canonical `data.url` is **always a branded view** carrying the dropthis badge —
+there is no user-agent detection and no `/_raw/` route:
+
+- **HTML** → the page renders as-is (badge injected).
+- **Single non-HTML file** (one `.md`, `.json`, `.csv`, `.png`, …) → a **branded preview** page
+  at `data.url` (image inline; markdown/JSON/CSV/text/code as escaped **source**; opaque binary
+  as a download affordance). The file's **raw bytes** live at the **natural path** under the
+  drop and come back as `data.rawUrl` (e.g. `https://dropthis.app/abc123/notes.md`).
+- **Collection** (multiple files, no HTML entry) → a **branded index** at `data.url` linking
+  each file's natural path; a `README.md`/`index.md` is shown atop the index.
+
+Give the canonical `data.url` to **humans** (badge) and `data.rawUrl` to **agents** (exact
+bytes). `rawUrl` is `null` for HTML drops and collections — for a collection's bytes, use the
+content read-back (`GET /v1/drops/{dropId}/content?path=<file>`, see
+[drops.md](references/drops.md)). Append `?download=1` to any natural-path URL to force a
+download.
+
+dropthis publishes **agent-readable artifacts**, not files-for-transfer. The dividing line is
+**publish vs transfer**, gated only by the per-drop size cap (5 MB Free / 100 MB Pro) — there is
+no content/extension policy. A `handoff.md` or several JSON/CSV files publish fine; very large
+binaries are blocked by size, not type.
+
 ## Common patterns
 
 ### Publish a string
@@ -260,4 +284,6 @@ Dedicated domain already occupied → 409; use `updateContent(existingId, …)` 
 | Setting `password` on publish or `updateSettings` | Pro-only — Free returns 403 `password_protection_unavailable` with `upgrade_url`. Clearing one with `password: null` is always allowed |
 | Retrying `updateContent` after a timeout | `updateContent` is not idempotent — a blind retry stacks a duplicate deployment. Pass the same `idempotencyKey` to make retries safe |
 | Using `uploads.*` directly for simple publishes | Use `dropthis.drops.publish()` which handles the staged upload flow automatically |
+| Handing an agent `data.url` when it wants the bytes | For a single non-HTML file, `data.url` is the branded preview (HTML page with the badge), NOT the raw file. Give the agent `data.rawUrl` (the natural-path bytes); `data.url` stays the right link for a human |
+| Looking for a `/_raw/` URL | There is no `/_raw/` route. Raw bytes live at the file's natural path (`data.rawUrl` for single-file drops; per-file links in the branded index, or the content read-back, for collections). Append `?download=1` to force a download |
 | Importing from subpaths | Import everything from `"@dropthis/node"` -- there are no public subpath exports |
