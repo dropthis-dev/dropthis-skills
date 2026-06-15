@@ -1,8 +1,17 @@
 # Tool reference
 
-All tools are namespaced `dropthis_`. The publish/update_content/update_settings/get tools return the drop's
+All tools are namespaced `dropthis_`. The publish/update_content/update_settings/get/resolve tools return the drop's
 `DropResponse` (camelCase, including `url`); `delete` returns `{ deleted, dropId }` and the list
 tools return `{ items, nextCursor }`. Errors come back in-band with `code`, `suggestion`, and `request_id`.
+
+**The id is the only write handle.** `dropthis_update_content`, `dropthis_update_settings`,
+`dropthis_get`, `dropthis_get_content`, `dropthis_delete`, and `dropthis_list_deployments` take a
+strict `drop_…` `drop_id` — pass a URL or slug and they return a self-explaining error pointing at
+`dropthis_resolve` (they never silently resolve). When you only have a public URL or slug, call
+`dropthis_resolve` first to get the id, then call the id-based tool. **Persist the `drop_…` id.**
+URLs, raw_url, and slugs are locators, not identifiers — a vanity slug is renameable and the pool
+host rotates, so a stored URL can drift; the id never moves. Treat `drop_…` as an opaque
+case-sensitive string.
 
 ## dropthis_publish
 
@@ -45,8 +54,8 @@ the same values again is a no-op.
 
 ## dropthis_list
 
-- Inputs: optional `cursor`, `limit` (1–100, default 20). Output: `items` (each `id`, `slug`, `url`, `title`, `status`, `expiresAt`) + `nextCursor`. Read-only.
-- URL→id resolution: each item carries its `slug` (the URL token). If you only have a drop's URL, match its slug against `items[].slug` and use that item's `id` for every id-based tool. (The REST API can also resolve directly: `GET /v1/drops?slug=<slug>` is owner-scoped and returns 0 or 1 drops.)
+- Inputs: optional `cursor`, `limit` (1–100, default 20), `domain` (only drops mounted on that custom hostname). Output: `items` (each `id`, `slug`, `url`, `title`, `status`, `expiresAt`) + `nextCursor`. Read-only.
+- URL→id recovery: prefer `dropthis_resolve` — it turns any public URL or slug straight into the drop (with its `id`), owner-scoped. `dropthis_list` is the browse alternative when you want to scan or filter (`domain`).
 
 ## dropthis_delete
 
@@ -59,6 +68,18 @@ Permanently delete a drop and its public URL. Destructive.
 ## dropthis_list_deployments
 
 - Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); optional `cursor`, `limit` (1–100, default 20). Output: the drop's content history (past deployments / versions) as `items` + `nextCursor`. Read-only.
+
+## dropthis_resolve
+
+Turn a drop's public URL or slug — what a user typically pastes — into the drop itself, including
+its `drop_…` id. This is the on-ramp for the strict id-only edit/read tools: resolve here, then
+call `dropthis_update_content` / `dropthis_update_settings` / `dropthis_get` / `dropthis_delete`
+with the returned `id`.
+
+- Input: `target` — a drop's public URL (e.g. `https://abc123.listb.link/` or a custom-domain URL), its slug, or a `drop_…` id (which passes straight through).
+- Output: the full camelCase `DropResponse` on a hit (with `id`, `url`, `slug`, …), exactly like `dropthis_get`. On no match the result is an error explaining that no drop of yours matches (use `dropthis_list` to browse).
+- **Server-side and owner-scoped.** Resolution runs on the server (`POST /v1/drops/resolve`) — there is no client-side slug parsing or host allowlist, so it handles every URL face: shared-pool URLs, legacy `dropthis.app` URLs, and custom-domain URLs (path-mode `/{slug}/`, dedicated-mode root, and deep links — all resolve to the drop at the mount). It only matches drops on THIS account; an unknown or foreign URL returns no match (no existence leak).
+- Read-only. Resolve once and persist the `drop_…` id — URLs and slugs are locators that can drift; the id never moves.
 
 ## dropthis_account
 
@@ -108,6 +129,9 @@ Inputs: `drop_id` (required), `cursor`, `limit`
 
 ### `dropthis_publish`
 Inputs: `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `paths`, `title`, `noindex`, `visibility`, `expires_at`, `metadata`, `domain`, `slug`, `idempotency_key`
+
+### `dropthis_resolve`
+Inputs: `target` (required)
 
 ### `dropthis_update_content`
 Inputs: `drop_id` (required), `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `paths`, `idempotency_key`, `if_revision`

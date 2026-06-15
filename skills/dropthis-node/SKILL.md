@@ -113,6 +113,7 @@ The SDK uses Stripe-style resource namespaces — every lifecycle method hangs o
 | `client.drops.updateContent(id, input, opts?)` | Replace a drop's content, same URL (new deployment). Settings unchanged | [publish.md](references/publish.md) |
 | `client.drops.updateSettings(id, patch)` | Change title/visibility/password/expiry/metadata. Content unchanged | [drops.md](references/drops.md) |
 | `client.drops.get(id)` | Fetch one drop (settings round-trip back into `updateSettings`) | [drops.md](references/drops.md) |
+| `client.drops.resolve(target)` | Resolve a public URL/slug (or id) → the drop, to recover a lost `drop_…` id | [drops.md](references/drops.md) |
 | `client.drops.list(params?)` | List drops (cursor-paginated, auto-paging iterable) | [drops.md](references/drops.md) |
 | `client.drops.delete(id)` | Delete a drop | [drops.md](references/drops.md) |
 | `client.deployments.list(dropId, params?)` | Content history for a drop | [deployments.md](references/deployments.md) |
@@ -128,6 +129,12 @@ The SDK uses Stripe-style resource namespaces — every lifecycle method hangs o
 existing drop needs its full `drop_…` id (the `data.id` from the publish response — not
 `data.slug` or the URL token). `updateContent` ships a new **deployment** (a content version);
 `updateSettings` never touches content.
+
+**Persist the `drop_…` id.** URLs, `raw_url`, and slugs are locators, not identifiers — a vanity
+slug is renameable and the pool host rotates, so a stored URL can drift; the id never moves. Treat
+`drop_…` as an opaque case-sensitive string. You already have the id after `publish`; if you only
+kept a URL or slug, recover the id with `client.drops.resolve(target)` (server-side, owner-scoped),
+then mutate by the returned `data.id`. Do NOT parse the slug out of a URL yourself.
 
 ## What a drop URL serves (canonical view vs raw bytes)
 
@@ -235,6 +242,19 @@ await dropthis.drops.updateSettings("drop_abc123", { title: "New title" });
 await dropthis.drops.delete("drop_abc123");
 ```
 
+### Resolve a URL/slug back to a drop (recover a lost id)
+
+```typescript
+// Writes are id-only; resolve once, then mutate by data.id.
+const { data, error } = await dropthis.drops.resolve("https://abc123.listb.link/");
+if (error) throw new Error(error.message);
+if (data === null) {
+  // No drop of yours matches (foreign, deleted, or unknown URL).
+} else {
+  await dropthis.drops.updateContent(data.id, "<h1>v2</h1>");
+}
+```
+
 ### List drops with pagination
 
 ```typescript
@@ -279,7 +299,7 @@ Dedicated domain already occupied → 409; use `updateContent(existingId, …)` 
 | Calling `drops.publish()` again to change a drop | `publish` always creates a NEW drop (a duplicate). Use `drops.updateContent(id, newContent)` for content or `drops.updateSettings(id, patch)` for settings |
 | Using `drops.updateSettings()` to push new content | `updateSettings` is settings-only and never touches content; use `drops.updateContent(id, newContent)` to replace the files at the URL |
 | Fetching a URL before publishing | Pass the `http(s)` URL straight to `drops.publish()` (or `{ kind: "source_url", sourceUrl }`) -- the server fetches it. Do NOT download it yourself first. |
-| Passing the slug/URL token as `dropId` | `drops.updateContent(dropId, …)`, `drops.updateSettings(dropId, …)`, `drops.get/delete(dropId)` take the `drop_…` id — the `data.id` returned by `drops.publish()`, NOT `data.slug` or the URL token |
+| Passing the slug/URL token as `dropId` | `drops.updateContent(dropId, …)`, `drops.updateSettings(dropId, …)`, `drops.get/delete(dropId)` take the `drop_…` id — the `data.id` returned by `drops.publish()`, NOT `data.slug` or the URL token. If you only have a URL/slug, call `drops.resolve(target)` first to get the id |
 | Forgetting `ifRevision` on concurrent updates | Pass `ifRevision` from the previous response to get optimistic concurrency |
 | Setting `password` on publish or `updateSettings` | Pro-only — Free returns 403 `password_protection_unavailable` with `upgrade_url`. Clearing one with `password: null` is always allowed |
 | Retrying `updateContent` after a timeout | `updateContent` is not idempotent — a blind retry stacks a duplicate deployment. Pass the same `idempotencyKey` to make retries safe |

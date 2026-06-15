@@ -41,11 +41,58 @@ dropthis list --limit 10
 dropthis list --cursor "eyJsYXN0X2lkIjoiZHJvcF8xMjMifQ"
 ```
 
-#### Resolving a slug/URL back to a drop id
+#### Resolving a URL/slug back to a drop id
 
-Each listed drop carries its `slug` (the URL token). If you only have a drop's URL, extract
-the slug and match it against the list output (`dropthis list --json`). The REST API can also
-resolve it directly -- `GET /v1/drops?slug=<slug>` is owner-scoped and returns 0 or 1 drops.
+If you only have a drop's public URL or slug, run `dropthis resolve <target>` (below) to get its
+`drop_…` id — do not parse the slug out of the URL yourself. `get`, `delete`, and `pull` also
+accept a URL or slug directly (they resolve internally). `list` is the browse alternative when you
+want to scan or filter (`--domain`).
+
+---
+
+### resolve
+
+Resolve a public drop URL or slug back to its `drop_…` id (a `drop_…` id passes straight
+through). Writes are id-only, so this is the recovery path: resolve once, then
+`update-content`/`update-settings`/`delete` by the returned id.
+
+Resolution runs **server-side and owner-scoped** — there is no client-side slug parsing or host
+allowlist, so it handles every URL face: shared-pool URLs, legacy `dropthis.app` URLs, and
+custom-domain URLs (path-mode `/{slug}/`, dedicated-mode root, and deep links). It only matches
+drops on your account; an unknown or foreign URL returns a `not_found` error.
+
+> **Persist the `drop_…` id.** URLs, raw_url, and slugs are locators, not identifiers — a vanity
+> slug is renameable and the pool host rotates, so a stored URL can drift; the id never moves.
+> Treat `drop_…` as an opaque case-sensitive string.
+
+#### Usage
+
+```bash
+dropthis resolve <id|url|slug> [flags]
+```
+
+#### Flags
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `--json` | No | Force JSON output |
+
+#### Output
+
+```json
+{"ok":true,"drop":{"id":"drop_abc123","url":"https://abc123.listb.link/","slug":"abc123","title":"My Page"}}
+```
+
+#### Examples
+
+```bash
+# Recover the id from a pasted URL
+dropthis resolve https://abc123.listb.link/
+
+# Pipe the id straight into another command
+ID=$(dropthis resolve abc123 --json | jq -r .drop.id)
+dropthis update-content "$ID" ./dist-v2 --url
+```
 
 ---
 
@@ -56,7 +103,7 @@ Get details for a single drop.
 #### Usage
 
 ```bash
-dropthis get <dropId> [flags]
+dropthis get <id|url|slug> [flags]
 ```
 
 #### Flags
@@ -99,10 +146,10 @@ Replace a drop's content with a new version — same URL and slug, new deploymen
 #### Usage
 
 ```bash
-dropthis update-content <dropId> [input] [flags]
+dropthis update-content <id|url|slug> [input] [flags]
 ```
 
-- `<dropId>` is a drop id (must start with `drop_`), obtained from `--json` output of `publish` or `get`.
+- The target is the drop's `drop_…` id (from `publish`/`get` `--json` output). A drop URL or slug also works — the CLI resolves it to the id server-side, owner-scoped, then ships the new content by id. The write itself is always id-only.
 - `[input]` is a file, directory, or `-` for stdin. If omitted in a non-TTY environment, piped stdin is read automatically.
 
 #### Flags
@@ -193,10 +240,10 @@ Change a drop's settings — title, visibility, password, expiry, noindex, or me
 #### Usage
 
 ```bash
-dropthis update-settings <dropId> [flags]
+dropthis update-settings <id|url|slug> [flags]
 ```
 
-- `<dropId>` is a drop id (must start with `drop_`), obtained from `--json` output of `publish` or `get`.
+- The target is the drop's `drop_…` id (from `publish`/`get` `--json` output). A drop URL or slug also works — the CLI resolves it to the id server-side, owner-scoped, then applies the settings by id. The write itself is always id-only.
 
 #### Flags
 
@@ -278,7 +325,7 @@ Delete a drop permanently.
 #### Usage
 
 ```bash
-dropthis delete <dropId> [flags]
+dropthis delete <id|url|slug> [flags]
 ```
 
 #### Flags
@@ -310,5 +357,6 @@ dropthis delete drop_abc123 --yes
 
 - All drop commands require authentication.
 - Content and settings are separate commands: `update-content <id> <input>` replaces the files at the URL (new deployment, settings unchanged); `update-settings <id> --<setting>` changes title/visibility/password/expiry/metadata (content unchanged). To change both, run both.
+- `get`, `delete`, `pull`, `update-content`, and `update-settings` accept the drop's URL or slug as well as its `drop_…` id — the CLI resolves it server-side, then mutates strictly by id. `dropthis resolve <target>` is the explicit form when you just want the id. Persist the `drop_…` id; URLs and slugs are locators that can drift, the id never moves.
 - The `delete --yes` flag is mandatory in non-interactive (non-TTY) environments. Agents must always include it.
 - Content read-back (REST): `GET /v1/drops/{dropId}/content` returns a JSON manifest of the CURRENT deployment's files (paths, sizes, content types, entry); add `?path=<file>` to download one file's exact stored bytes. Owner-authenticated with your `sk_` key; works regardless of any viewer password. For historical versions see [deployments.md](deployments.md).

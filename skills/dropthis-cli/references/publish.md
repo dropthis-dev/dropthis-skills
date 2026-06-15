@@ -79,8 +79,8 @@ Key fields present in publish responses:
 |-------|------|-------------|
 | `drop.object` | string | Always `"drop"` |
 | `drop.url` | string | The published URL |
-| `drop.id` | string | Drop ID (starts with `drop_`). Use THIS for `get`/`update-content`/`update-settings`/`delete` and `deployments` -- not the slug/URL. |
-| `drop.slug` | string | The drop's URL token (e.g. `abc123`). NOT a drop id -- do NOT pass it to `get`/`update-content`/`update-settings`/`delete`/`deployments` commands. |
+| `drop.id` | string | Drop ID (starts with `drop_`). The durable write handle — capture and persist it for `update-content`/`update-settings`/`delete` and `deployments`. URLs and slugs are locators that can drift; the id never moves. |
+| `drop.slug` | string | The drop's URL token (e.g. `abc123`). NOT a drop id. `deployments list/get` are strict id-only; the other drop commands accept the slug/URL and resolve it server-side, or recover the id explicitly with `dropthis resolve <slug>`. |
 | `drop.domain` | string \| null | Hostname of the custom domain the drop is mounted on (e.g. `"reports.example.com"`), or `null` for shared-pool drops |
 | `drop.rawUrl` | string \| null | For a **single non-HTML file** drop: the natural-path URL serving the file's raw bytes (e.g. `https://dropthis.app/abc123/notes.md`). Hand THIS to agents that want the exact bytes; the canonical `url` is the branded preview for humans. `null` for HTML drops and collections (the page IS the artifact / per-file paths come from the branded index). |
 | `drop.deploymentId` | string \| null | The deployment that produced this content version |
