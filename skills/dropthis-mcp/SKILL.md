@@ -5,10 +5,10 @@ description: >
   shareable link for content — HTML, a report, dashboard, slide deck, site, or file — through
   the dropthis MCP server, even if they don't say "drop". Also use to update, edit, rename,
   password-protect, list, or delete published drops. Tools: `dropthis_publish`,
-  `dropthis_update_content`, `dropthis_update_settings`, `dropthis_get`, `dropthis_list`,
-  `dropthis_list_deployments`, `dropthis_delete`, `dropthis_account` — in Claude Code, Claude
-  Desktop, Cursor, Windsurf, ChatGPT, or n8n. Also use when configuring the dropthis MCP server
-  (local stdio or the hosted remote connector).
+  `dropthis_update_content`, `dropthis_update_settings`, `dropthis_get`, `dropthis_resolve`,
+  `dropthis_list`, `dropthis_list_deployments`, `dropthis_delete`, `dropthis_account` — in
+  Claude Code, Claude Desktop, Cursor, Windsurf, ChatGPT, or n8n. Also use when configuring the
+  dropthis MCP server (local stdio or the hosted remote connector).
 license: MIT
 metadata:
   author: dropthis
@@ -112,25 +112,37 @@ duplicate. Instead:
   expiry, or metadata, without touching content. Idempotent.
 
 **Retain the `id` from the publish response for all follow-up operations.** Every id-based
-tool — `dropthis_update_content`, `dropthis_update_settings`, `dropthis_get`, `dropthis_delete`,
-`dropthis_list_deployments` — takes the full `drop_…` id as `drop_id`, NOT the slug or the
-URL token. `dropthis_publish` returns both `id` and `slug` (and `url`); keep the `id`.
+tool — `dropthis_update_content`, `dropthis_update_settings`, `dropthis_get`, `dropthis_get_content`,
+`dropthis_delete`, `dropthis_list_deployments` — takes the full `drop_…` id as `drop_id` and is
+**strict id-only**. Pass a URL or slug and the tool returns a self-explaining error pointing you
+at `dropthis_resolve` — it does NOT silently look it up. `dropthis_publish` returns both `id` and
+`slug` (and `url`); keep the `id`.
+
+> **Persist the `drop_…` id.** URLs, raw_url, and slugs are locators, not identifiers — a vanity
+> slug is renameable and the pool host rotates, so a stored URL can drift; the id never moves.
+> Treat `drop_…` as an opaque case-sensitive string.
 
 ```json
 // dropthis_publish returns:
-{ "id": "drop_6hRcUUok5PYeEK6jJQY5Is", "slug": "0izsioo", "url": "https://dropthis.app/0izsioo" }
+{ "id": "drop_6hRcUUok5PYeEK6jJQY5Is", "slug": "0izsioo", "url": "https://0izsioo.listb.link/" }
 ```
 
 ```text
 # update_content uses the id, NOT the slug:
 dropthis_update_content { "drop_id": "drop_6hRcUUok5PYeEK6jJQY5Is", "content": "<h1>v2</h1>" }
-# WRONG: dropthis_update_content { "drop_id": "0izsioo", ... }  → fails (slug is not a drop id)
+# WRONG: dropthis_update_content { "drop_id": "0izsioo", ... }  → error: that is a URL/slug,
+#   not a drop_id. Call dropthis_resolve with it to get the drop_id, then retry.
 ```
 
-If you only have the slug/URL, call `dropthis_list` to recover the `id` — each item carries
-its `slug`, so match the URL's slug against `items[].slug`. (The REST API can also resolve
-directly: `GET /v1/drops?slug=<slug>`, owner-scoped, returns 0 or 1 drops.)
-Pass `domain` to `dropthis_list` to scope results to a custom hostname: `dropthis_list { "domain": "reports.example.com" }`.
+**Recovering an id from a URL/slug → `dropthis_resolve`.** When you only have what the user
+pasted — a public URL or a slug — call `dropthis_resolve { "target": "https://0izsioo.listb.link/" }`.
+It resolves the locator back to the drop (including its `id`) **server-side and owner-scoped**:
+it matches only drops on this account and returns no match for an unknown or foreign URL. It
+handles every URL face — shared-pool, legacy `dropthis.app`, and custom-domain URLs (path-mode
+`/{slug}/`, dedicated-mode root, and deep links). A `drop_…` id passes straight through. Resolve
+once, then call the id-based tools with the returned `id`. (Do NOT parse the slug out of the URL
+yourself.) `dropthis_list` is an alternative — pass `domain` to scope to a custom hostname:
+`dropthis_list { "domain": "reports.example.com" }`.
 
 **Glossary:** a **Drop** is one published artifact at a permanent URL. A **deployment** is one
 content version of a Drop (`dropthis_update_content` ships a new deployment; see them with
