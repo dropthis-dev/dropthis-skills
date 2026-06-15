@@ -122,8 +122,8 @@
       ],
       "auth": "required",
       "examples": [
-        "dropthis resolve https://abc123.dropthis.app/   # → drop_… id + url",
-        "dropthis resolve abc123 --json | jq -r .drop.id"
+        "dropthis resolve https://abc123.dropthis.app/",
+        "dropthis resolve abc123 --json"
       ]
     },
     {
