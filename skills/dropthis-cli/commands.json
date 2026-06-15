@@ -112,6 +112,21 @@
       ]
     },
     {
+      "name": "resolve",
+      "description": "Resolve a public drop URL or slug back to its drop_… id (accepts the id too).\nWrites are id-only — use this to recover the id from a URL, then update-content/update-settings/delete by that id.",
+      "arguments": [
+        "target"
+      ],
+      "options": [
+        "--json"
+      ],
+      "auth": "required",
+      "examples": [
+        "dropthis resolve https://abc123.dropthis.app/   # → drop_… id + url",
+        "dropthis resolve abc123 --json | jq -r .drop.id"
+      ]
+    },
+    {
       "name": "list",
       "description": "List your drops",
       "options": [

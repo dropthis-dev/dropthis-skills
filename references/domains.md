@@ -224,7 +224,19 @@ dropthis list --domain reports.example.com --json
 # MCP: dropthis_list with domain="reports.example.com"
 ```
 
-The recovery path when you have a custom-domain URL but lost the `drop_…` id.
+A browse/recovery path when you have a custom-domain URL but lost the `drop_…` id. To go straight
+from a custom-domain URL (path-mode `/{slug}/`, dedicated root, or a deep link) to the drop, use
+the resolver — it is server-side and handles every URL face:
+
+```bash
+dropthis resolve https://reports.example.com/q4-summary/   # CLI → drop_… id + url
+# REST: POST /v1/drops/resolve  {"target": "https://reports.example.com/q4-summary/"}
+# SDK:  await client.drops.resolve("https://reports.example.com/q4-summary/")
+# MCP:  dropthis_resolve with target="https://reports.example.com/q4-summary/"
+```
+
+Persist the `drop_…` id once you have it — a vanity slug is renameable and the host can change, so
+a stored URL can drift; the id never moves.
 
 ---
 

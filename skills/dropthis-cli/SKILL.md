@@ -6,8 +6,8 @@ description: >
   from the terminal with the `dropthis` CLI, even if they don't say "drop". Also use to
   update, edit, rename, password-protect, list, or delete published drops via
   `dropthis publish`, `dropthis update-content`, `dropthis update-settings`, `dropthis get`,
-  `dropthis list`, and `dropthis delete`. Load this before running `dropthis` commands — it
-  covers the non-interactive flag contract and auth resolution order.
+  `dropthis resolve`, `dropthis list`, and `dropthis delete`. Load this before running `dropthis`
+  commands — it covers the non-interactive flag contract and auth resolution order.
 license: MIT
 metadata:
   author: dropthis
@@ -124,6 +124,7 @@ Lifecycle verbs are flat and top-level — they mirror the MCP tool names 1:1.
 | `update-content <id> [input]` | Replace a drop's content, same URL (ships a new deployment). Settings unchanged |
 | `update-settings <id> [flags]` | Change title, visibility, password, expiry, or metadata. Content unchanged |
 | `get <id\|url\|slug>` | Show drop details |
+| `resolve <id\|url\|slug>` | Resolve a public URL/slug back to its `drop_…` id (server-side, owner-scoped) |
 | `list [--domain <hostname>]` | List your drops (optionally filtered to a custom domain) |
 | `delete <id\|url\|slug>` | Delete a drop (`--yes` for scripts) |
 | `pull <id\|url\|slug> [-o <dir>]` | Download a drop's files into a local directory (read-back) |
@@ -138,11 +139,15 @@ Lifecycle verbs are flat and top-level — they mirror the MCP tool names 1:1.
 | `doctor` | Report CLI diagnostics |
 | `commands` | Print machine-readable command metadata |
 
-> `update-content` and `update-settings` both require the full `drop_…` id from the publish
-> response — not the slug or URL token. `publish` creates a NEW drop every call and never takes
-> an id; updating an existing drop needs its id. `get`, `delete`, and `pull` also accept the
-> drop URL or slug (owner-scoped). To recover an id you only have the slug for, run
-> `dropthis get <slug> --json` or `dropthis list --json` and match the slug.
+> `publish` creates a NEW drop every call and never takes an id; updating an existing drop needs
+> its `drop_…` id. The mutating commands — `update-content`, `update-settings`, `delete` (and the
+> reads `get`/`pull`) — accept a drop URL or slug as well as the id: the CLI resolves it
+> **server-side and owner-scoped**, then mutates strictly by id. `deployments list/get` are
+> id-only. When you only have a URL/slug, `dropthis resolve <target>` returns the id explicitly
+> (or pipe it: `ID=$(dropthis resolve <url> --json | jq -r .drop.id)`). **Persist the `drop_…`
+> id** — URLs, raw_url, and slugs are locators, not identifiers; a vanity slug is renameable and
+> the pool host rotates, so a stored URL can drift, but the id never moves. Treat `drop_…` as an
+> opaque case-sensitive string.
 
 ## What a drop URL serves (canonical view vs raw bytes)
 
@@ -268,7 +273,7 @@ dropthis ./report.html --visibility unlisted --noindex --url
 | 2 | **Not checking exit code 3** | Exit 3 means auth required. Run `dropthis whoami` first, then prompt for login if needed. |
 | 3 | **Assuming URLs aren't supported** | A bare `http(s)` URL IS a valid input: `dropthis https://example.com/page.html --url` publishes a server-fetched copy (source_url flow). Pass the URL directly -- do NOT fetch it yourself first. |
 | 4 | **Relying on stdin auto-detection** | When piping content via stdin (`-`), set `--content-type` and `--path` explicitly for deterministic output. Without them the SDK auto-detects content type and entry filename. |
-| 5 | **Using the slug/URL token as the drop id** | `update-content`/`update-settings` and `deployments list/get` take the full `drop_…` id (the `.drop.id` field in publish `--json` output), NOT the slug or URL token. `get`/`delete`/`pull` also accept the drop URL or slug. Capture `.drop.id` from publish; if you only have the slug, `dropthis get <slug> --json` recovers the id. |
+| 5 | **Using the slug/URL token where only an id works** | `deployments list/get` are strict `drop_…` id-only (the `.drop.id` field in publish `--json` output). `update-content`/`update-settings`/`delete` and the reads `get`/`pull` also accept a drop URL or slug — the CLI resolves it server-side, then mutates by id. Capture `.drop.id` from publish; if you only kept a URL/slug, `dropthis resolve <target>` (or `--json \| jq -r .drop.id`) recovers the id. |
 | 6 | **Calling `publish` again to change a drop** | `publish` always creates a NEW drop and makes a duplicate. To change something you already published, use `update-content <id>` (the files at the URL) or `update-settings <id>` (title/visibility/password/expiry/metadata) with its `drop_…` id. |
 | 7 | **Handing an agent the canonical URL when it wants the bytes** | For a single non-HTML file, the canonical `url` is the branded preview (HTML page with the badge), NOT the raw file. Give the agent `rawUrl` (the natural-path bytes, e.g. `…/abc123/notes.md`) instead. The canonical `url` stays the right link for a human. |
 | 8 | **Looking for a `/_raw/` URL** | There is no `/_raw/` route. Raw bytes live at the file's natural path under the drop (`rawUrl` for single-file drops; per-file links in the branded index for collections). Append `?download=1` to force a download. |
