@@ -443,7 +443,7 @@ type PublishInput =
 
 ### PublishFileInput
 
-Each file supplies its bytes via exactly one of `content`, `contentBase64`, or `bytes`. `contentType` is optional (auto-detected if omitted).
+Each file supplies its bytes via exactly one of `content`, `contentBase64`, `bytes`, or `sourceUrl`. `contentType` is optional (auto-detected if omitted). Use `sourceUrl` for remote assets (images, video, pdf, fonts) — each `sourceUrl` is fetched server-side into the drop. Never base64-inline an image.
 
 ```typescript
 type PublishFileInput = {
@@ -452,6 +452,7 @@ type PublishFileInput = {
   content?: string;
   contentBase64?: string;
   bytes?: Uint8Array;
+  sourceUrl?: string; // http(s) URL the server fetches — use for images/video/pdf/fonts
 };
 ```
 

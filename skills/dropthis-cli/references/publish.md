@@ -217,5 +217,5 @@ dropthis ./page.html --json
 - `--url` and `--dry-run` are mutually exclusive.
 - `--metadata` and `--metadata-file` are mutually exclusive.
 - An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
-- Maximum 200 files per bundle.
+- Maximum 200 files per bundle. To include remote assets (images, video, pdf, fonts) in a multi-file drop without downloading them first, use the SDK or MCP `files` input — each file entry supports `content`/`content_base64` (inline) or `source_url` (the server fetches it). Never base64-inline an image. The CLI's `source_url` path is top-level only (a bare `http(s)` URL argument).
 - In non-TTY environments (pipes, CI), output defaults to JSON automatically.
