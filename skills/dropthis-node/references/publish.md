@@ -109,7 +109,7 @@ if (prepared.kind === "staged") {
 | Raw bytes | `Uint8Array` | Binary content |
 | Inline content | `{ kind: "content"; content; contentType?; path? }` | Explicit inline content |
 | Source URL | `{ kind: "source_url"; sourceUrl }` | Explicit server-fetched URL |
-| Explicit files | `{ kind: "files"; files: PublishFileInput[]; entry? }` | Multi-file bundle (do NOT inline assets into one file) |
+| Explicit files | `{ kind: "files"; files: PublishFileInput[]; entry? }` | Multi-file bundle. Each file is inline `content`/`content_base64`, or a `source_url` the server fetches — use `source_url` for images/video/pdf/fonts; never base64-inline an image. Up to 200 files. |
 
 ## PublishOptions
 
@@ -218,7 +218,7 @@ dropthis.account.get();
 
 - String inputs are auto-detected in priority order: an `http(s)` URL → server-fetched (source_url); multiline/oversized → inline content; otherwise stat the path (file/dir) → staged upload; a path-shaped miss → `file_not_found`; else inline prose.
 - A bare `http(s)` URL string (or a `URL` object, or `{ kind: "source_url" }`) publishes a server-fetched copy. Pass the URL directly -- do NOT fetch it yourself.
-- To publish multiple files, pass `string[]` paths or `{ kind: "files", files: [...] }`. Do NOT inline CSS/JS into one HTML blob.
+- To publish multiple files, pass `string[]` paths or `{ kind: "files", files: [...] }`. Do NOT inline CSS/JS into one HTML blob. In the `files` array, each file is inline `content`/`content_base64`, or a `source_url` the server fetches — use `source_url` for images/video/pdf/fonts; never base64-inline an image.
 - `drops.publish()` returns BOTH `data.id` (the `drop_…` id) and `data.slug` (the URL token). Pass `data.id` to `drops.updateContent(dropId, …)`, `drops.updateSettings(dropId, …)`, and `drops.get/delete(dropId)` — the slug is NOT accepted as a drop id. Retain `data.id` for all follow-up operations.
 - The staged upload flow uses presigned URLs for direct-to-R2 uploads (single PUT per file). The SDK handles this entirely.
 - At the REST level the API is staged-only: `POST /v1/drops` (and `POST /v1/drops/{id}/deployments`) accepts exactly one of `upload_id` (from a completed staged upload) or `source_url` — there is no inline-content or multipart mode. The SDK's inline `content` inputs are staged automatically before publishing.

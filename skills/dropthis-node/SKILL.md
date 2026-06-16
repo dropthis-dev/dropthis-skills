@@ -202,12 +202,15 @@ const { data } = await dropthis.drops.publish(new Uint8Array([...]), {
 
 ### Publish explicit files (multi-file bundle)
 
+Each file is inline `content`/`content_base64`, or a `source_url` the server fetches — use `source_url` for images/video/pdf/fonts; never base64-inline an image.
+
 ```typescript
 const { data } = await dropthis.drops.publish({
   kind: "files",
   files: [
     { path: "index.html", content: "<h1>Hi</h1>" },
     { path: "style.css", content: "body{}" },
+    { path: "logo.png", sourceUrl: "https://example.com/logo.png" }, // server fetches it
   ],
   entry: "index.html",
 });
@@ -298,7 +301,7 @@ Dedicated domain already occupied → 409; use `updateContent(existingId, …)` 
 | Accessing `data` without checking `error` | Always check `if (error)` first |
 | Calling `drops.publish()` again to change a drop | `publish` always creates a NEW drop (a duplicate). Use `drops.updateContent(id, newContent)` for content or `drops.updateSettings(id, patch)` for settings |
 | Using `drops.updateSettings()` to push new content | `updateSettings` is settings-only and never touches content; use `drops.updateContent(id, newContent)` to replace the files at the URL |
-| Fetching a URL before publishing | Pass the `http(s)` URL straight to `drops.publish()` (or `{ kind: "source_url", sourceUrl }`) -- the server fetches it. Do NOT download it yourself first. |
+| Fetching a URL before publishing | Pass the `http(s)` URL straight to `drops.publish()` (or `{ kind: "source_url", sourceUrl }`) — the server fetches it. Do NOT download it yourself first. For remote assets in a multi-file drop, use `sourceUrl` on individual file entries in the `files` array instead of base64-encoding the bytes. |
 | Passing the slug/URL token as `dropId` | `drops.updateContent(dropId, …)`, `drops.updateSettings(dropId, …)`, `drops.get/delete(dropId)` take the `drop_…` id — the `data.id` returned by `drops.publish()`, NOT `data.slug` or the URL token. If you only have a URL/slug, call `drops.resolve(target)` first to get the id |
 | Forgetting `ifRevision` on concurrent updates | Pass `ifRevision` from the previous response to get optimistic concurrency |
 | Setting `password` on publish or `updateSettings` | Pro-only — Free returns 403 `password_protection_unavailable` with `upgrade_url`. Clearing one with `password: null` is always allowed |

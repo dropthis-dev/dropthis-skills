@@ -70,7 +70,7 @@ OAuth (approve a 6-digit email login). Automation (n8n, CI) sends `Authorization
 
 - `content` — inline HTML/text you generated. The common case.
 - `source_url` — a public `http(s)` URL the server fetches (SSRF-guarded). Use to mirror an existing page.
-- `files` — a multi-file bundle of `{path, content|content_base64, content_type?}` (plus optional `entry`). Use this for multi-file apps — do NOT inline CSS/JS into one HTML string.
+- `files` — a multi-file bundle of `{path, content|content_base64|source_url, content_type?}` (plus optional `entry`). Each file is inline `content`/`content_base64`, or a `source_url` the server fetches — use `source_url` for images/video/pdf/fonts; never base64-inline an image. Up to 200 files per drop.
 - `file` — a local file path **or directory** (a directory publishes as a complete multi-file site). **Local/stdio only**; not available on the remote connector.
 - `paths` — a list of local file/directory paths published together as one bundle. **Local/stdio only**; not available on the remote connector.
 
