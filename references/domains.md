@@ -61,6 +61,8 @@ POST /v1/domains/reports.example.com/verify
 
 Status progression: `pending_dns` → `verifying` → `live`. On `failed`, `failure_reason` explains why.
 
+**Hand the human the console link.** Adding the CNAME is a step only a human can do at their registrar. Every domain response carries `console_url` (e.g. `https://app.dropthis.app/domains/dom_…`) — the domain's setup page. Give it to the user: they sign in, see the exact record with copy buttons, and watch it flip to **Live** automatically. The CLI prints it ("finish it in the console: …") and the MCP domain tools surface it on a `Console:` line — prefer handing over that link over coaching DNS through chat.
+
 When a path-mode domain first reaches `live` and the account has no default domain, it is automatically set as the default publish target for that account.
 
 To publish to the shared pool even when the account has a default domain — a deliberate off-domain publish — use the shared-pool override: CLI `--shared`, SDK `domain: SHARED_POOL`, MCP `domain: "shared"` (all resolve to the same `"shared"` sentinel). The drop reads back `domain: null`. To clear the default entirely: `dropthis domains update <hostname> --no-default`.
