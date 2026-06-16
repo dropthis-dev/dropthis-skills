@@ -44,6 +44,7 @@ When credentials are missing and the terminal is interactive, `publish` prompts 
 | `--metadata-file` `<path>` | No | Read metadata JSON from a file |
 | `--content-type` `<mime>` | No | Override MIME type (auto-detected from extension) |
 | `--path` `<path>` | No | Set filename when publishing from stdin |
+| `--manifest` `<file.json>` | No | Publish a pre-built file bundle from a JSON manifest. The manifest shape is `{ "files": [ { "path", "content"\|"content_base64"\|"source_url", "content_type"? } ] }` — exactly one source per file. Use `source_url` for remote assets; never base64-inline an image. Mutually exclusive with positional `input` arguments. Available on both `publish` and `update-content`. |
 | `--idempotency-key` `<key>` | No | Prevent duplicate publishes on retry (auto-generated) |
 | `--url` | No | Print only the published URL (no JSON envelope) |
 | `--dry-run` | No | Show what would be published without publishing |
@@ -187,6 +188,13 @@ dropthis ./page.html --metadata '{"source":"agent","version":"1.2"}' --url
 # Publish with an expiration
 dropthis ./temp.html --expires-at "2025-12-31T23:59:59Z" --url
 
+# Publish a multi-file bundle from a manifest (HTML + remote image via source_url)
+# manifest.json: {"files":[{"path":"index.html","content":"<h1>Hi</h1>"},{"path":"hero.png","source_url":"https://cdn.example.com/hero.png"}]}
+dropthis publish --manifest ./manifest.json --title "My Page" --url
+
+# Replace content using a manifest (update-content also accepts --manifest)
+dropthis update-content drop_abc123 --manifest ./manifest.json --url
+
 # Dry-run to validate before publishing
 dropthis ./dist --dry-run --title "Preview"
 
@@ -217,5 +225,25 @@ dropthis ./page.html --json
 - `--url` and `--dry-run` are mutually exclusive.
 - `--metadata` and `--metadata-file` are mutually exclusive.
 - An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
-- Maximum 200 files per bundle. To include remote assets (images, video, pdf, fonts) in a multi-file drop without downloading them first, use the SDK or MCP `files` input — each file entry supports `content`/`content_base64` (inline) or `source_url` (the server fetches it). Never base64-inline an image. The CLI's `source_url` path is top-level only (a bare `http(s)` URL argument).
+- Maximum 200 files per bundle. To include remote assets (images, video, pdf, fonts) without downloading them first, pass a manifest file with `--manifest <file.json>` on both `publish` and `update-content`. The manifest JSON shape is:
+
+  ```json
+  {
+    "files": [
+      { "path": "index.html",   "content": "<h1>Hello</h1>",                        "content_type": "text/html" },
+      { "path": "hero.png",     "source_url": "https://cdn.example.com/hero.png" }
+    ]
+  }
+  ```
+
+  Each file entry takes **exactly one** of:
+  - `content` — inline UTF-8 string
+  - `content_base64` — base64-encoded bytes (for binary files you already have locally)
+  - `source_url` — a public `http(s)` URL the server fetches; use this for images, video, PDF, fonts, and any remote asset
+
+  Optional per-file fields: `content_type` (auto-detected if omitted), `path` (required), and any other fields the SDK's `PublishFileInput` accepts.
+
+  **Anti-base64 rule:** never base64-inline a remote asset — use `source_url` instead. Base64 inflates payload size by ~33% and forces the asset through the agent context window.
+
+  Note: `commands.json` (the machine-readable command catalog committed in this repo) is generated from the currently published `@dropthis/cli` binary. The `--manifest` flag is present in the CLI source but may not yet appear in that generated catalog until the next CLI release. The prose above is authoritative.
 - In non-TTY environments (pipes, CI), output defaults to JSON automatically.
