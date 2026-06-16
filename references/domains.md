@@ -63,7 +63,7 @@ Status progression: `pending_dns` → `verifying` → `live`. On `failed`, `fail
 
 When a path-mode domain first reaches `live` and the account has no default domain, it is automatically set as the default publish target for that account.
 
-To publish to the shared pool even when the account has a default domain, pass the literal `shared` as the domain (`--domain shared` / `domain: "shared"` / SDK constant `SHARED_POOL`); the drop reads back `domain: null`. To clear the default entirely: `dropthis domains update <hostname> --no-default`.
+To publish to the shared pool even when the account has a default domain — a deliberate off-domain publish — use the shared-pool override: CLI `--shared`, SDK `domain: SHARED_POOL`, MCP `domain: "shared"` (all resolve to the same `"shared"` sentinel). The drop reads back `domain: null`. To clear the default entirely: `dropthis domains update <hostname> --no-default`.
 
 ### 3. Publish to the domain
 

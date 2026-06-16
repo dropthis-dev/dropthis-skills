@@ -287,7 +287,10 @@ dropthis domains connect reports.example.com --mode path   # connect
 # → add CNAME reports.example.com → edge.dropthis.app at your DNS provider
 dropthis domains verify reports.example.com --wait         # verify (non-blocking, re-call on retry_after)
 dropthis publish ./page.html --domain reports.example.com --slug my-report --url  # publish
+dropthis publish ./draft.html --shared                                           # deliberate off-domain publish → shared pool
 ```
+
+Once a default domain is live, a plain `dropthis publish` lands on it automatically — `--shared` is the deliberate override to put a one-off drop on the shared pool instead.
 
 See [../../references/domains.md](../../references/domains.md) for the full runbook (dedicated mode, 409 recovery, vanity slug rules, path-safe content).
 
