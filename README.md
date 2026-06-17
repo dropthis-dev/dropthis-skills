@@ -1,3 +1,5 @@
+<p align="center"><img src="https://dropthis.app/icon-512.png" width="76" height="76" alt="dropthis" /></p>
+
 # Dropthis Skills
 
 AI agent skills for the [Dropthis](https://dropthis.app) platform — the publish layer between AI and the internet. One API call in, one URL out.
