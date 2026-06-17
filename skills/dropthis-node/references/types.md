@@ -162,7 +162,6 @@ type DropDeploymentResponse = {
   dropId: string;
   revision: number;
   status: string;
-  storagePrefix: string;
   entry: string | null;
   contentType: string;
   renderMode: string;

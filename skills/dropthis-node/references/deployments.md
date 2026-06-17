@@ -70,10 +70,13 @@ if (!error) {
 `dropthis.deployments` does not create deployments. To publish a new content version to an
 existing drop -- keeping its URL and slug -- call `dropthis.drops.updateContent(dropId, input, options)`.
 It accepts the same `PublishInput` as `dropthis.drops.publish()` and handles the full staged upload
-flow automatically. `updateContent()` is **content-only**: its `options` are `DeployOptions`
-(content-prep fields + `entry` + `idempotencyKey`/`ifRevision` only) — it carries no drop
-settings. Settings (title, visibility, password, noindex, expiry, metadata) are managed
-separately via `dropthis.drops.updateSettings()`.
+flow automatically. By default it is a **partial update** (`mode: "patch"`): the files you pass
+upsert by path, every file the drop already serves that you don't mention is carried forward, and
+`deletePaths` removes named files — so you don't resend unchanged assets. Pass `mode: "replace"` to
+make the files you send the drop's entire content set. `updateContent()` is **content-only**: its
+`options` are `DeployOptions` (`mode`/`deletePaths` + content-prep fields + `entry` +
+`idempotencyKey`/`ifRevision` only) — it carries no drop settings. Settings (title, visibility,
+password, noindex, expiry, metadata) are managed separately via `dropthis.drops.updateSettings()`.
 
 ```typescript
 const { data, error } = await dropthis.drops.updateContent(

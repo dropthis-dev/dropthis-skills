@@ -29,25 +29,37 @@ if (!error) console.log(data.url);
 
 ### drops.updateContent(dropId, input, options?)
 
-Replace the content of an existing drop, creating a new deployment. **Content-only** — it ships
-a new content version and never changes drop settings. To change settings (title, visibility,
-password, noindex, expiry, metadata), use `drops.updateSettings(dropId, patch)`.
+Update the content of an existing drop, creating a new deployment. **Partial by default** —
+the files you pass upsert by path, and every file the drop already serves that you don't
+mention is carried forward unchanged, so you no longer resend unchanged assets. **Content-only** —
+it ships a new content version and never changes drop settings. To change settings (title,
+visibility, password, noindex, expiry, metadata), use `drops.updateSettings(dropId, patch)`.
 
 **Parameters:**
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `dropId` | `string` | Yes | The drop ID (e.g. `"drop_abc123"`) |
-| `input` | `PublishInput` | Yes | New content to publish |
-| `options` | `DeployOptions` | No | Content-only options: content-prep fields + `entry` + `idempotencyKey`/`ifRevision`. No drop settings — see `DeployOptions` below. |
+| `input` | `PublishInput` | Yes | New or changed content to publish |
+| `options` | `DeployOptions` | No | Content-only options: `mode`/`deletePaths` + content-prep fields + `entry` + `idempotencyKey`/`ifRevision`. No drop settings — see `DeployOptions` below. |
 
 **Returns:** `DropthisResult<DropResponse>`
 
 **Example:**
 
 ```typescript
-const { data, error } = await dropthis.drops.updateContent("drop_abc123", "./dist-v2", {
+// Patch (default): upsert index.html, keep every other file the drop already serves.
+const { data, error } = await dropthis.drops.updateContent("drop_abc123", "<h1>v2</h1>", {
+  path: "index.html",
   ifRevision: 3,
+});
+
+// Replace: the files you send become the drop's entire content set.
+await dropthis.drops.updateContent("drop_abc123", "./dist-v2", { mode: "replace" });
+
+// Patch + delete: upsert what you pass and drop two named files.
+await dropthis.drops.updateContent("drop_abc123", "./changed", {
+  deletePaths: ["old/legacy.css", "stale.js"],
 });
 ```
 
@@ -146,10 +158,12 @@ if (prepared.kind === "staged") {
 ## DeployOptions
 
 `drops.updateContent(dropId, input, options)` is content-only, so it takes `DeployOptions` — **not**
-`PublishOptions`. `DeployOptions = PrepareOptions & RequestControls` plus `entry`:
+`PublishOptions`. `DeployOptions = PrepareOptions & RequestControls` plus `entry`, `mode`, and `deletePaths`:
 
 | Option | Type | Description |
 |--------|------|-------------|
+| `mode` | `"patch" \| "replace"` | How the deployment combines with the current content. **`"patch"` (default):** provided files upsert by path, every unmentioned file is carried forward, and `deletePaths` removes named files. **`"replace"`:** the provided files are the whole content set — anything you don't send is gone. |
+| `deletePaths` | `string[]` | Paths to remove from the carried-forward set (patch only). Invalid with `mode: "replace"` — the server rejects the combination. |
 | `entry` | `string` | Entry file for multi-file bundles (default: index.html) |
 | `ignore` | `string[]` | Glob patterns to ignore when updating content from directories |
 | `ignoreDefaults` | `boolean` | Disable default ignore patterns |
@@ -157,6 +171,10 @@ if (prepared.kind === "staged") {
 | `path` | `string` | Set filename when updating content from stdin or bytes |
 | `idempotencyKey` | `string` | Prevent duplicate deployments on retry |
 | `ifRevision` | `number` | Fail if current revision doesn't match -- optimistic lock |
+
+On the wire (REST) these are `mode` (snake/lowercase value strings `"patch"`/`"replace"`) and
+`delete_paths`; the SDK exposes them as camelCase `mode` / `deletePaths`. The server enforces all
+validation (e.g. `delete_paths` with `mode: "replace"`) — the SDK just passes the fields through.
 
 `DeployOptions` carries **no** drop settings (no `title`, `visibility`, `password`, `noindex`,
 `expiresAt`, `metadata`). Manage those with `drops.updateSettings(dropId, patch)`.

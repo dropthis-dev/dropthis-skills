@@ -121,7 +121,7 @@ Lifecycle verbs are flat and top-level — they mirror the MCP tool names 1:1.
 |---------|-------------|
 | `<input>` | Publish content, get a URL (default command) |
 | `publish <input>` | Create a NEW drop. Never takes an id. Same as above, explicit form |
-| `update-content <id> [input]` | Replace a drop's content, same URL (ships a new deployment). Settings unchanged |
+| `update-content <id> [input]` | Update a drop's content, same URL (ships a new deployment). Partial by default — provided files upsert, the rest are kept; `--replace` swaps the whole set, `--delete-path <p>` removes files. Settings unchanged |
 | `update-settings <id> [flags]` | Change title, visibility, password, expiry, or metadata. Content unchanged |
 | `get <id\|url\|slug>` | Show drop details |
 | `resolve <id\|url\|slug>` | Resolve a public URL/slug back to its `drop_…` id (server-side, owner-scoped) |
@@ -234,16 +234,23 @@ dropthis /tmp/generated-page.html --url --title "Generated Report"
 dropthis ./dist --url --title "Preview Deploy"
 ```
 
-**Replace a drop's content (same URL, new deployment — settings unchanged):**
+**Update a drop's content (same URL, new deployment — settings unchanged):**
 ```bash
-dropthis update-content drop_abc123 ./dist-v2 --url
+# Patch (default): upsert just the changed file, keep everything else the drop serves
+echo "<h1>v2</h1>" | dropthis update-content drop_abc123 - --content-type text/html --path index.html --url
+
+# Replace: the files you send become the drop's entire content set
+dropthis update-content drop_abc123 ./dist-v2 --replace --url
+
+# Patch + delete a file that is no longer needed (repeat --delete-path per file)
+dropthis update-content drop_abc123 ./changed --delete-path old/legacy.css --url
 ```
 
 **Edit loop (pull → edit → update-content):**
 ```bash
 dropthis pull drop_abc123 -o ./site      # download what the drop serves
-# edit ./site locally, then ship it back to the same URL:
-dropthis update-content drop_abc123 ./site --url
+# edit ./site locally, then ship it back to the same URL (replace = the whole set):
+dropthis update-content drop_abc123 ./site --replace --url
 ```
 
 **Change settings only (content unchanged):**
