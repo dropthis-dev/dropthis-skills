@@ -107,7 +107,14 @@ duplicate. Instead:
 - `dropthis_update_content` — replace the files at the URL (ships a new deployment, same URL).
   Content-only: it takes the same content inputs (`content`, `source_url`, `files`, `file`, or
   `paths`) and never changes settings. Not idempotent — a retry creates another deployment
-  unless you pass the same `idempotency_key`.
+  unless you pass the same `idempotency_key`. **It is a FULL REPLACE:** a `files` bundle is a
+  complete snapshot, not a patch — the new deployment contains only the files you send, so resend
+  every file the drop should keep (omit one and it's dropped — e.g. editing only `index.html`
+  removes a previously-bundled image). To keep an unchanged asset without re-uploading its bytes,
+  re-reference it by **its own current dropthis URL** as that file's `source_url`
+  (e.g. `https://{host}/{slug}/hero.jpg`); the still-live current deployment serves those bytes
+  while the new one ingests, which also frees the edit loop from any external (generator/CDN) URL
+  expiring.
 - `dropthis_update_settings` — change title, visibility, password, noindex,
   expiry, or metadata, without touching content. Idempotent.
 
