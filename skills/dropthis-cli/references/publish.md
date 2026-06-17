@@ -44,7 +44,7 @@ When credentials are missing and the terminal is interactive, `publish` prompts 
 | `--metadata-file` `<path>` | No | Read metadata JSON from a file |
 | `--content-type` `<mime>` | No | Override MIME type (auto-detected from extension) |
 | `--path` `<path>` | No | Set filename when publishing from stdin |
-| `--manifest` `<file.json>` | No | Publish a pre-built file bundle from a JSON manifest. The manifest shape is `{ "files": [ { "path", "content"\|"content_base64"\|"source_url", "content_type"? } ] }` — exactly one source per file. Use `source_url` for remote assets; never base64-inline an image. Mutually exclusive with positional `input` arguments. Available on both `publish` and `update-content`. |
+| `--manifest` `<file.json>` | No | Publish a pre-built file bundle from a JSON manifest. The manifest shape is `{ "files": [ { "path", "content"\|"content_base64"\|"source_url", "content_type"? } ] }` — exactly one source per file. Use `source_url` for remote assets (never base64-inline an image); HTML/CSS reference each asset by its relative `path` (e.g. `assets/hero.jpg`), with the remote URL in that file's `source_url`, not the markup. Mutually exclusive with positional `input` arguments. Available on both `publish` and `update-content`. |
 | `--idempotency-key` `<key>` | No | Prevent duplicate publishes on retry (auto-generated) |
 | `--url` | No | Print only the published URL (no JSON envelope) |
 | `--dry-run` | No | Show what would be published without publishing |

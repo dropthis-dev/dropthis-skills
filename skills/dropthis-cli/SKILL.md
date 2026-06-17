@@ -213,7 +213,7 @@ echo "<h1>Hello</h1>" | dropthis - --content-type text/html --path index.html --
 | `--content-type <mime>` | Content type (recommended for stdin; auto-detected if omitted) |
 | `--path <path>` | File path for stdin or byte input |
 | `--expires-at <datetime>` | Expiration datetime |
-| `--manifest <file.json>` | Publish a pre-built file bundle from a JSON manifest: `{ "files": [ { "path", "content"\|"content_base64"\|"source_url", "content_type"? } ] }`. Exactly one source per file. Use `source_url` for remote assets — never base64-inline images. Available on `publish` and `update-content`. |
+| `--manifest <file.json>` | Publish a pre-built file bundle from a JSON manifest: `{ "files": [ { "path", "content"\|"content_base64"\|"source_url", "content_type"? } ] }`. Exactly one source per file. Use `source_url` for remote assets — never base64-inline images. HTML/CSS reference each asset by its relative `path` (e.g. `assets/hero.jpg`); the remote URL goes in `source_url`, not the markup. Available on `publish` and `update-content`. |
 | `--metadata <json>` | Metadata as JSON string |
 | `--metadata-file <path>` | Metadata from a JSON file |
 | `--idempotency-key <key>` | Idempotency key |
