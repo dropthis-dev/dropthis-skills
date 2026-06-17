@@ -202,7 +202,7 @@ const { data } = await dropthis.drops.publish(new Uint8Array([...]), {
 
 ### Publish explicit files (multi-file bundle)
 
-Each file is inline `content`/`content_base64`, or a `source_url` the server fetches — use `source_url` for images/video/pdf/fonts; never base64-inline an image.
+Each file is inline `content`/`content_base64`, or a `source_url` the server fetches — use `source_url` for images/video/pdf/fonts (never base64-inline an image) — and in the HTML/CSS reference each bundled asset by its relative `path` (e.g. `assets/hero.jpg`), with the remote URL in that file's `source_url`, never hot-linked in the markup.
 
 ```typescript
 const { data } = await dropthis.drops.publish({

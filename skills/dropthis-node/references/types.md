@@ -443,7 +443,7 @@ type PublishInput =
 
 ### PublishFileInput
 
-Each file supplies its bytes via exactly one of `content`, `contentBase64`, `bytes`, or `sourceUrl`. `contentType` is optional (auto-detected if omitted). Use `sourceUrl` for remote assets (images, video, pdf, fonts) — each `sourceUrl` is fetched server-side into the drop. Never base64-inline an image.
+Each file supplies its bytes via exactly one of `content`, `contentBase64`, `bytes`, or `sourceUrl`. `contentType` is optional (auto-detected if omitted). Use `sourceUrl` for remote assets (images, video, pdf, fonts) — each `sourceUrl` is fetched server-side into the drop. Never base64-inline an image. In the HTML/CSS, reference each bundled asset by its relative `path` (e.g. `assets/hero.jpg`) — put the remote URL in that file's `sourceUrl`, never in the markup.
 
 ```typescript
 type PublishFileInput = {
