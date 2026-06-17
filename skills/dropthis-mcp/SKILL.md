@@ -104,17 +104,16 @@ Updating an existing drop needs its full `drop_…` id (from the publish respons
 something you already published, do **not** call `dropthis_publish` again — that makes a
 duplicate. Instead:
 
-- `dropthis_update_content` — replace the files at the URL (ships a new deployment, same URL).
+- `dropthis_update_content` — update the files at the URL (ships a new deployment, same URL).
   Content-only: it takes the same content inputs (`content`, `source_url`, `files`, `file`, or
   `paths`) and never changes settings. Not idempotent — a retry creates another deployment
-  unless you pass the same `idempotency_key`. **It is a FULL REPLACE:** a `files` bundle is a
-  complete snapshot, not a patch — the new deployment contains only the files you send, so resend
-  every file the drop should keep (omit one and it's dropped — e.g. editing only `index.html`
-  removes a previously-bundled image). To keep an unchanged asset without re-uploading its bytes,
-  re-reference it by **its own current dropthis URL** as that file's `source_url`
-  (e.g. `https://{host}/{slug}/hero.jpg`); the still-live current deployment serves those bytes
-  while the new one ingests, which also frees the edit loop from any external (generator/CDN) URL
-  expiring.
+  unless you pass the same `idempotency_key`. **It is a PARTIAL update by default
+  (`mode: "patch"`):** the files you pass upsert by path, every file the drop already serves
+  that you don't mention is carried forward, and `delete_paths` removes named files — so you do
+  NOT resend unchanged assets (editing only `index.html` leaves a previously-bundled image in
+  place). Pass `mode: "replace"` when you want the files you send to be the drop's entire content
+  set (anything you omit is gone); `delete_paths` is invalid with `replace`. The server enforces
+  the merge and all validation — the tool just passes `mode`/`delete_paths` through.
 - `dropthis_update_settings` — change title, visibility, password, noindex,
   expiry, or metadata, without touching content. Idempotent.
 

@@ -141,7 +141,7 @@ dropthis get drop_abc123
 
 ### update-content
 
-Replace a drop's content with a new version — same URL and slug, new deployment. Settings (title, visibility, password, expiry, metadata) are left unchanged. To change settings, use `update-settings` instead.
+Update a drop's content with a new version — same URL and slug, new deployment. **Partial by default:** the files you pass upsert by path, every file the drop already serves that you don't mention is carried forward, and each `--delete-path` removes one named file — so you don't resend unchanged assets. Pass `--replace` (or `--mode replace`) to make the files you send the drop's entire content set. Settings (title, visibility, password, expiry, metadata) are left unchanged. To change settings, use `update-settings` instead.
 
 #### Usage
 
@@ -156,6 +156,9 @@ dropthis update-content <id|url|slug> [input] [flags]
 
 | Flag | Required | Description |
 |------|----------|-------------|
+| `--mode` `<patch\|replace>` | No | How the deployment combines with current content. `patch` (default): provided files upsert, unmentioned files carried forward, `--delete-path` removes named files. `replace`: the files you send are the whole content set. |
+| `--replace` | No | Shortcut for `--mode replace`. |
+| `--delete-path` `<path>` | No | Remove one file from the carried-forward set (patch only). Repeatable — pass it once per file. Invalid with `--replace`/`--mode replace`. |
 | `--entry` `<path>` | No | Entry file for multi-file bundles (default: index.html) |
 | `--content-type` `<mime>` | No | Override MIME type (auto-detected from extension) |
 | `--path` `<path>` | No | Set filename when publishing from stdin |
@@ -212,14 +215,18 @@ Updated: https://dropthis.app/abc123
 #### Examples
 
 ```bash
-# Replace the content of a drop (same URL)
-dropthis update-content drop_abc123 ./dist-v2 --url
+# Patch (default): upsert just the changed file, keep everything else the drop serves
+echo "<h1>v2</h1>" | dropthis update-content drop_abc123 - --content-type text/html --path index.html --url
 
-# Replace content with optimistic concurrency
+# Replace: the files you send become the drop's entire content set
+dropthis update-content drop_abc123 ./dist-v2 --replace --url
+# (equivalent: --mode replace)
+
+# Patch + delete: upsert what you pass and drop two named files (repeat --delete-path)
+dropthis update-content drop_abc123 ./changed --delete-path old/legacy.css --delete-path stale.js --url
+
+# Update with optimistic concurrency
 dropthis update-content drop_abc123 ./new-content --if-revision 2 --url
-
-# Replace content from stdin
-echo "<h1>New content</h1>" | dropthis update-content drop_abc123 - --content-type text/html --path index.html --url
 
 # Dry-run to preview what would change
 dropthis update-content drop_abc123 ./dist --dry-run
@@ -227,9 +234,11 @@ dropthis update-content drop_abc123 ./dist --dry-run
 
 #### Notes
 
+- `update-content` is **partial by default** (`--mode patch`): provided files upsert by path, unmentioned files are carried forward, and each `--delete-path` removes one named file. Pass `--replace` (or `--mode replace`) to make the files you send the drop's whole content set; `--delete-path` is invalid with replace. The server enforces the merge and validation.
 - `update-content` ships a new deployment but never changes settings. Use `update-settings` for title/visibility/password/expiry/metadata.
 - `--if-revision` enables optimistic concurrency -- the update fails with `revision_conflict` if the drop has been modified since the specified revision.
 - An idempotency key (a plain UUID) is auto-generated if `--idempotency-key` is not provided.
+- `--mode`/`--replace`/`--delete-path` are in the CLI source; the generated `commands.json` catalog (built from the currently published binary) may not list them until the next CLI release. The prose above is authoritative.
 
 ---
 
@@ -356,7 +365,7 @@ dropthis delete drop_abc123 --yes
 ## Notes
 
 - All drop commands require authentication.
-- Content and settings are separate commands: `update-content <id> <input>` replaces the files at the URL (new deployment, settings unchanged); `update-settings <id> --<setting>` changes title/visibility/password/expiry/metadata (content unchanged). To change both, run both.
+- Content and settings are separate commands: `update-content <id> <input>` updates the files at the URL (new deployment, settings unchanged — partial by default; `--replace` swaps the whole set, `--delete-path` removes named files); `update-settings <id> --<setting>` changes title/visibility/password/expiry/metadata (content unchanged). To change both, run both.
 - `get`, `delete`, `pull`, `update-content`, and `update-settings` accept the drop's URL or slug as well as its `drop_…` id — the CLI resolves it server-side, then mutates strictly by id. `dropthis resolve <target>` is the explicit form when you just want the id. Persist the `drop_…` id; URLs and slugs are locators that can drift, the id never moves.
 - The `delete --yes` flag is mandatory in non-interactive (non-TTY) environments. Agents must always include it.
 - Content read-back (REST): `GET /v1/drops/{dropId}/content` returns a JSON manifest of the CURRENT deployment's files (paths, sizes, content types, entry); add `?path=<file>` to download one file's exact stored bytes. Owner-authenticated with your `sk_` key; works regardless of any viewer password. For historical versions see [deployments.md](deployments.md).

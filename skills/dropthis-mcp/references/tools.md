@@ -27,12 +27,15 @@ with the `drop_…` id from this call's response — do NOT call publish again (
 
 ## dropthis_update_content
 
-Replace the content of an EXISTING drop, keeping its URL/slug (ships a new deployment). **Content-only** — it
-ships a new content version and never changes settings. To change settings (title, visibility,
-password, noindex, expiry, metadata), use `dropthis_update_settings`; to create a
-brand-new drop use `dropthis_publish`.
+Update the content of an EXISTING drop, keeping its URL/slug (ships a new deployment). **Partial by
+default** — the files you pass upsert by path, every file the drop already serves that you don't
+mention is carried forward, and `delete_paths` removes named files, so you don't resend unchanged
+assets. **Content-only** — it ships a new content version and never changes settings. To change
+settings (title, visibility, password, noindex, expiry, metadata), use `dropthis_update_settings`;
+to create a brand-new drop use `dropthis_publish`.
 
-- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); exactly one of `content`, `source_url`, `files` (array of `{path, content|content_base64|source_url, content_type?}` + optional `entry`), `file` (local file or directory; stdio only), or `paths` (array of local file/directory paths; stdio only). In the `files` array, each file is inline `content`/`content_base64`, or a `source_url` the server fetches — use `source_url` for images/video/pdf/fonts (never base64-inline an image) — and in the HTML/CSS reference each bundled asset by its relative `path` (e.g. `assets/hero.jpg`), with the remote URL in that file's `source_url`, never hot-linked in the markup. Optional: `idempotency_key`, `if_revision`. Does NOT accept `expires_at` or `metadata` (those are settings — use `dropthis_update_settings`).
+- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); exactly one of `content`, `source_url`, `files` (array of `{path, content|content_base64|source_url, content_type?}` + optional `entry`), `file` (local file or directory; stdio only), or `paths` (array of local file/directory paths; stdio only). In the `files` array, each file is inline `content`/`content_base64`, or a `source_url` the server fetches — use `source_url` for images/video/pdf/fonts (never base64-inline an image) — and in the HTML/CSS reference each bundled asset by its relative `path` (e.g. `assets/hero.jpg`), with the remote URL in that file's `source_url`, never hot-linked in the markup. Optional: `mode` (`"patch"` default | `"replace"`), `delete_paths` (array of paths to remove; patch only), `idempotency_key`, `if_revision`. Does NOT accept `expires_at` or `metadata` (those are settings — use `dropthis_update_settings`).
+- **`mode` and `delete_paths`.** `mode: "patch"` (the default) merges your files into the current content set and removes any path listed in `delete_paths`; everything you don't touch stays. `mode: "replace"` makes the files you send the drop's entire content set (anything you omit is gone) — and `delete_paths` is invalid with `replace` (the server rejects the combination). The server enforces all validation; this tool just passes the fields through. (`mode`/`delete_paths` are in the live tool source; the auto-generated schema block below may not list them until the next `@dropthis/mcp` release — the prose here is authoritative.)
 - Not idempotent: a retry creates another deployment unless you pass the same `idempotency_key`.
 - Concurrency loop: `dropthis_get` returns the drop's current `revision` — pass it as `if_revision`. If someone else updated the drop in between, the call fails with a `revision_conflict` (409) error that carries `current_revision` in-band: re-read the drop, merge, and retry with `if_revision` set to that `current_revision`.
 - Output: the updated `DropResponse` — `url`, `id`, `revision`, `deploymentId`, `createdAt` (there is NO `updatedAt` field).

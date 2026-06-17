@@ -1,6 +1,6 @@
 # deployments
 
-Deployment commands for listing and inspecting deployment history of a drop. Each time content is published or replaced via `dropthis update-content`, a new deployment is created.
+Deployment commands for listing and inspecting deployment history of a drop. Each time content is published or updated via `dropthis update-content`, a new deployment is created.
 
 ## deployments
 

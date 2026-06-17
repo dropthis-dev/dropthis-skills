@@ -110,7 +110,7 @@ The SDK uses Stripe-style resource namespaces — every lifecycle method hangs o
 | Method | Does | Reference |
 |--------|------|-----------|
 | `client.drops.publish(input, opts?)` | Create a NEW drop → URL. Never takes an id | [publish.md](references/publish.md) |
-| `client.drops.updateContent(id, input, opts?)` | Replace a drop's content, same URL (new deployment). Settings unchanged | [publish.md](references/publish.md) |
+| `client.drops.updateContent(id, input, opts?)` | Update a drop's content, same URL (new deployment). Partial by default — provided files upsert, the rest are kept; `mode: "replace"` swaps the whole set. Settings unchanged | [publish.md](references/publish.md) |
 | `client.drops.updateSettings(id, patch)` | Change title/visibility/password/expiry/metadata. Content unchanged | [drops.md](references/drops.md) |
 | `client.drops.get(id)` | Fetch one drop (settings round-trip back into `updateSettings`) | [drops.md](references/drops.md) |
 | `client.drops.resolve(target)` | Resolve a public URL/slug (or id) → the drop, to recover a lost `drop_…` id | [drops.md](references/drops.md) |
@@ -223,14 +223,26 @@ const { data } = await dropthis.drops.publish("https://example.com/page.html");
 // or: await dropthis.drops.publish({ kind: "source_url", sourceUrl: "https://example.com/page.html" });
 ```
 
-### Replace a drop's content (same URL, new deployment)
+### Update a drop's content (same URL, new deployment)
 
 ```typescript
 const created = await dropthis.drops.publish("./dist", { title: "v1" });
-const updated = await dropthis.drops.updateContent(created.data.id, "./dist-v2", {
+
+// Patch (default): upsert only the file you changed; everything else is carried forward.
+const updated = await dropthis.drops.updateContent(created.data.id, "<h1>v2</h1>", {
+  path: "index.html",
   ifRevision: created.data.revision,
 });
-// updateContent is content-only and NOT idempotent — pass idempotencyKey to make retries safe.
+
+// Replace: the files you send become the drop's entire content set.
+await dropthis.drops.updateContent(created.data.id, "./dist-v2", { mode: "replace" });
+
+// Patch + delete a couple of files that are no longer needed.
+await dropthis.drops.updateContent(created.data.id, "./changed", {
+  deletePaths: ["old/legacy.css"],
+});
+// updateContent is partial by default (mode: "patch") and content-only.
+// It is NOT idempotent — pass idempotencyKey to make retries safe.
 ```
 
 ### Change settings only (no new content)
