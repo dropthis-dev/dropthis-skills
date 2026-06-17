@@ -316,3 +316,5 @@ dropthis doctor
 - `whoami` always exits 0, even when not authenticated. Check the `authenticated` field.
 - For agents: always use `DROPTHIS_API_KEY` env var or `--api-key` flag instead of interactive login.
 - The two-step `login request` / `login verify` flow is designed for agents that need to help a user authenticate.
+
+**Verify errors.** `login verify` surfaces the server's message: `otp_expired` ("Your code has expired" — request a new code, e.g. re-run `login request`) vs `otp_invalid` ("That code is incorrect" — re-check the digits). Both exit non-zero with the message on stderr; the JSON envelope carries the `code`.

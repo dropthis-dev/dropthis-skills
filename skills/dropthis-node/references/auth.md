@@ -54,6 +54,11 @@ const { data, error } = await dropthis.auth.verifyEmailOtp({
 if (!error) console.log("Session token:", data.token);
 ```
 
+**Verify errors.** On a failed verify the `error.code` distinguishes:
+- `otp_expired` — no active code (the 5-minute code lapsed or was already used). Safe to call `requestEmailOtp` again automatically and prompt for the fresh code.
+- `otp_invalid` — the code is wrong. Ask the user to re-check and retype; do **not** auto-resend (that would email on every wrong digit).
+Both are HTTP 401. A burst of attempts returns `rate_limit_exceeded` (429).
+
 ### logout()
 
 Destroy the current session. The server replies 204 No Content.
