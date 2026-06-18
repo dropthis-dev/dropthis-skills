@@ -86,7 +86,7 @@ with the returned `id`.
 
 ## dropthis_account
 
-- Output: the account profile — `id`, `email`, `displayName`, `plan` (`free` | `pro`), `status`, `createdAt`, a `limits` block with the active plan-tier limits, a `usage` block (`storagUsedBytes`, `customDomainsUsed`), and `upgrade_url` (`null` on Pro). Read-only.
+- Output: the account profile — `id`, `email`, `displayName`, `plan` (`free` | `pro`), `status`, `createdAt`, a `limits` block with the active plan-tier limits, a `usage` block (`storagUsedBytes`, `customDomainsUsed`), a `workspace` block (`id`, `name`, `slug`, `kind`, `role` — the workspace this key is bound to), and `upgrade_url` (`null` on Pro). The account acts within a workspace; the `workspace` block identifies it. Read-only.
 - `limits` shape (camelCase): `{ name, maxSizeBytes, defaultTtlSeconds, maxStorageBytes, maxCustomHostnames }` — `maxSizeBytes` is the per-drop size cap; `defaultTtlSeconds` is the drop lifetime before expiry (`null` = drops are permanent); `maxStorageBytes` is the account-wide storage cap; `maxCustomHostnames` is the custom hostname cap (0 on Free, 1 on Pro). Free example: `{ "name": "free", "maxSizeBytes": 5242880, "defaultTtlSeconds": 604800, "maxStorageBytes": 524288000, "maxCustomHostnames": 0 }`.
 - Call first to size a publish before uploading.
 

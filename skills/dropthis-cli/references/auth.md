@@ -254,7 +254,9 @@ dropthis account [flags]
 The `limits` block carries the active plan-tier limits — use them to size a publish before
 uploading: `maxSizeBytes` is the per-drop size cap; `defaultTtlSeconds` is the drop lifetime
 before expiry (`null` = drops are permanent); `maxStorageBytes` is the account-wide storage
-cap; `maxCustomHostnames` is the custom hostname cap (0 on Free, 1 on Pro).
+cap; `maxCustomHostnames` is the custom hostname cap (0 on Free, 1 on Pro). The account also
+acts within a workspace; the `workspace` block (`id`, `name`, `slug`, `kind`, `role`) in the
+account response identifies the workspace this key is bound to.
 
 ### Examples
 

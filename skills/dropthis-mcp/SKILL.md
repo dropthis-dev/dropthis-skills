@@ -38,6 +38,7 @@ inputs:
 references:
   - references/tools.md
   - ../../references/domains.md
+  - ../../references/workspaces.md
 ---
 
 # dropthis MCP
@@ -168,6 +169,18 @@ dropthis_publish { "content": "<html>…</html>", "domain": "reports.example.com
 Dedicated domain already occupied → 409 with `drop_id` of the occupant; use `dropthis_update_content` to replace its content or `dropthis_domains_update` to repoint. Path-mode publishes require relative asset references (root-relative `/…` → 422 with violations list).
 
 See [../../references/domains.md](../../references/domains.md) for the full runbook.
+
+## Workspaces
+
+Every `sk_` key is bound to exactly one workspace at mint time — everything you publish lands
+there automatically. For team workspaces, publishes route to the team's shared custom domain
+with no extra flag. Read your workspace with `dropthis_account` — the `workspace` block in the
+result carries `id`, `name`, `slug`, `kind` (`personal` | `team`), and `role`
+(`owner` | `admin` | `member`). There is no `dropthis_workspaces` tool, no workspace selector
+on publish, and no workspace switch here — workspace management is console-only
+(app.dropthis.app). To act in a different workspace, use a key minted there.
+
+See [../../references/workspaces.md](../../references/workspaces.md) for the full runbook.
 
 ## Auth and limits
 
