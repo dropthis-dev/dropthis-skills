@@ -36,6 +36,7 @@ references:
   - references/types.md
   - references/error-handling.md
   - ../../references/domains.md
+  - ../../references/workspaces.md
 ---
 
 # @dropthis/node -- Agent Skill
@@ -305,6 +306,19 @@ const { data: drop } = await client.drops.publish("./report.html", {
 ```
 
 Dedicated domain already occupied → 409; use `updateContent(existingId, …)` or `domains.update(hostname, { dropId: newDropId })`. Path-mode content must use relative asset refs (root-relative `/…` → 422 with violations). See [../../references/domains.md](../../references/domains.md) for the full runbook.
+
+## Workspaces
+
+Every `sk_` API key is bound to exactly one workspace at mint time — everything you publish
+lands there automatically. For team workspaces, a key minted in a team workspace publishes
+under the team's shared custom domain automatically; no extra option required. Read the bound
+workspace with `client.account.get()` — the `workspace` field on the result carries `id`,
+`name`, `slug`, `kind` (`personal` | `team`), and `role` (`owner` | `admin` | `member`). There
+is no `client.workspaces.*` namespace, no `workspace` option on publish, and no workspace switch
+here — workspace management is console-only (app.dropthis.app). To act in a different workspace,
+use a key minted there.
+
+See [../../references/workspaces.md](../../references/workspaces.md) for the full runbook.
 
 ## Common mistakes
 

@@ -44,6 +44,7 @@ references:
   - references/error-codes.md
   - references/diagnostics.md
   - ../../references/domains.md
+  - ../../references/workspaces.md
 ---
 
 # dropthis CLI
@@ -301,6 +302,18 @@ dropthis publish ./draft.html --shared                                          
 Once a default domain is live, a plain `dropthis publish` lands on it automatically — `--shared` is the deliberate override to put a one-off drop on the shared pool instead.
 
 See [../../references/domains.md](../../references/domains.md) for the full runbook (dedicated mode, 409 recovery, vanity slug rules, path-safe content).
+
+## Workspaces
+
+Every `sk_` API key is bound to exactly one workspace at mint time — everything you publish
+lands there automatically. Run `dropthis account` to see which workspace: it prints a
+`Workspace:` line with the name, kind (`personal` | `team`), and your role. For team workspaces,
+publishes route to the team's shared custom domain automatically with no extra flag. There is no
+`--workspace` flag, no `workspaces` command group, and no workspace switch here — workspace
+management is console-only (app.dropthis.app). To act in a different workspace, use a key minted
+there.
+
+See [../../references/workspaces.md](../../references/workspaces.md) for the full runbook.
 
 ## After Setup
 
