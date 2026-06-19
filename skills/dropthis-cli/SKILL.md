@@ -305,13 +305,45 @@ See [../../references/domains.md](../../references/domains.md) for the full runb
 
 ## Workspaces
 
-Every `sk_` API key is bound to exactly one workspace at mint time — everything you publish
-lands there automatically. Run `dropthis account` to see which workspace: it prints a
-`Workspace:` line with the name, kind (`personal` | `team`), and your role. For team workspaces,
-publishes route to the team's shared custom domain automatically with no extra flag. There is no
-`--workspace` flag, no `workspaces` command group, and no workspace switch here — workspace
-management is console-only (app.dropthis.app). To act in a different workspace, use a key minted
-there.
+dropthis has two credential modes:
+
+- **Delegated key** (default, `dropthis login`) — account-scoped with a server-side switchable
+  active workspace. This is what interactive login mints.
+- **Service key** (`dropthis api-keys create --service --workspace <slug>`) — pinned to one
+  workspace at creation for CI/automation. `--workspace` is REQUIRED and is the only valid
+  combination; `--workspace` without `--service` is rejected.
+
+**Workspace commands:**
+
+```bash
+dropthis workspace list              # list workspaces, * marks the active one
+dropthis workspace use <slug>        # switch active workspace (delegated keys only; persists server-side)
+dropthis account                     # show current workspace (name, kind, role)
+```
+
+**Per-publish workspace override** (delegated keys only):
+
+```bash
+dropthis publish ./report.html --workspace byrokko --url
+# Targets byrokko for this publish without changing the active workspace
+```
+
+**Minting a CI service key** (pinned to a workspace):
+
+```bash
+dropthis api-keys create --service --workspace prod-team --label "CI deploy"
+# → mints a sk_ key that always publishes into prod-team; cannot switch
+```
+
+**Default-to-personal:** a fresh delegated login defaults to the personal workspace — no
+`workspace_choice_required` 409 in the common case. If you do hit that error, its body carries
+`choices[]` — run `dropthis workspace use <slug>` with one of those slugs to resolve it.
+
+Every drop response echoes its owning workspace `{id, name, slug, kind}`.
+
+**Team publishing:** once `workspace use` targets a team workspace, plain `dropthis publish`
+lands under the team's shared custom domain automatically. The console is for team/member CRUD
+(create workspace, invite/remove members) — agent surfaces handle publishing + switching only.
 
 See [../../references/workspaces.md](../../references/workspaces.md) for the full runbook.
 

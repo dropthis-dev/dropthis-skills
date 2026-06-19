@@ -172,13 +172,48 @@ See [../../references/domains.md](../../references/domains.md) for the full runb
 
 ## Workspaces
 
-Every `sk_` key is bound to exactly one workspace at mint time — everything you publish lands
-there automatically. For team workspaces, publishes route to the team's shared custom domain
-with no extra flag. Read your workspace with `dropthis_account` — the `workspace` block in the
-result carries `id`, `name`, `slug`, `kind` (`personal` | `team`), and `role`
-(`owner` | `admin` | `member`). There is no `dropthis_workspaces` tool, no workspace selector
-on publish, and no workspace switch here — workspace management is console-only
-(app.dropthis.app). To act in a different workspace, use a key minted there.
+dropthis has two credential modes:
+
+- **Delegated key** (`KeyType "delegated"`) — minted by `dropthis login`. Account-scoped. Has a
+  **server-side switchable active workspace** that persists across reconnects; an allowlist of
+  permitted workspaces can be set at creation. This is the default.
+- **Service key** (`KeyType "service"`) — pinned to one workspace at creation, for CI. Cannot
+  switch workspace; sending a switch request returns 400 `workspace_pinned`.
+
+**Workspace tools (both available over the hosted remote connector and local stdio):**
+
+- `dropthis_workspaces` — list all workspaces the connection can act in; the currently active one
+  is flagged `isActive`. Use this first to pick a workspace slug.
+- `dropthis_use_workspace { "workspace": "<slug-or-id>" }` — switch the active workspace for
+  this connection. The choice persists server-side on the credential, so subsequent publishes
+  (even after a reconnect) land in the new workspace. Delegated keys only; service keys → 400.
+
+```
+dropthis_workspaces
+# → lists workspaces with isActive flag
+
+dropthis_use_workspace { "workspace": "byrokko" }
+# → "Switched to workspace: Byrokko (byrokko, team)"
+
+dropthis_publish { "content": "<html>…</html>" }
+# → lands in byrokko (team's shared custom domain, if configured)
+```
+
+**Default-to-personal:** a fresh login (delegated key) defaults to the personal workspace — no
+`workspace_choice_required` 409 in the common case. That error only fires for a genuinely
+unresolvable multi-workspace situation (its body carries `choices[]` — call
+`dropthis_use_workspace` with one of the slugs to resolve it).
+
+**Reading the current workspace:** `dropthis_account` always shows the active workspace as a
+`workspace` block (`id`, `name`, `slug`, `kind`, `role`). Every drop response also echoes its
+owning workspace `{id, name, slug, kind}`.
+
+**Team publishing:** once you switch to a team workspace, publishes land under the team's shared
+custom domain automatically — no extra flag. The workspace default domain is set by the team
+admin in the console.
+
+**Console is for team/member CRUD** (create workspace, invite/remove members). Agent surfaces
+handle publishing + active-workspace switching only.
 
 See [../../references/workspaces.md](../../references/workspaces.md) for the full runbook.
 

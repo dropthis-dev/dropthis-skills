@@ -2,32 +2,54 @@
 
 A workspace owns every resource in dropthis — drops, custom domains, API keys, and the plan.
 Accounts are identity-only (email, OAuth). Every account gets exactly one personal workspace at
-signup. Team workspaces (ADR 0066) are shared between multiple members; each member mints their
-own `sk_` key bound to that workspace. Solo users have one personal workspace and never need to
-think about it.
+signup. Team workspaces (ADR 0066) are shared between multiple members; each member can use their
+own credential that targets that workspace. Solo users have one personal workspace and never need
+to think about it.
 
 ---
 
-## Your key is your workspace
+## Credential modes
 
-An `sk_` API key (used by the CLI, Node SDK, and MCP server) is **bound to exactly one workspace
-at mint time**. Everything you publish with that key — drops, domains, uploads — lives in that
-workspace. There is no per-call workspace selector and no workspace switch on the agent surfaces;
-`sk_` keys 400 on a selector and 403 on every `/v1/workspaces*` management route.
+dropthis has two `KeyType` values that behave differently around workspace routing:
 
-If you need to act in a different workspace, get a key minted there.
+### Delegated key (`"delegated"`)
+
+Minted by `dropthis login` (interactive) or `apiKeys.create({ type: "delegated" })`. Account-scoped:
+the key has a **server-side switchable active workspace** stored on the `api_keys` row.
+
+- The active workspace starts at the personal workspace (or whichever was active when the key was
+  minted) and can be changed at any time without re-minting.
+- An optional `allowedWorkspaces` allowlist restricts which workspaces the key can target.
+- This is the **default** type — use it for interactive login, agent sessions, and any flow that
+  may need to switch teams.
+
+### Service key (`"service"`)
+
+Minted via `apiKeys.create({ type: "service", workspace: "<slug-or-id>" })`. Pinned to one
+workspace for the lifetime of the key.
+
+- `workspace` is **required** at creation and cannot be changed.
+- Sending a workspace switch request with a service key → 400 `workspace_pinned`.
+- Use for CI/automation where the target must be stable and explicit.
+
+---
+
+## The switch endpoint
+
+`PUT /v1/account/active-workspace { "workspace": "<slug-or-id>" }` — principal-aware:
+
+- **Delegated key** → switches the key's active workspace server-side. Persists across
+  reconnects. The next publish (on any surface) lands in the new workspace.
+- **Service key** → 400 `workspace_pinned` (pinned keys cannot switch).
 
 ---
 
 ## Reading your workspace
 
-Call the account endpoint to see the workspace your key is bound to. The `workspace` block
-contains exactly five fields: `id`, `name`, `slug`, `kind` (`personal` | `team`), and `role`
-(`owner` | `admin` | `member`).
-
 ```bash
 # CLI
 dropthis account
+# → Workspace: Byrokko (team) · your role: member
 
 # SDK
 const { data } = await client.account.get();
@@ -42,6 +64,9 @@ GET /v1/account
 # → { ..., "workspace": { "id": "ws_…", "name": "Byrokko", "slug": "byrokko", "kind": "team", "role": "member" } }
 ```
 
+Every drop response also echoes `workspace: { id, name, slug, kind }` — you always know which
+workspace a publish landed in without a separate account read.
+
 Personal workspace example:
 ```json
 { "id": "ws_01jzz000personal", "name": "Personal", "slug": "personal-abc", "kind": "personal", "role": "owner" }
@@ -54,71 +79,125 @@ Team workspace example:
 
 ---
 
-## Team publishing (the payoff)
+## Switching workspace (per surface)
 
-When an admin mints your key inside a **team** workspace, your publishes automatically land under
-the team's shared custom domain — no extra flag required. The workspace routes the drop; you
-publish as normal.
+### MCP
 
-Confirm first with an account read, then publish:
+```
+# Step 1: see what workspaces are available (isActive marks the current one)
+dropthis_workspaces
 
-```bash
-# CLI — verify workspace, then publish
-dropthis account
-# → Workspace: Byrokko (team) · your role: member
-dropthis publish ./report.html --url
-# → https://pages.byrokko.com/report-abc/  (team's shared domain, automatically)
+# Step 2: switch
+dropthis_use_workspace { "workspace": "byrokko" }
+# → "Switched to workspace: Byrokko (byrokko, team)"
 
-# SDK
-const { data: acct } = await client.account.get();
-console.log(acct.workspace.name, acct.workspace.kind);  // "Byrokko", "team"
-const { data } = await client.drops.publish("./report.html");
-// → data.url: https://pages.byrokko.com/report-abc/
-
-# MCP
-dropthis_account
-# → "Workspace: Byrokko (team), your role: member."
+# Subsequent publishes land in byrokko
 dropthis_publish { "content": "<html>…</html>" }
-# → url lands under the team's shared custom domain automatically
-
-# REST
-GET /v1/account           # confirms workspace.kind == "team"
-POST /v1/drops            # → drop.domain == "pages.byrokko.com" (team's default domain)
 ```
 
-The workspace default domain is set by the team admin in the console. Publishing with an explicit
-`domain` (or `--domain` / `domain:` on any surface) still works — it overrides the default.
-`--shared` (CLI) / `domain: "shared"` (SDK) / `domain: "shared"` (MCP) forces the shared pool
-even when the workspace has a default custom domain.
+`dropthis_use_workspace` is delegated-key only. The choice persists server-side across
+reconnects — you do NOT need to re-switch on every session.
+
+### CLI
+
+```bash
+dropthis workspace list          # list workspaces; * marks the active one
+dropthis workspace use byrokko   # switch active workspace (delegated keys only)
+dropthis account                 # verify: "Workspace: Byrokko (team)"
+
+# Per-publish override (does NOT change the active workspace)
+dropthis publish ./report.html --workspace byrokko --url
+
+# CI: mint a service key pinned to prod-team
+dropthis api-keys create --service --workspace prod-team --label "CI deploy"
+```
+
+### SDK
+
+```typescript
+// List workspaces; isActive marks the current one
+const { data } = await dropthis.workspaces.list();
+for (const ws of data.data) console.log(ws.slug, ws.kind, ws.isActive);
+
+// Switch active workspace server-side (persists on the credential)
+await dropthis.workspaces.use("byrokko");   // slug or id
+
+// The currently active workspace
+const { data: active } = await dropthis.workspaces.active();
+
+// Per-call override (does NOT change the active workspace)
+const { data } = await dropthis.drops.publish("<h1>Report</h1>", {
+  workspace: "byrokko",
+});
+
+// Client-level default
+const dropthis = new Dropthis({ apiKey: "sk_...", workspace: "byrokko" });
+```
 
 ---
 
-## What you cannot do from here (and where to do it)
+## Team publishing (the payoff)
 
-Agent surfaces (SDK / CLI / MCP) are **read-aware** — they surface the workspace on the account
-read — but **not workspace-managing**. The following are console-only and cannot be done with an
-`sk_` key:
+Once the active workspace (or the per-call `workspace` option) targets a **team** workspace, your
+publishes automatically land under the team's shared custom domain — no extra flag required.
+
+```bash
+# CLI — switch once, then publish as normal
+dropthis workspace use byrokko
+dropthis publish ./report.html --url
+# → https://pages.byrokko.com/report-abc/  (team's shared domain)
+
+# MCP
+dropthis_use_workspace { "workspace": "byrokko" }
+dropthis_publish { "content": "<html>…</html>" }
+# → url lands under the team's shared custom domain
+
+# SDK
+await dropthis.workspaces.use("byrokko");
+const { data } = await dropthis.drops.publish("./report.html");
+// → data.url: https://pages.byrokko.com/report-abc/
+```
+
+Publishing with an explicit `domain` (or `--domain`) still overrides the workspace default.
+`--shared` (CLI) / `domain: "shared"` (SDK/MCP) forces the shared pool even when the workspace
+has a default custom domain.
+
+---
+
+## Default-to-personal
+
+A fresh delegated key (including right after `dropthis login`) starts with the personal workspace
+active. A plain `dropthis publish` will land there — there is **no** 409 `workspace_choice_required`
+in the common case. That error only fires for a genuinely unresolvable situation (e.g., the key's
+allowedWorkspaces excludes all default candidates). When it does fire, its body carries `choices[]`
+— pick one and switch.
+
+---
+
+## What you cannot do from agent surfaces (console-only)
+
+Agent surfaces (SDK / CLI / MCP) handle publishing and active-workspace switching. The following
+require a console browser session:
 
 | Action | Why unavailable on agent surfaces | Where to do it |
 |--------|-----------------------------------|----------------|
 | Create a workspace | `POST /v1/workspaces` → 403 `console_session_required` | app.dropthis.app |
 | Invite or remove members | `POST /v1/workspaces/{id}/members` → 403 | app.dropthis.app |
-| Switch active workspace | `PUT /v1/account/active-workspace` → 403 | app.dropthis.app |
-| List all workspaces | `GET /v1/workspaces` → 403 | app.dropthis.app |
-| Pass a workspace selector per publish | Any publish with `options.workspace` → 400 `workspace_selector_not_allowed` | N/A — use a key minted in the target workspace |
+| List all workspaces (admin view) | `GET /v1/workspaces` → 403 | app.dropthis.app |
 
-To publish into a different workspace, get a key minted in that workspace from the console.
+To publish into a workspace the key does not have access to, get a delegated key that includes
+it in its `allowedWorkspaces`, or switch to it via `workspaces.use()` / `workspace use` / `dropthis_use_workspace`.
 
 ---
 
 ## Error reference
 
-A well-behaved SDK / CLI / MCP never sends a workspace selector, so an agent should not normally
-encounter these codes. They are listed here for completeness and for raw REST API users.
-
 | HTTP | Code | Meaning | Fix |
 |------|------|---------|-----|
-| 400 | `workspace_selector_not_allowed` | The request included a per-call workspace selector; `sk_` keys are bound at mint time and do not accept a selector | Remove the `options.workspace` / `workspace_id` field from the request |
-| 403 | `console_session_required` | The endpoint (`/v1/workspaces*`, active-workspace switch, member management) requires a console browser session — `sk_` and `at_` tokens are rejected | Use the console at app.dropthis.app |
-| 409 | `workspace_mismatch` | The resource (drop, domain) belongs to a different workspace than the one the key is bound to | Use a key minted in the correct workspace |
+| 400 | `workspace_pinned` | A service key tried to switch workspace | Service keys cannot switch; use a delegated key or mint a new service key for the target workspace |
+| 400 | `workspace_selector_not_allowed` | A service key included a per-call `workspace` selector | Service keys are pinned; remove the `workspace` option, or use a delegated key |
+| 401 | `invalid_api_key` | The API key is invalid or expired | Run `dropthis login` to get a fresh delegated key |
+| 404 | `workspace_not_found` | The slug or id does not match any accessible workspace | Use `dropthis_workspaces` / `workspace list` / `workspaces.list()` to see valid slugs |
+| 409 | `workspace_choice_required` | Publish couldn't resolve a workspace automatically | Body carries `choices[]` — call `dropthis_use_workspace` / `workspace use` / `workspaces.use()` with one of the slugs |
+| 409 | `workspace_mismatch` | The resource belongs to a different workspace than the key targets | Target the correct workspace with `workspaces.use()` or a per-call `workspace` option |
 | 409 | `seat_limit_reached` | The team workspace has reached its member seat limit | Upgrade the workspace plan or remove unused members in the console |

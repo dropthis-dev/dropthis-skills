@@ -309,14 +309,78 @@ Dedicated domain already occupied → 409; use `updateContent(existingId, …)` 
 
 ## Workspaces
 
-Every `sk_` API key is bound to exactly one workspace at mint time — everything you publish
-lands there automatically. For team workspaces, a key minted in a team workspace publishes
-under the team's shared custom domain automatically; no extra option required. Read the bound
-workspace with `client.account.get()` — the `workspace` field on the result carries `id`,
-`name`, `slug`, `kind` (`personal` | `team`), and `role` (`owner` | `admin` | `member`). There
-is no `client.workspaces.*` namespace, no `workspace` option on publish, and no workspace switch
-here — workspace management is console-only (app.dropthis.app). To act in a different workspace,
-use a key minted there.
+dropthis has two credential modes expressed as `KeyType`:
+
+- **`"delegated"`** (default) — account-scoped. The key has a server-side switchable active
+  workspace (`workspaces.use()`) and an optional `allowedWorkspaces` allowlist. Interactive
+  login mints this type.
+- **`"service"`** — pinned to one workspace at creation for CI/automation. Cannot switch
+  workspace; requires `workspace` at creation.
+
+**`client.workspaces.*`** (delegated keys only):
+
+```typescript
+// List workspaces; isActive marks the current one
+const { data } = await dropthis.workspaces.list();
+for (const ws of data.data) console.log(ws.slug, ws.kind, ws.isActive);
+
+// The currently active workspace
+const { data: active } = await dropthis.workspaces.active();
+
+// Switch active workspace server-side (persists on the credential across reconnects)
+await dropthis.workspaces.use("team-slug");  // slug or id
+```
+
+**Targeting a workspace on publish** (per-call override, delegated keys only):
+
+```typescript
+const { data } = await dropthis.drops.publish("<h1>Team report</h1>", {
+  workspace: "team-slug",
+});
+console.log(data.workspace); // { id, name, slug, kind } — owning workspace echoed on every drop
+```
+
+**Client-level workspace default** (all publishes go to that workspace):
+
+```typescript
+const dropthis = new Dropthis({ apiKey: "sk_...", workspace: "team-slug" });
+const { data } = await dropthis.drops.publish("./dist");
+// → always targets team-slug
+```
+
+**Minting API keys:**
+
+```typescript
+// Delegated key — account-scoped, follows the active workspace (default)
+await dropthis.apiKeys.create({ label: "My key" });
+
+// Delegated key restricted to specific workspaces
+await dropthis.apiKeys.create({
+  label: "Dev only",
+  type: "delegated",
+  allowedWorkspaces: ["dev-team", "staging"],
+});
+
+// Service key pinned to one workspace — for CI/automation
+await dropthis.apiKeys.create({
+  label: "CI deploy",
+  type: "service",
+  workspace: "prod-team",
+});
+```
+
+`KeyType` is `"delegated" | "service"`. Service keys: `workspace` is required at creation;
+`workspaces.use()` returns 400 `workspace_pinned`.
+
+**Reading the current workspace:** `client.account.get()` returns `data.workspace`
+(`id`, `name`, `slug`, `kind`, `role`). Every drop response also echoes its owning workspace.
+
+**Default-to-personal:** a fresh delegated login defaults to the personal workspace — no
+`workspace_choice_required` 409 in the common case. That error carries `choices[]` — call
+`workspaces.use(choices[n].slug)` to resolve it.
+
+**Console is for team/member CRUD** (create workspace, invite/remove members). The SDK handles
+publishing and active-workspace switching.
 
 See [../../references/workspaces.md](../../references/workspaces.md) for the full runbook.
 

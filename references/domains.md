@@ -161,7 +161,7 @@ dropthis domains list
 ```bash
 dropthis domains status reports.example.com --json
 # SDK: client.domains.get("reports.example.com")
-# MCP: (no dedicated get tool — use dropthis_domains_list and filter)
+# MCP: dropthis_domains_get { domain: "reports.example.com" }
 # REST: GET /v1/domains/reports.example.com
 ```
 
