@@ -18,7 +18,10 @@
         "--metadata-file",
         "--path",
         "--domain",
+        "--shared",
         "--slug",
+        "--manifest",
+        "--workspace",
         "--url",
         "--dry-run",
         "--json",
@@ -29,7 +32,8 @@
         "dropthis ./report.html",
         "dropthis publish ./site --json",
         "dropthis publish ./site --url",
-        "dropthis publish ./dist --dry-run"
+        "dropthis publish ./dist --dry-run",
+        "dropthis publish ./report.html --workspace acme --json   # target a specific workspace (delegated keys only)"
       ]
     },
     {
@@ -43,6 +47,10 @@
         "--entry",
         "--content-type",
         "--path",
+        "--manifest",
+        "--mode",
+        "--replace",
+        "--delete-path",
         "--if-revision",
         "--url",
         "--dry-run",
@@ -109,6 +117,21 @@
       "auth": "required",
       "examples": [
         "dropthis get drop_abc --json"
+      ]
+    },
+    {
+      "name": "resolve",
+      "description": "Resolve a public drop URL or slug back to its drop_… id (accepts the id too).\nWrites are id-only — use this to recover the id from a URL, then update-content/update-settings/delete by that id.",
+      "arguments": [
+        "target"
+      ],
+      "options": [
+        "--json"
+      ],
+      "auth": "required",
+      "examples": [
+        "dropthis resolve https://abc123.dropthis.app/",
+        "dropthis resolve abc123 --json"
       ]
     },
     {
@@ -232,7 +255,7 @@
         },
         {
           "name": "verify",
-          "description": "Trigger a DNS verification check. With --wait, polls until live or failed.\nUse after adding the DNS records from: dropthis domains connect",
+          "description": "Trigger a DNS verification check. With --wait, polls until live or failed.\nUse after adding the DNS records from: dropthis domains connect\n\nExit codes: 0=live, 1=failed, 6=still pending (retry). Use --wait to poll automatically.",
           "arguments": [
             "hostname"
           ],
@@ -294,6 +317,10 @@
           "options": [
             "--label",
             "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis api-keys create --label CI --json"
           ]
         },
         {
@@ -301,6 +328,10 @@
           "description": "List API keys",
           "options": [
             "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis api-keys list --json"
           ]
         },
         {
@@ -312,6 +343,72 @@
           "options": [
             "--yes",
             "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis api-keys delete key_abc --yes --json"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "workspace",
+      "description": "Manage workspaces. Switch your active workspace (delegated keys only) or list all workspaces you belong to.",
+      "auth": "required",
+      "examples": [
+        "dropthis workspace list --json",
+        "dropthis workspace use acme"
+      ],
+      "subcommands": [
+        {
+          "name": "list",
+          "description": "List workspaces you belong to",
+          "options": [
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis workspace list --json"
+          ]
+        },
+        {
+          "name": "use",
+          "description": "Switch your active workspace (server-side, persists on the credential). Delegated keys only — pinned service keys cannot switch.",
+          "arguments": [
+            "slugOrId"
+          ],
+          "options": [
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis workspace use acme",
+            "dropthis workspace use ws_team123"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "keys",
+      "description": "Mint API keys (delegated login keys or pinned CI service keys)",
+      "auth": "required",
+      "examples": [
+        "dropthis keys create --service --workspace acme --json"
+      ],
+      "subcommands": [
+        {
+          "name": "create",
+          "description": "Create an API key. Without --service, mints a delegated account-scoped key (default for login). With --service --workspace <ws>, mints a CI key pinned to that workspace.",
+          "options": [
+            "--label",
+            "--service",
+            "--workspace",
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis keys create --json",
+            "dropthis keys create --service --workspace acme --json"
           ]
         }
       ]
@@ -325,6 +422,8 @@
         "--json"
       ],
       "examples": [
+        "dropthis login",
+        "dropthis login request --email user@example.com --json",
         "dropthis login verify --email user@example.com --otp 123456 --json"
       ],
       "subcommands": [
@@ -334,6 +433,9 @@
           "options": [
             "--email",
             "--json"
+          ],
+          "examples": [
+            "dropthis login request --email user@example.com --json"
           ]
         },
         {
@@ -343,6 +445,9 @@
             "--email",
             "--otp",
             "--json"
+          ],
+          "examples": [
+            "dropthis login verify --email user@example.com --otp 123456 --json"
           ]
         }
       ]

@@ -1,0 +1,46 @@
+name: skills-drift
+
+# Guards the generated skill reference (skills/dropthis-cli/commands.json and
+# skills/dropthis-mcp/references/tools.md) against drift. The narrative SKILL.md
+# prose stays hand-written, but the command/tool tables are generated from the
+# published @dropthis/cli and @dropthis/mcp by `npm run gen` — so they must be
+# regenerated whenever those packages change their command/tool surface.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Weekly: catch a new @dropthis/cli or @dropthis/mcp release that moved the
+    # surface ahead of the committed reference, even with no skills change.
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+jobs:
+  # Deterministic: the committed reference must match what `gen` produces from
+  # the pinned devDependency versions. Catches hand-edits and dep-bump-without-regen.
+  committed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Verify generated skill reference matches the pinned packages
+        run: npm run check
+
+  # Forward-looking: regenerate against the LATEST published packages. If this
+  # fails, @dropthis/cli or @dropthis/mcp shipped a surface change and the skills
+  # reference needs `npm install @dropthis/cli@latest @dropthis/mcp@latest && npm run gen`.
+  latest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - name: Pull the latest published dropthis packages
+        run: npm install --no-save @dropthis/cli@latest @dropthis/mcp@latest
+      - name: Verify the reference is current with the latest release
+        run: npm run check
