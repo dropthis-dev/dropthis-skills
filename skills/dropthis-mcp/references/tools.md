@@ -131,13 +131,22 @@ Inputs: `cursor`, `limit`, `domain`
 Inputs: `drop_id` (required), `cursor`, `limit`
 
 ### `dropthis_publish`
-Inputs: `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `paths`, `title`, `noindex`, `visibility`, `expires_at`, `metadata`, `domain`, `slug`, `idempotency_key`
+Inputs: `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `paths`, `title`, `noindex`, `visibility`, `expires_at`, `metadata`, `domain`, `slug`, `idempotency_key`, `workspace`
+
+### `dropthis_resolve`
+Inputs: `target` (required)
 
 ### `dropthis_update_content`
-Inputs: `drop_id` (required), `content`, `content_type`, `path`, `source_url`, `files`, `entry`, `file`, `paths`, `idempotency_key`, `if_revision`
+Inputs: `drop_id` (required), `content`, `content_type`, `path`, `source_url`, `files`, `mode`, `delete_paths`, `entry`, `file`, `paths`, `idempotency_key`, `if_revision`
 
 ### `dropthis_update_settings`
 Inputs: `drop_id` (required), `title`, `visibility`, `password`, `noindex`, `expires_at`, `metadata`
+
+### `dropthis_use_workspace`
+Inputs: `workspace` (required)
+
+### `dropthis_workspaces`
+Inputs: (none)
 
 <!-- END GENERATED TOOLS -->
 
