@@ -32,6 +32,17 @@ workspace for the lifetime of the key.
 - Sending a workspace switch request with a service key → 400 `workspace_pinned`.
 - Use for CI/automation where the target must be stable and explicit.
 
+### Browser clients (web console + extension) — session principals
+
+The dropthis web console and browser extension sign in as **session** principals (email → a
+short-lived `at_` access token + a rotating `rt_` refresh token), not delegated keys. Their active
+workspace lives on the **account** (`account.active_workspace_id`), so the two share one "current
+context" — switching the workspace in the extension is reflected in the console, and vice versa.
+Delegated keys (CLI / MCP) keep a **per-credential** active workspace, so an agent's context is
+independent of the human's browser. Both feed the **same** resolution precedence (per-call override →
+the credential's active workspace → ask only when genuinely unresolvable), and every drop response
+names its workspace. (ADR 0067.)
+
 ---
 
 ## The switch endpoint
