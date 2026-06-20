@@ -147,7 +147,7 @@ if (error) console.error("Delete failed:", error.message);
 ## Notes
 
 - The `drops` resource exposes `publish` / `updateContent` / `updateSettings` / `get` / `resolve` / `list` / `delete`. Publishing a NEW drop is `dropthis.drops.publish(input, options)`.
-- `drops.updateSettings()` is settings-only — it changes title/visibility/password/expiry/metadata, never content. Setting a `password` is Pro-only (Free returns 403 `password_protection_unavailable` with `upgrade_url`); clearing one with `password: null` is always allowed.
+- `drops.updateSettings()` is settings-only — it changes title/visibility/password/expiry/metadata, never content. Setting a `password` is Pro-only (Free returns 403 `feature_not_in_plan` with `upgrade_url`); clearing one with `password: null` is always allowed.
 - For updating content, use `dropthis.drops.updateContent(dropId, newContent)` which creates a new deployment and never changes settings.
 - `idempotencyKey` and `ifRevision` are fields in the patch/options object. `get()` returns the drop's current `revision` — feed it back as `ifRevision` for optimistic locking.
 - `delete()` gets a 204 No Content reply (every DELETE in the API returns 204), so `data` is `null` on success.

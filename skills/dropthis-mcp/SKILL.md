@@ -219,15 +219,18 @@ See [../../references/workspaces.md](../../references/workspaces.md) for the ful
 
 ## Auth and limits
 
-Call `dropthis_account` first if you need to size a publish: its `limits` block carries the
-active plan-tier limits (`maxSizeBytes`, `defaultTtlSeconds` — `null` means permanent,
-`maxStorageBytes`). Two plans: **Free** (7-day TTL, dropthis badge, 5 MB/drop, 500 MB
-active storage, no custom domains, no passwords) · **Pro** (never expires, no badge,
-100 MB/drop, 10 GB storage, 1 custom hostname, password-protected drops allowed). Pro is
-invite-only — upgrade via https://dropthis.app/pricing. Setting a `password` is
-Pro-only; on Free it returns 403 `password_protection_unavailable` with an `upgrade_url`.
-Clearing one with `null` is always allowed. Plan-limit errors return the
-server's `suggestion` as an upgrade nudge — read it in the tool result and relay it.
+Call `dropthis_account` first if you need to pre-check a gate or size a publish: its
+`entitlements` block carries the full capability matrix (`capabilities` + per-feature
+`required_plan`) and numeric `limits` (`maxSizeBytes`, `defaultTtlSeconds` — `null` means
+permanent, `maxStorageBytes`, `seatLimit`). Four plans: **Free** (30-day TTL, badge,
+5 MB/drop, 500 MB) · **Keep $5/mo** (permanent + custom expiry, badge stays, 2 GB, basic
+link preview, view count) · **Pro $29/mo** (no badge, custom domain, password, 100 MB/drop,
+10 GB, full analytics, version history, custom OG image) · **Business** (later: seats,
+multiple domains, retention, lead capture). A capability the plan lacks returns 403
+`feature_not_in_plan` (`feature`/`current_plan`/`required_plan`/`upgrade_url`/`retryable:false`);
+numeric ceilings return `quota_exceeded`. Setting a `password` below Pro → `feature_not_in_plan`;
+clearing one with `null` is always allowed. Billing is parked — plans are granted manually.
+Relay the server's `suggestion` (and `required_plan`) as the upgrade nudge — never blindly retry a plan gate.
 
 ## Errors
 

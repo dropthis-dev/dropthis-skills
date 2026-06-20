@@ -270,7 +270,7 @@ dropthis ./report.html --visibility unlisted --noindex --url
 ```
 
 > Password protection is Pro-only: setting `--password` on a Free account returns
-> 403 `password_protection_unavailable` with an `upgrade_url`. Removing an existing
+> 403 `feature_not_in_plan` with an `upgrade_url`. Removing an existing
 > password with `--no-password` is always allowed. Use `--visibility unlisted`
 > for low-discoverability sharing on Free.
 

@@ -126,7 +126,7 @@ The `drop` object is the full SDK `DropResponse`. Notable fields:
 | `domain` | string \| null | Hostname of the custom domain the drop is mounted on (e.g. `"reports.example.com"`), or `null` for shared-pool drops |
 | `rawUrl` | string \| null | For a single non-HTML file drop, the natural-path URL serving the file's raw bytes (hand it to agents); `null` for HTML drops and collections. The canonical `url` is always the branded view for humans |
 | `revision` | number | Current drop revision -- pass it as `--if-revision` on `update-content`/`update-settings` for optimistic locking |
-| `persistent` | boolean | `true` for Pro drops (no TTL), `false` for Free drops (7-day TTL) |
+| `persistent` | boolean | `true` for paid drops (no TTL), `false` for Free drops (30-day TTL) |
 | `tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true}`) |
 | `limitations` | object | `{"actions":[...]}` -- a list of `DropAction` entries; empty array when there are none |
 
@@ -260,7 +260,7 @@ dropthis update-settings <id|url|slug> [flags]
 |------|----------|-------------|
 | `--title` `<title>` | No | Drop title |
 | `--visibility` `<public\|unlisted>` | No | public (default) or unlisted |
-| `--password` `<password>` | No | Require password to view (Pro-only — Free returns 403 `password_protection_unavailable` with an `upgrade_url`) |
+| `--password` `<password>` | No | Require password to view (Pro-only — Free returns 403 `feature_not_in_plan` with an `upgrade_url`) |
 | `--no-password` | No | Remove password protection (always allowed) |
 | `--noindex` | No | Prevent search-engine indexing |
 | `--index` | No | Allow search-engine indexing (default) |

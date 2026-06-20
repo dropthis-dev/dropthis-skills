@@ -20,7 +20,7 @@ Publish NEW content → permanent public URL. Creates a NEW drop every call and 
 at the URL) or `dropthis_update_settings` (title, visibility, password, expiry, metadata)
 with the `drop_…` id from this call's response — do NOT call publish again (that makes a duplicate).
 
-- Inputs: exactly one of `content` (string) · `source_url` (http(s) URL) · `files` (array of `{path, content|content_base64|source_url, content_type?}` + optional `entry`) · `file` (local file or directory; a directory publishes as a complete multi-file site; stdio only) · `paths` (array of local file/directory paths published as one bundle; stdio only). In the `files` array, each file is inline `content`/`content_base64`, or a `source_url` the server fetches — use `source_url` for images/video/pdf/fonts (never base64-inline an image) — and in the HTML/CSS reference each bundled asset by its relative `path` (e.g. `assets/hero.jpg`), with the remote URL in that file's `source_url`, never hot-linked in the markup. Up to 200 files per drop. Optional: `title`, `password` (Pro-only — Free returns 403 `password_protection_unavailable`; see Plans and limits), `noindex`, `visibility` (`public` | `unlisted`), `expires_at`, `metadata`, `idempotency_key`.
+- Inputs: exactly one of `content` (string) · `source_url` (http(s) URL) · `files` (array of `{path, content|content_base64|source_url, content_type?}` + optional `entry`) · `file` (local file or directory; a directory publishes as a complete multi-file site; stdio only) · `paths` (array of local file/directory paths published as one bundle; stdio only). In the `files` array, each file is inline `content`/`content_base64`, or a `source_url` the server fetches — use `source_url` for images/video/pdf/fonts (never base64-inline an image) — and in the HTML/CSS reference each bundled asset by its relative `path` (e.g. `assets/hero.jpg`), with the remote URL in that file's `source_url`, never hot-linked in the markup. Up to 200 files per drop. Optional: `title`, `password` (Pro-only — Free returns 403 `feature_not_in_plan`; see Plans and limits), `noindex`, `visibility` (`public` | `unlisted`), `expires_at`, `metadata`, `idempotency_key`.
 - Output: the full camelCase `DropResponse` — `url`, `id`, `slug`, `domain` (custom-domain hostname or `null`), `rawUrl` (see below), `deploymentId`, `expiresAt`, `createdAt`, `contentType`, `sizeBytes`, `badgeApplied`, `persistent`, `tier`, `limitations` (no `password`), plus a `next` object echoing the `drop_id` for the update tools. Keep the `id` (not the `slug`/`url`) — every id-based tool takes it as `drop_id`.
 - **`rawUrl` (canonical view vs raw bytes).** The canonical `url` is **always a branded view** with the dropthis badge: an HTML drop renders the page; a single non-HTML file renders a branded **preview** (image inline; markdown/JSON/CSV/text/code as escaped source; opaque binary as a download); a collection renders a branded **index** of natural-path links. For a single non-HTML file drop, `rawUrl` is the natural-path URL serving the raw bytes (e.g. `…/abc123/notes.md`) — hand it to agents that want the exact bytes; `null` for HTML drops and collections (the page IS the artifact, or per-file paths come from the index). The `next` object also carries a hint distinguishing "share the canonical `url` with humans / hand `rawUrl` to agents." There is no `/_raw/` route; append `?download=1` to any natural-path URL to force a download.
 - The response may include `warnings` (omitted when empty). A `root_relative_reference` warning names a file that references assets with root-relative URLs (e.g. `/styles.css`) — those break if the drop is ever served under a subpath. Prefer relative refs (`styles.css`, `./styles.css`) in generated HTML/CSS.
@@ -46,7 +46,7 @@ Update settings only — never content. To replace the content at the URL use
 `dropthis_update_content`; to create a new drop use `dropthis_publish`. Idempotent — applying
 the same values again is a no-op.
 
-- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); optional `title`, `visibility`, `password` (Pro-only — setting one on Free returns 403 `password_protection_unavailable` with `upgrade_url`; `null` clears an existing password and is always allowed), `noindex` (`null` clears), `expires_at`, `metadata`. This is where expiry and metadata are managed (`dropthis_update_content` does not accept them).
+- Inputs: `drop_id` (the full `drop_…` id returned as `id` by publish — NOT the slug/URL token); optional `title`, `visibility`, `password` (Pro-only — setting one on Free returns 403 `feature_not_in_plan` with `upgrade_url`; `null` clears an existing password and is always allowed), `noindex` (`null` clears), `expires_at`, `metadata`. This is where expiry and metadata are managed (`dropthis_update_content` does not accept them).
 - Output: the updated `DropResponse` — `url`, `id`, `slug`, `title`, `visibility`, `revision` (there is NO `updatedAt` field).
 
 ## dropthis_get
@@ -166,11 +166,13 @@ There is no rollback verb: downloading an old deployment's files and republishin
 
 ## Plans and limits
 
-Two tiers — read the live numbers from `dropthis_account` → `limits`:
+Four tiers — read the live matrix from `dropthis_account` → `entitlements` (`capabilities` + `required_plan` + `limits`):
 
-- **Free:** 7-day TTL, dropthis badge, 5 MB/drop, 500 MB active storage, no custom domains, no password protection.
-- **Pro:** never expires, no badge, 100 MB/drop, 10 GB storage, 1 custom hostname, password-protected drops allowed. Pro is invite-only — upgrade via https://dropthis.app/pricing.
+- **Free:** 30-day TTL, dropthis badge, 5 MB/drop, 500 MB storage, no custom domains, no password.
+- **Keep ($5/mo):** permanent + custom expiry, badge stays, 2 GB storage, basic link preview, view count.
+- **Pro ($29/mo):** no badge, custom domain, password, 100 MB/drop, 10 GB storage, full analytics, version history, custom OG image.
+- **Business (later):** team seats, multiple domains, retention controls, lead capture.
 
-Passwords are Pro-only: setting one on Free returns 403 `password_protection_unavailable` with an `upgrade_url`. Clearing an existing password (`password: null`) is always allowed on any plan.
+A capability the plan lacks returns 403 `feature_not_in_plan` (with `feature`, `current_plan`, `required_plan`, `upgrade_url`, `retryable:false`); numeric ceilings return `quota_exceeded`. e.g. setting a `password` below Pro → `feature_not_in_plan`; clearing an existing password (`password: null`) is always allowed. Billing is parked — plans are granted manually for now.
 
 Plan-limit errors return the server's `suggestion` as an upgrade nudge — relay it.
