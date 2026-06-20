@@ -46,7 +46,7 @@ console.log(data.url);
 | `network_error` | `null` | DNS failure, connection refused, or other network issue |
 | `http_400` | `400` | Invalid request body |
 | `http_401` | `401` | Invalid or expired API key |
-| `http_403` | `403` | Insufficient permissions (notably `password_protection_unavailable`: setting a drop password is Pro-only — Free returns 403 with `upgrade_url`; clearing with `null` is always allowed) |
+| `http_403` | `403` | Insufficient permissions (notably `feature_not_in_plan`: setting a drop password is Pro-only — Free returns 403 with `upgrade_url`; clearing with `null` is always allowed) |
 | `http_404` | `404` | Resource not found |
 | `http_409` | `409` | Revision conflict -- use `error.currentRevision` to retry |
 | `http_413` | `413` | Drop size exceeds plan limit (5 MB Free, 100 MB Pro) or the account storage cap (500 MB Free, 10 GB Pro) |
