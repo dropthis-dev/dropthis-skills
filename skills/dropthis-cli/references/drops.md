@@ -115,7 +115,7 @@ dropthis get <id|url|slug> [flags]
 #### Output
 
 ```json
-{"ok":true,"drop":{"id":"drop_abc123","url":"https://dropthis.app/abc123","domain":null,"title":"My Page","visibility":"public","revision":1,"accessible":true,"persistent":false,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
+{"ok":true,"drop":{"id":"drop_abc123","url":"https://dropthis.app/abc123","domain":null,"title":"My Page","visibility":"public","revision":1,"accessible":true,"persistent":false,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":30,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
 ```
 
 The `drop` object is the full SDK `DropResponse`. Notable fields:
@@ -127,7 +127,7 @@ The `drop` object is the full SDK `DropResponse`. Notable fields:
 | `rawUrl` | string \| null | For a single non-HTML file drop, the natural-path URL serving the file's raw bytes (hand it to agents); `null` for HTML drops and collections. The canonical `url` is always the branded view for humans |
 | `revision` | number | Current drop revision -- pass it as `--if-revision` on `update-content`/`update-settings` for optimistic locking |
 | `persistent` | boolean | `true` for paid drops (no TTL), `false` for Free drops (30-day TTL) |
-| `tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true}`) |
+| `tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":30,"persistent":false,"badge":true}`) |
 | `limitations` | object | `{"actions":[...]}` -- a list of `DropAction` entries; empty array when there are none |
 
 #### Examples
