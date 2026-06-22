@@ -31,7 +31,7 @@ metadata:
         label: dropthis CLI
     links:
       repository: https://github.com/dropthis-dev/dropthis-cli
-      documentation: https://dropthis.app/docs
+      documentation: https://github.com/dropthis-dev/dropthis-cli#readme
 inputs:
   - name: DROPTHIS_API_KEY
     description: "dropthis API key for authenticating CLI commands. Get one from the dashboard or via `dropthis login`."

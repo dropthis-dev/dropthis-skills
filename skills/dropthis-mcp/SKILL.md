@@ -29,7 +29,7 @@ metadata:
         label: dropthis MCP server (stdio)
     links:
       repository: https://github.com/dropthis-dev/dropthis-mcp
-      documentation: https://dropthis.app/docs/mcp
+      documentation: https://github.com/dropthis-dev/dropthis-mcp#readme
       remoteEndpoint: https://mcp.dropthis.app/mcp
 inputs:
   - name: DROPTHIS_API_KEY
