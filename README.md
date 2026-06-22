@@ -16,7 +16,7 @@ npx skills add dropthis-dev/dropthis-skills
 |-------|-------------|
 | [dropthis-node](skills/dropthis-node/SKILL.md) | Integrate Dropthis using the `@dropthis/node` SDK. Publish HTML, files, or directories to a permanent URL from Node.js code. |
 | [dropthis-cli](skills/dropthis-cli/SKILL.md) | Operate Dropthis from the terminal, CI, or agent shell using the `@dropthis/cli`. |
-| [dropthis-mcp](skills/dropthis-mcp/SKILL.md) | Publish and manage drops through the dropthis MCP server (Claude Code/Desktop, Cursor, ChatGPT, n8n) — local stdio or the hosted remote connector. |
+| [dropthis-mcp](skills/dropthis-mcp/SKILL.md) | Publish and manage drops through the dropthis MCP server (Claude Code/Desktop, Cursor, Windsurf, ChatGPT, n8n) — local stdio or the hosted remote connector. |
 
 ## Links
 
@@ -24,7 +24,7 @@ npx skills add dropthis-dev/dropthis-skills
 - [Node SDK](https://github.com/dropthis-dev/dropthis-node) — `npm install @dropthis/node`
 - [CLI](https://github.com/dropthis-dev/dropthis-cli) — `npm install -g @dropthis/cli`
 - [MCP server](https://github.com/dropthis-dev/dropthis-mcp) — `npx @dropthis/mcp` or `https://mcp.dropthis.app/mcp`
-- [OpenAPI spec](https://dropthis.app/openapi.json)
+- [OpenAPI spec](https://api.dropthis.app/openapi.json)
 - [AI discovery](https://dropthis.app/llms.txt)
 - [Skills discovery](https://dropthis.app/.well-known/agent-skills/index.json)
 
