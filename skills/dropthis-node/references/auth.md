@@ -154,7 +154,7 @@ The account acts within a workspace; `workspace` identifies the workspace this k
 `{ name: string; maxSizeBytes: number; defaultTtlSeconds: number | null; maxStorageBytes: number; maxCustomHostnames: number }`
 — `maxSizeBytes` is the per-drop size cap; `defaultTtlSeconds` is the drop lifetime before
 expiry (`null` = drops are permanent); `maxStorageBytes` is the account-wide storage cap;
-`maxCustomHostnames` is the custom hostname cap (0 on Free, 1 on Pro). Free example: `{ name: "free", maxSizeBytes: 5242880, defaultTtlSeconds: 604800, maxStorageBytes: 524288000, maxCustomHostnames: 0 }`.
+`maxCustomHostnames` is the custom hostname cap (0 on Free, 1 on Pro). Free example: `{ name: "free", maxSizeBytes: 5242880, defaultTtlSeconds: 2592000, maxStorageBytes: 524288000, maxCustomHostnames: 0 }`.
 
 `AccountWorkspace`: `{ id: string; name: string; slug: string; kind: string; role: string }`
 — `kind` is `"personal"` for a solo workspace or `"team"` when shared with other members; `role` is your role in it (`"owner"`, `"admin"`, or `"member"`). A key minted in a team workspace publishes to the team's shared custom domain automatically.
