@@ -25,7 +25,7 @@ dropthis doctor [flags]
 Key-value pairs printed one per line:
 
 ```
-Version  0.4.1
+Version  0.31.0
 Auth     env
 Storage  secure
 ```
@@ -46,7 +46,7 @@ The `Storage` field shows the credential storage backend:
 ```json
 {
   "ok": true,
-  "version": "0.4.1",
+  "version": "0.31.0",
   "auth": { "source": "env" },
   "storage": { "backend": "secure" }
 }

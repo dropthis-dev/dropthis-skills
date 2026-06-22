@@ -208,7 +208,7 @@ echo "<h1>Hello</h1>" | dropthis - --content-type text/html --path index.html --
 |------|-------------|
 | `--title <title>` | Drop title |
 | `--visibility <public\|unlisted>` | Drop visibility |
-| `--password <password>` | Set password protection (currently rejected on every plan — see note below) |
+| `--password <password>` | Set password protection (Pro-only — see note below) |
 | `--noindex` | Prevent search engine indexing |
 | `--entry <path>` | Entry file for directories |
 | `--content-type <mime>` | Content type (recommended for stdin; auto-detected if omitted) |
@@ -266,8 +266,13 @@ dropthis update-settings drop_abc123 --title "v2 Release" --visibility unlisted 
 
 **Low-discoverability sharing:**
 ```bash
-dropthis ./report.html --visibility unlisted --noindex --url
+dropthis ./report.html --visibility unlisted --url
 ```
+
+> Free/Keep drops live on the shared `dropthiis.com` pool, which is **always**
+> served `noindex` regardless of the flag — so `--visibility unlisted` is the
+> low-discoverability lever there. Explicit indexing control (`--noindex` /
+> `--index`) only takes effect on a Pro custom-domain drop.
 
 > Password protection is Pro-only: setting `--password` on a Free account returns
 > 403 `feature_not_in_plan` with an `upgrade_url`. Removing an existing

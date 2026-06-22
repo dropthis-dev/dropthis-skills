@@ -71,7 +71,7 @@ Retain `drop.id` for all follow-up operations (`drops`/`deployments`); the `slug
 The CLI emits the SDK `DropResponse` under `drop`:
 
 ```json
-{"ok":true,"drop":{"object":"drop","id":"drop_abc123","slug":"abc123","url":"https://dropthis.app/abc123","domain":null,"deploymentId":"dep_xyz789","title":"My Page","contentType":"text/html","visibility":"public","status":"ready","revision":1,"sizeBytes":1234,"createdAt":"2026-05-29T12:00:00Z","expiresAt":"2026-06-05T12:00:00Z","accessible":true,"persistent":false,"badgeApplied":true,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
+{"ok":true,"drop":{"object":"drop","id":"drop_abc123","slug":"abc123","url":"https://dropthis.app/abc123","domain":null,"deploymentId":"dep_xyz789","title":"My Page","contentType":"text/html","visibility":"public","status":"ready","revision":1,"sizeBytes":1234,"createdAt":"2026-05-29T12:00:00Z","expiresAt":"2026-06-28T12:00:00Z","accessible":true,"persistent":false,"badgeApplied":true,"tier":{"name":"free","maxSizeBytes":5242880,"ttlDays":30,"persistent":false,"badge":true},"limitations":{"actions":[]}}}
 ```
 
 Key fields present in publish responses:
@@ -91,7 +91,7 @@ Key fields present in publish responses:
 | `drop.accessible` | boolean | Whether the drop is currently accessible |
 | `drop.persistent` | boolean | `true` for paid drops (no TTL), `false` for Free drops (30-day TTL) |
 | `drop.badgeApplied` | boolean | `true` when the dropthis badge is shown on the drop |
-| `drop.tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (e.g. free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":7,"persistent":false,"badge":true}`) |
+| `drop.tier` | object | Tier info: `{name, maxSizeBytes, ttlDays, persistent, badge}` (e.g. free is `{"name":"free","maxSizeBytes":5242880,"ttlDays":30,"persistent":false,"badge":true}`) |
 | `drop.limitations` | object | `{"actions":[...]}` -- a list of `DropAction` entries (`code`, `kind`, `priority`, `message`, optional `resolve`). Empty array when there are no actions. |
 | `drop.warnings` | array | Bundle classification warnings. A `root_relative_reference` entry names a file referencing assets with root-relative URLs (e.g. `/styles.css`) that break if the drop is served under a subpath -- prefer relative refs. Empty array when clean. |
 
@@ -105,7 +105,7 @@ https://dropthis.app/abc123
 
 ```
 Published: https://dropthis.app/abc123
-  1.2 KB · text/html · expires 2026-06-05
+  1.2 KB · text/html · expires 2026-06-28
 ```
 
 The second line is a dimmed detail line summarizing the drop. It includes, when present:
@@ -179,8 +179,8 @@ echo "<h1>Hello</h1>" | dropthis publish --content-type text/html --path index.h
 # Publish with a custom title
 dropthis ./report.html --title "Q4 Report" --url
 
-# Publish as unlisted with noindex
-dropthis ./draft.html --visibility unlisted --noindex --url
+# Publish as unlisted (shared-pool drops are always served noindex)
+dropthis ./draft.html --visibility unlisted --url
 
 # Publish with metadata
 dropthis ./page.html --metadata '{"source":"agent","version":"1.2"}' --url

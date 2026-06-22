@@ -248,7 +248,7 @@ dropthis account [flags]
 ### Output
 
 ```json
-{"ok":true,"account":{"id":"acc_abc123","email":"user@example.com","displayName":null,"plan":"free","status":"active","createdAt":"2026-05-23T12:00:00Z","limits":{"name":"free","maxSizeBytes":5242880,"defaultTtlSeconds":604800,"maxStorageBytes":524288000,"maxCustomHostnames":0}}}
+{"ok":true,"account":{"id":"acc_abc123","email":"user@example.com","displayName":null,"plan":"free","status":"active","createdAt":"2026-05-23T12:00:00Z","limits":{"name":"free","maxSizeBytes":5242880,"defaultTtlSeconds":2592000,"maxStorageBytes":524288000,"maxCustomHostnames":0}}}
 ```
 
 The `limits` block carries the active plan-tier limits — use them to size a publish before
@@ -301,7 +301,7 @@ dropthis doctor [flags]
 ### Output
 
 ```json
-{"ok":true,"version":"0.4.1","auth":{"source":"env"},"storage":{"backend":"secure"}}
+{"ok":true,"version":"0.31.0","auth":{"source":"env"},"storage":{"backend":"secure"}}
 ```
 
 The `auth.source` field will be `"env"`, `"flag"`, `"storage"`, or `"missing"`. The `storage.backend` field will be `"secure"`, `"insecure"`, or `"none"`.
