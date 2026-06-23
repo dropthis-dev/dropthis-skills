@@ -76,8 +76,12 @@
         "--noindex",
         "--index",
         "--expires-at",
+        "--no-expires",
         "--metadata",
         "--metadata-file",
+        "--domain",
+        "--shared",
+        "--slug",
         "--if-revision",
         "--url",
         "--dry-run",
@@ -97,6 +101,7 @@
       ],
       "options": [
         "--output",
+        "--deployment",
         "--json"
       ],
       "auth": "required",
@@ -255,7 +260,7 @@
         },
         {
           "name": "verify",
-          "description": "Trigger a DNS verification check. With --wait, polls until live or failed.\nUse after adding the DNS records from: dropthis domains connect\n\nExit codes: 0=live, 1=failed, 6=still pending (retry). Use --wait to poll automatically.",
+          "description": "Trigger a DNS verification check. With --wait, polls until live or failed.\nUse after adding the DNS records from: dropthis domains connect\n\nExit codes (one-shot): 0=live, 1=failed, 6=still pending (retry). With --wait: 0=live, 1=failed, 7=timed out.",
           "arguments": [
             "hostname"
           ],
@@ -313,14 +318,18 @@
       "subcommands": [
         {
           "name": "create",
-          "description": "Create an API key",
+          "description": "Create an API key. Without --service, mints a delegated account-scoped key (default for login). With --service --workspace <ws>, mints a CI key pinned to that workspace.",
           "options": [
             "--label",
+            "--service",
+            "--workspace",
+            "--allowed-workspace",
             "--json"
           ],
           "auth": "required",
           "examples": [
-            "dropthis api-keys create --label CI --json"
+            "dropthis api-keys create --label CI --json",
+            "dropthis api-keys create --service --workspace acme --json"
           ]
         },
         {
@@ -385,30 +394,170 @@
             "dropthis workspace use acme",
             "dropthis workspace use ws_team123"
           ]
-        }
-      ]
-    },
-    {
-      "name": "keys",
-      "description": "Mint API keys (delegated login keys or pinned CI service keys)",
-      "auth": "required",
-      "examples": [
-        "dropthis keys create --service --workspace acme --json"
-      ],
-      "subcommands": [
+        },
         {
           "name": "create",
-          "description": "Create an API key. Without --service, mints a delegated account-scoped key (default for login). With --service --workspace <ws>, mints a CI key pinned to that workspace.",
+          "description": "Create a new team workspace",
+          "arguments": [
+            "name"
+          ],
           "options": [
-            "--label",
-            "--service",
-            "--workspace",
+            "--slug",
             "--json"
           ],
           "auth": "required",
           "examples": [
-            "dropthis keys create --json",
-            "dropthis keys create --service --workspace acme --json"
+            "dropthis workspace create \"Acme\" --slug acme --json"
+          ]
+        },
+        {
+          "name": "rename",
+          "description": "Rename a workspace or change its vanity slug",
+          "arguments": [
+            "workspaceId"
+          ],
+          "options": [
+            "--name",
+            "--slug",
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis workspace rename ws_team123 --name \"Acme Inc\" --json"
+          ]
+        },
+        {
+          "name": "delete",
+          "description": "Delete a workspace",
+          "arguments": [
+            "workspaceId"
+          ],
+          "options": [
+            "--yes",
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis workspace delete ws_team123 --yes --json"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "members",
+      "description": "Manage team members",
+      "auth": "required",
+      "examples": [
+        "dropthis members list ws_team123 --json"
+      ],
+      "subcommands": [
+        {
+          "name": "list",
+          "description": "List members of a workspace",
+          "arguments": [
+            "workspaceId"
+          ],
+          "options": [
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis members list ws_team123 --json"
+          ]
+        },
+        {
+          "name": "invite",
+          "description": "Invite someone to a workspace by email",
+          "arguments": [
+            "workspaceId"
+          ],
+          "options": [
+            "--email",
+            "--role",
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis members invite ws_team123 --email teammate@acme.com --role member --json"
+          ]
+        },
+        {
+          "name": "role",
+          "description": "Change a member's role",
+          "arguments": [
+            "workspaceId",
+            "accountId"
+          ],
+          "options": [
+            "--role",
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis members role ws_team123 acc_123 --role admin --json"
+          ]
+        },
+        {
+          "name": "remove",
+          "description": "Remove a member from a workspace",
+          "arguments": [
+            "workspaceId",
+            "accountId"
+          ],
+          "options": [
+            "--yes",
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis members remove ws_team123 acc_123 --yes --json"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invitations",
+      "description": "Manage your workspace invitations",
+      "auth": "required",
+      "examples": [
+        "dropthis invitations --json"
+      ],
+      "subcommands": [
+        {
+          "name": "list",
+          "description": "List your pending workspace invitations",
+          "options": [
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis invitations list --json"
+          ]
+        },
+        {
+          "name": "accept",
+          "description": "Accept a workspace invitation by token",
+          "options": [
+            "--token",
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis invitations accept --token inv_tok_abc --json"
+          ]
+        },
+        {
+          "name": "accept-by-id",
+          "description": "Accept a workspace invitation by its id",
+          "arguments": [
+            "invitationId"
+          ],
+          "options": [
+            "--json"
+          ],
+          "auth": "required",
+          "examples": [
+            "dropthis invitations accept-by-id inv_123 --json"
           ]
         }
       ]
@@ -419,6 +568,7 @@
       "options": [
         "--email",
         "--otp",
+        "--scope",
         "--json"
       ],
       "examples": [
@@ -444,6 +594,7 @@
           "options": [
             "--email",
             "--otp",
+            "--scope",
             "--json"
           ],
           "examples": [
@@ -495,6 +646,7 @@
           "description": "Update account display name",
           "options": [
             "--display-name",
+            "--clear-display-name",
             "--json"
           ],
           "auth": "required",
@@ -520,10 +672,12 @@
       "name": "doctor",
       "description": "Report CLI diagnostics",
       "options": [
-        "--json"
+        "--json",
+        "--online"
       ],
       "examples": [
-        "dropthis doctor --json"
+        "dropthis doctor --json",
+        "dropthis doctor --online --json"
       ]
     },
     {

@@ -379,8 +379,12 @@ await dropthis.apiKeys.create({
 `workspace_choice_required` 409 in the common case. That error carries `choices[]` — call
 `workspaces.use(choices[n].slug)` to resolve it.
 
-**Console is for team/member CRUD** (create workspace, invite/remove members). The SDK handles
-publishing and active-workspace switching.
+**Team CRUD works from the SDK too** (ADR 0068) — gated by the credential's scopes. A `team`-scoped
+key (`apiKeys.create({ scopes: ["team"] })`) covers `client.workspaces.create|rename`,
+`client.members.list|invite`, and `client.invitations.list|accept|acceptById`. The admin ops —
+`client.workspaces.delete`, `client.members.updateRole` (any role change) and `client.members.remove`
+(others) — need `scopes: ["team-admin"]` (workspaces:admin / members:admin). A default publish-only
+key can do none (403 `insufficient_scope`).
 
 See [../../references/workspaces.md](../../references/workspaces.md) for the full runbook.
 
