@@ -564,11 +564,8 @@
     },
     {
       "name": "login",
-      "description": "Authenticate with email OTP",
+      "description": "Authenticate with email OTP (interactive)",
       "options": [
-        "--email",
-        "--otp",
-        "--scope",
         "--json"
       ],
       "examples": [

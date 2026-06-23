@@ -348,10 +348,12 @@ Every drop response echoes its owning workspace `{id, name, slug, kind}`.
 
 **Team publishing:** once `workspace use` targets a team workspace, plain `dropthis publish`
 lands under the team's shared custom domain automatically. **Team CRUD works from the CLI too**
-(ADR 0068) — gated by the credential's scopes, not the surface. `dropthis login --scope team`
-(workspaces:write + members:write) covers `workspace create|rename`, `members list|invite`, and
-`invitations accept`. The admin/destructive ops — `workspace delete`, every `members role` change,
-and removing other members — need `dropthis login --scope team-admin` (workspaces:admin + members:admin).
+(ADR 0068) — gated by the credential's scopes, not the surface. Get a team-scoped key by adding
+`--scope` to the OTP **verify** step: `dropthis login request --email you@example.com` then
+`dropthis login verify --email you@example.com --otp <code> --scope team` (workspaces:write +
+members:write) — this covers `workspace create|rename`, `members list|invite`, and `invitations
+accept`. The admin/destructive ops — `workspace delete`, every `members role` change, and removing
+other members — need `--scope team-admin` on that verify step (workspaces:admin + members:admin).
 A default publish-only login can do none of them (403 `insufficient_scope`).
 
 See [../../references/workspaces.md](../../references/workspaces.md) for the full runbook.

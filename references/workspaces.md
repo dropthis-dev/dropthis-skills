@@ -192,8 +192,9 @@ grant is **publish-only** — it can create drops and switch workspaces but cann
 teams (`403 insufficient_scope`). To run a team from an agent, get a **team-scoped credential**:
 
 ```bash
-# CLI — mint a team-capable login key
-dropthis login --scope team          # interactive
+# CLI — mint a team-capable login key (the scope rides on the non-interactive verify step)
+dropthis login request --email you@example.com
+dropthis login verify --email you@example.com --otp <code> --scope team
 dropthis whoami                      # shows: Scopes: …, workspaces:write, members:write
 ```
 
@@ -277,5 +278,5 @@ in the shared team workspace.
 | 404 | `workspace_not_found` | The slug or id does not match any accessible workspace | Use `dropthis_workspaces` / `workspace list` / `workspaces.list()` to see valid slugs |
 | 409 | `workspace_choice_required` | Publish couldn't resolve a workspace automatically | Body carries `choices[]` — call `dropthis_use_workspace` / `workspace use` / `workspaces.use()` with one of the slugs |
 | 409 | `workspace_mismatch` | The resource belongs to a different workspace than the key targets | Target the correct workspace with `workspaces.use()` or a per-call `workspace` option |
-| 403 | `insufficient_scope` | The credential lacks the scope for a team operation (e.g. a publish-only key tried to create/invite) | Re-authenticate with a team-scoped credential: `dropthis login --scope team` / `apiKeys.create({ scopes: ["team"] })` |
+| 403 | `insufficient_scope` | The credential lacks the scope for a team operation (e.g. a publish-only key tried to create/invite) | Re-authenticate with a team-scoped credential: `dropthis login request --email <you>` then `dropthis login verify --email <you> --otp <code> --scope team`, or `apiKeys.create({ scopes: ["team"] })` |
 | 409 | `seat_limit_reached` | The team workspace has reached its member seat limit | Upgrade the workspace plan, or remove unused members (`dropthis members remove` / `dropthis_remove_member`) |

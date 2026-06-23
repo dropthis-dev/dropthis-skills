@@ -25,27 +25,24 @@ Authenticate with email OTP. In interactive mode (TTY), prompts for email and co
 # Interactive (TTY)
 dropthis login
 
-# Non-interactive (two-step)
-dropthis login --email <email> --otp <code>
-
+# Non-interactive (two-step) — the only non-interactive flow; the top-level `login`
+# takes no --email/--otp (those live on the request/verify subcommands).
 # Step 1: Request OTP
 dropthis login request --email <email>
 
-# Step 2: Verify OTP
+# Step 2: Verify OTP (add --scope team[-admin] here for a team-scoped key)
 dropthis login verify --email <email> --otp <code>
 ```
 
 ### Flags
 
-#### login (top-level)
+#### login (top-level — interactive only)
 
 | Flag | Required | Description |
 |------|----------|-------------|
-| `--email` `<email>` | No* | Email address (required for non-interactive) |
-| `--otp` `<otp>` | No* | One-time passcode (required for non-interactive) |
 | `--json` | No | Force JSON output |
 
-*When both `--email` and `--otp` are provided, login runs non-interactively (equivalent to `login verify`).
+The top-level `login` is interactive (prompts for email + code). It takes **no** `--email`/`--otp`/`--scope` — those live on the `request`/`verify` subcommands (a shared value-option on both the parent and a subcommand was bound to the parent; dropthis-cli#179). For non-interactive or scoped login, use `login request` + `login verify`.
 
 #### login request
 
@@ -60,6 +57,7 @@ dropthis login verify --email <email> --otp <code>
 |------|----------|-------------|
 | `--email` `<email>` | Yes | Email address |
 | `--otp` `<otp>` | Yes | One-time passcode from email |
+| `--scope` `<scope>` | No | Capability bundle to request for the minted key (`team` / `team-admin`); omit for the default publish key (ADR 0068) |
 | `--json` | No | Force JSON output |
 
 ### Output
@@ -85,11 +83,8 @@ dropthis login
 # Non-interactive login (agents) -- step 1
 dropthis login request --email user@example.com
 
-# Non-interactive login (agents) -- step 2
+# Non-interactive login (agents) -- step 2 (add --scope team for a team key)
 dropthis login verify --email user@example.com --otp 123456
-
-# One-shot non-interactive login
-dropthis login --email user@example.com --otp 123456
 ```
 
 ---
