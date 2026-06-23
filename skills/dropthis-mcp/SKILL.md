@@ -212,8 +212,14 @@ owning workspace `{id, name, slug, kind}`.
 custom domain automatically — no extra flag. The workspace default domain is set by the team
 admin in the console.
 
-**Console is for team/member CRUD** (create workspace, invite/remove members). Agent surfaces
-handle publishing + active-workspace switching only.
+**Team CRUD works from MCP too** (ADR 0068) — gated by the credential's scopes, not the surface.
+A `team`-scoped connection covers `dropthis_create_workspace` / `dropthis_rename_workspace`,
+`dropthis_members` / `dropthis_invite_member`, and `dropthis_invitations` / `dropthis_accept_invitation`
+(the teammate's join path). The admin/destructive tools — `dropthis_delete_workspace`,
+`dropthis_remove_member`, and `dropthis_update_member_role` (any role change) — need a `team-admin`
+scope (workspaces:admin / members:admin). A default publish-only connection can do none (403
+`insufficient_scope`); mutating tools also need a write-enabled connection, and ownership transfer /
+deletes confirm-gate (`confirm: true`). See references/../workspaces.md.
 
 See [../../references/workspaces.md](../../references/workspaces.md) for the full runbook.
 

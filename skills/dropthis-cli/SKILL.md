@@ -347,8 +347,12 @@ dropthis api-keys create --service --workspace prod-team --label "CI deploy"
 Every drop response echoes its owning workspace `{id, name, slug, kind}`.
 
 **Team publishing:** once `workspace use` targets a team workspace, plain `dropthis publish`
-lands under the team's shared custom domain automatically. The console is for team/member CRUD
-(create workspace, invite/remove members) — agent surfaces handle publishing + switching only.
+lands under the team's shared custom domain automatically. **Team CRUD works from the CLI too**
+(ADR 0068) — gated by the credential's scopes, not the surface. `dropthis login --scope team`
+(workspaces:write + members:write) covers `workspace create|rename`, `members list|invite`, and
+`invitations accept`. The admin/destructive ops — `workspace delete`, every `members role` change,
+and removing other members — need `dropthis login --scope team-admin` (workspaces:admin + members:admin).
+A default publish-only login can do none of them (403 `insufficient_scope`).
 
 See [../../references/workspaces.md](../../references/workspaces.md) for the full runbook.
 

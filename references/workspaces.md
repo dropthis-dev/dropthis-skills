@@ -128,7 +128,7 @@ dropthis api-keys create --service --workspace prod-team --label "CI deploy"
 ```typescript
 // List workspaces; isActive marks the current one
 const { data } = await dropthis.workspaces.list();
-for (const ws of data.data) console.log(ws.slug, ws.kind, ws.isActive);
+for (const ws of data.workspaces) console.log(ws.slug, ws.kind, ws.isActive);
 
 // Switch active workspace server-side (persists on the credential)
 await dropthis.workspaces.use("byrokko");   // slug or id
@@ -185,19 +185,85 @@ allowedWorkspaces excludes all default candidates). When it does fire, its body 
 
 ---
 
-## What you cannot do from agent surfaces (console-only)
+## Managing a team from an agent (ADR 0068 — capability scopes)
 
-Agent surfaces (SDK / CLI / MCP) handle publishing and active-workspace switching. The following
-require a console browser session:
+Capability follows the **credential's scopes**, not the surface. A plain `dropthis login` / OAuth
+grant is **publish-only** — it can create drops and switch workspaces but cannot create or manage
+teams (`403 insufficient_scope`). To run a team from an agent, get a **team-scoped credential**:
 
-| Action | Why unavailable on agent surfaces | Where to do it |
-|--------|-----------------------------------|----------------|
-| Create a workspace | `POST /v1/workspaces` → 403 `console_session_required` | app.dropthis.app |
-| Invite or remove members | `POST /v1/workspaces/{id}/members` → 403 | app.dropthis.app |
-| List all workspaces (admin view) | `GET /v1/workspaces` → 403 | app.dropthis.app |
+```bash
+# CLI — mint a team-capable login key
+dropthis login --scope team          # interactive
+dropthis whoami                      # shows: Scopes: …, workspaces:write, members:write
+```
 
-To publish into a workspace the key does not have access to, get a delegated key that includes
-it in its `allowedWorkspaces`, or switch to it via `workspaces.use()` / `workspace use` / `dropthis_use_workspace`.
+```typescript
+// SDK — downscope-only: granted = requested ∩ your own scopes
+const { data } = await client.apiKeys.create({ label: "team agent", scopes: ["team"] });
+```
+
+A session (`team`) bundles `workspaces:write` + `members:write`; destructive ops (delete workspace,
+remove member, **transfer ownership**) need the `team-admin` bundle. `account:delete`,
+`credentials:admin`, and `domains:admin` are never bundled.
+
+### Create + manage a workspace
+
+```bash
+# CLI — create returns the ws_… id; rename/delete/members take that id (NOT the slug)
+dropthis workspace create "Acme" --slug acme           # → { "id": "ws_team123", "slug": "acme", … }
+dropthis members invite ws_team123 --email teammate@acme.com --role member
+dropthis members list ws_team123
+dropthis members role ws_team123 acc_123 --role admin   # role changes need team-admin (members:admin)
+dropthis members remove ws_team123 acc_123 --yes        # removing others needs team-admin
+dropthis workspace rename ws_team123 --name "Acme Inc"
+dropthis workspace delete ws_team123 --yes              # delete needs team-admin (workspaces:admin)
+```
+
+```
+# MCP
+dropthis_create_workspace { "name": "Acme", "slug": "acme" }
+dropthis_invite_member { "workspace": "ws_…", "email": "teammate@acme.com", "role": "member" }
+dropthis_members { "workspace": "ws_…" }
+dropthis_update_member_role { "workspace": "ws_…", "account_id": "acc_123", "role": "owner", "confirm": true }
+dropthis_remove_member { "workspace": "ws_…", "account_id": "acc_123", "confirm": true }
+dropthis_delete_workspace { "workspace": "ws_…", "confirm": true }
+```
+
+```typescript
+// SDK
+await client.workspaces.create({ name: "Acme", slug: "acme" });
+await client.members.invite("ws_…", { email: "teammate@acme.com", role: "member" });
+await client.members.list("ws_…");
+await client.members.updateRole("ws_…", "acc_123", { role: "admin" });
+await client.workspaces.delete("ws_…");
+```
+
+### Accept an invite (the teammate's join path)
+
+The invited teammate, authenticated as their own account (their email), accepts and is switched
+into the workspace — no raw token needed when they go by id:
+
+```bash
+# CLI
+dropthis invitations                              # list your pending invites
+dropthis invitations accept --token <raw-token>   # by the email's token
+dropthis invitations accept-by-id inv_123         # by id (already authenticated as the invited email)
+```
+
+```
+# MCP
+dropthis_invitations
+dropthis_accept_invitation { "invitation_id": "inv_123" }   # or { "token": "…" }
+```
+
+```typescript
+// SDK
+await client.invitations.list();
+await client.invitations.acceptById({ invitationId: "inv_123" });   // or .accept({ token })
+```
+
+Acceptance reuses the OTP login proof and switches the active workspace, so the next publish lands
+in the shared team workspace.
 
 ---
 
@@ -211,4 +277,5 @@ it in its `allowedWorkspaces`, or switch to it via `workspaces.use()` / `workspa
 | 404 | `workspace_not_found` | The slug or id does not match any accessible workspace | Use `dropthis_workspaces` / `workspace list` / `workspaces.list()` to see valid slugs |
 | 409 | `workspace_choice_required` | Publish couldn't resolve a workspace automatically | Body carries `choices[]` — call `dropthis_use_workspace` / `workspace use` / `workspaces.use()` with one of the slugs |
 | 409 | `workspace_mismatch` | The resource belongs to a different workspace than the key targets | Target the correct workspace with `workspaces.use()` or a per-call `workspace` option |
-| 409 | `seat_limit_reached` | The team workspace has reached its member seat limit | Upgrade the workspace plan or remove unused members in the console |
+| 403 | `insufficient_scope` | The credential lacks the scope for a team operation (e.g. a publish-only key tried to create/invite) | Re-authenticate with a team-scoped credential: `dropthis login --scope team` / `apiKeys.create({ scopes: ["team"] })` |
+| 409 | `seat_limit_reached` | The team workspace has reached its member seat limit | Upgrade the workspace plan, or remove unused members (`dropthis members remove` / `dropthis_remove_member`) |
