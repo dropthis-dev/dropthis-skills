@@ -55,6 +55,22 @@ console.log(data.url);
 | `unsupported_upload_strategy` | `null` | Server returned a non-`single_put` strategy (the SDK uploads via single PUT only) |
 | `signed_upload_*` | varies | Presigned URL upload (PUT) failed; the suffix is the HTTP status |
 
+## Workspace & capability-scope error codes
+
+For workspace/team operations the server `code` rides on `error.code` (with the matching
+`http_*` status). See [../../references/workspaces.md](../../references/workspaces.md) for the full
+runbook.
+
+| Code | Status | Cause / fix |
+|------|--------|-------------|
+| `insufficient_scope` | `403` | The key lacks the scope for a team op (a publish-only key tried to create/invite). Mint a team-scoped key: `client.apiKeys.create({ scopes: ["team"] })`, or re-login `--scope team` |
+| `seat_limit_reached` | `409` | Team workspace hit its member seat limit; upgrade the workspace plan or `client.members.remove(...)` an unused member |
+| `quota_exceeded` | `413`/`403` | Account storage / seat cap reached; delete unused drops/members or upgrade |
+| `workspace_pinned` | `400` | A service key tried to switch workspace; service keys cannot switch — use a delegated key |
+| `workspace_choice_required` | `409` | Publish couldn't resolve a workspace; body carries `choices[]` — call `client.workspaces.use(slug)` |
+| `workspace_not_found` | `404` | Slug/id doesn't match an accessible workspace; `client.workspaces.list()` for valid slugs |
+| `workspace_mismatch` | `409` | The resource belongs to a different workspace than the key targets; `client.workspaces.use(slug)` or pass `workspace` per call |
+
 ## Optimistic concurrency
 
 Use `ifRevision` to prevent overwriting concurrent changes:

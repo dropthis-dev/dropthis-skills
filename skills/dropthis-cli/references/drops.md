@@ -265,6 +265,10 @@ dropthis update-settings <id|url|slug> [flags]
 | `--noindex` | No | Prevent search-engine indexing |
 | `--index` | No | Allow search-engine indexing (default) |
 | `--expires-at` `<datetime>` | No | Auto-delete after this ISO 8601 date |
+| `--no-expires` | No | Clear the expiry — make the drop permanent (Keep/Pro) |
+| `--domain` `<hostname>` | No | Move the drop onto a connected custom domain |
+| `--shared` | No | Force the shared `dropthiis.com` pool even when the workspace has a default custom domain |
+| `--slug` `<slug>` | No | Rename the drop's vanity slug (path on its current domain) |
 | `--metadata` `<json>` | No | Attach JSON key-value pairs, e.g. '{"source":"ci"}' |
 | `--metadata-file` `<path>` | No | Read metadata JSON from a file |
 | `--idempotency-key` `<key>` | No | Prevent duplicate updates on retry (auto-generated plain UUID) |

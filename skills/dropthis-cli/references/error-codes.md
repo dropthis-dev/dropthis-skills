@@ -76,6 +76,12 @@ These appear in the `error.code` field when the API returns an error:
 | `size_limit_exceeded` | 413 | Drop size exceeds the plan limit (5 MB Free, 100 MB Pro); reduce content size or upgrade |
 | `quota_exceeded` | 413 | Account storage cap reached (500 MB Free, 10 GB Pro); delete unused drops or upgrade |
 | `feature_not_in_plan` | 403 | Password protection is Pro-only; remove `--password` or upgrade (clearing with `--no-password` is always allowed) |
+| `insufficient_scope` | 403 | The credential lacks the scope for a team op (a publish-only login tried to create/invite). Re-authenticate team-scoped: `dropthis login request --email <you>` then `dropthis login verify --email <you> --otp <code> --scope team` (use `--scope team-admin` for delete/role/remove) |
+| `seat_limit_reached` | 409 | The team workspace hit its member seat limit; upgrade the workspace plan or `dropthis members remove` an unused member |
+| `workspace_pinned` | 400 | A service key tried to switch workspace; service keys cannot switch — use a delegated key |
+| `workspace_choice_required` | 409 | Publish couldn't resolve a workspace; body carries `choices[]` — `dropthis workspace use <slug>` |
+| `workspace_not_found` | 404 | Slug/id doesn't match an accessible workspace; `dropthis workspace list` for valid slugs |
+| `workspace_mismatch` | 409 | The resource belongs to a different workspace than the key targets; `dropthis workspace use <slug>` or pass `--workspace` |
 | HTTP 422 | 422 | Fix the input shown in the error detail and retry |
 | HTTP 5xx | 5xx | Retry the request with the same idempotency key, or contact support with the request id |
 

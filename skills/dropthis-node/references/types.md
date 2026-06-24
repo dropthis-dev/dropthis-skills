@@ -276,6 +276,9 @@ type ApiKeyCreatedResponse = ApiKeyResponse & {
 
 ### AccountResponse
 
+The key's scopes are NOT here — they live on the API-key response (`ApiKeyResponse.scopes`),
+not the account.
+
 ```typescript
 type AccountResponse = {
   id: string;
@@ -284,22 +287,60 @@ type AccountResponse = {
   plan: string;
   status: string;
   createdAt: string;
-  limits: AccountLimits;
+  entitlements: Entitlements; // capability matrix + numeric limits for the active plan
+  usage: AccountUsage;
+  workspace: AccountWorkspace;
+  upgradeUrl: string | null; // URL to upgrade; null on the top tier
 };
 ```
 
-### AccountLimits
+### Entitlements
 
-The active plan-tier limits — use them to size a publish before uploading.
-`defaultTtlSeconds: null` means drops are permanent; `maxCustomHostnames` is 0 on Free, 1 on Pro.
+The full capability matrix for the active plan — one read to pre-check a feature gate before
+attempting an operation. Enum caps (`ogPreview`, `analytics`) carry a value, so compare by value,
+never truthiness (`"none"` is truthy).
 
 ```typescript
-type AccountLimits = {
-  name: string;
+type Entitlements = {
+  capabilities: Record<string, boolean | string>; // per-capability state
+  requiredPlan: Record<string, string>;           // lowest plan that unlocks each gated capability
+  limits: EntitlementLimits;
+};
+
+type EntitlementLimits = {
   maxSizeBytes: number;
-  defaultTtlSeconds: number | null;
-  maxStorageBytes: number;
-  maxCustomHostnames: number;
+  maxStorageBytes: number | null;        // null = no account-level cap
+  defaultTtlSeconds: number | null;      // null = drops are permanent
+  maxCustomHostnames: number;            // 0 on Free, 1 on Pro
+  seatLimit: number;                     // max members the workspace may hold (owner included)
+  maxActiveUploadSessions: number;
+};
+```
+
+### AccountUsage
+
+Current resource usage for the account's active workspace.
+
+```typescript
+type AccountUsage = {
+  storageUsedBytes: number;   // total bytes across all active drops
+  customDomainsUsed: number;
+  seatsUsed: number;          // members currently in the workspace (owner included)
+};
+```
+
+### AccountWorkspace
+
+The workspace a principal acts within (ADR 0066). For an `sk_` API key, the workspace the key is
+bound to.
+
+```typescript
+type AccountWorkspace = {
+  id: string;
+  name: string;
+  slug: string;
+  kind: string;   // "personal" or "team"
+  role: string;   // "owner" | "admin" | "member"
 };
 ```
 
@@ -397,13 +438,18 @@ There is no `CompleteUploadSessionRequest` type — `uploads.complete(uploadId, 
 type DropOptions = {
   title?: string;
   visibility?: "public" | "unlisted";
-  password?: string | null;
-  noindex?: boolean | null;
-  expiresAt?: string | Date | null;
+  password?: string | null;        // null clears the password
+  noindex?: boolean | null;        // null allows indexing (default)
+  expiresAt?: string | Date | null; // null clears expiry → permanent
   entry?: string;
   metadata?: Record<string, unknown>;
+  domain?: string | null;          // custom-domain hostname to mount on, or "shared" (SHARED_POOL) to force the shared pool
+  slug?: string | null;            // vanity slug — only valid on a path-mode custom domain
 };
 ```
+
+`updateSettings(id, patch)` takes `DropOptions & RequestControls`, so the same `domain` / `slug` /
+`expiresAt: null` fields move a drop between domains, rename its slug, or clear its expiry.
 
 ### PrepareOptions
 

@@ -6,7 +6,10 @@ description: >
   with the official dropthis SDK (`@dropthis/node`), even if they don't say "drop". Also use to
   update, edit, rename, password-protect, list, or delete published drops via
   `client.drops.publish`, `client.drops.updateContent`, `client.drops.updateSettings`,
-  `client.drops.get/list/delete`, `client.deployments.*`, and `client.account.*`.
+  `client.drops.get/list/delete`, `client.deployments.*`, and `client.account.*`. Also use to
+  create a team/workspace, invite a teammate, change a member's role, or accept an invite via
+  `client.workspaces.*`, `client.members.*`, and `client.invitations.*` (team ops need a
+  team-scoped key — `apiKeys.create({ scopes: ["team"] })`).
 license: MIT
 metadata:
   author: dropthis

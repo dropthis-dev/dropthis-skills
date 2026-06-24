@@ -7,7 +7,10 @@ description: >
   password-protect, list, or delete published drops. Tools: `dropthis_publish`,
   `dropthis_update_content`, `dropthis_update_settings`, `dropthis_get`, `dropthis_resolve`,
   `dropthis_list`, `dropthis_list_deployments`, `dropthis_delete`, `dropthis_account` — in
-  Claude Code, Claude Desktop, Cursor, Windsurf, ChatGPT, or n8n. Also use when configuring the
+  Claude Code, Claude Desktop, Cursor, Windsurf, ChatGPT, or n8n. Also use to create a
+  team/workspace, invite a teammate, change a member's role, or accept an invite via
+  `dropthis_create_workspace`, `dropthis_workspaces`, `dropthis_members`, `dropthis_invite_member`,
+  and `dropthis_invitations` (team ops need a team-scoped connection). Also use when configuring the
   dropthis MCP server (local stdio or the hosted remote connector).
 license: MIT
 metadata:

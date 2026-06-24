@@ -103,10 +103,14 @@ Create a new API key. The full key is only returned once in the response.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `input.label` | `string` | Yes | Human-readable label for the key |
+| `input.type` | `KeyType` | No | `"delegated"` (default, switchable active workspace) or `"service"` (pinned to one workspace, CI) |
+| `input.workspace` | `string` | No | Pin a `service` key to this workspace slug or id (required for `service`) |
+| `input.allowedWorkspaces` | `string[]` | No | Restrict a `delegated` key to these workspace slugs or ids |
+| `input.scopes` | `string[]` | No | Capability scopes (ADR 0068). Bundle names (`publish`, `team`, `team-admin`, `service`) or fine-grained scopes (`members:admin`). Downscope-only: granted = requested ∩ your own scopes. Omit for the default `publish` bundle; pass `["team"]` to mint a credential that can create + manage teams |
 
 **Returns:** `DropthisResult<ApiKeyCreatedResponse>`
 
-`ApiKeyCreatedResponse` extends `ApiKeyResponse` with: `{ key: string; accountId?: string | null; isNewAccount?: boolean }`
+`ApiKeyCreatedResponse` extends `ApiKeyResponse` with: `{ key: string; accountId?: string | null; isNewAccount?: boolean }`. `ApiKeyResponse.scopes` carries the scopes actually granted to this key.
 
 **Example:**
 
@@ -116,6 +120,12 @@ if (!error) {
   console.log("New key:", data.key); // Only shown once!
   console.log("Key ID:", data.id);
 }
+
+// Mint a team-capable credential (downscoped to your own scopes)
+await dropthis.apiKeys.create({ label: "team agent", scopes: ["team"] });
+
+// Pin a service key to one workspace for CI
+await dropthis.apiKeys.create({ label: "CI deploy", type: "service", workspace: "prod-team" });
 ```
 
 ### delete(keyId)
@@ -146,15 +156,19 @@ Get the current account details, including the active plan-tier limits.
 
 **Returns:** `DropthisResult<AccountResponse>`
 
-`AccountResponse`: `{ id: string; email: string; displayName: string | null; plan: string; status: string; createdAt: string; limits: AccountLimits; workspace: AccountWorkspace }`
+`AccountResponse`: `{ id: string; email: string; displayName: string | null; plan: string; status: string; createdAt: string; entitlements: Entitlements; usage: AccountUsage; workspace: AccountWorkspace; upgradeUrl: string | null }`
 
-The account acts within a workspace; `workspace` identifies the workspace this key is bound to.
+The account acts within a workspace; `workspace` identifies the workspace this key is bound to. The
+key's scopes are on the API-key response (`ApiKeyResponse.scopes`), NOT on the account.
 
-`AccountLimits` (use these to size a publish before uploading):
-`{ name: string; maxSizeBytes: number; defaultTtlSeconds: number | null; maxStorageBytes: number; maxCustomHostnames: number }`
-— `maxSizeBytes` is the per-drop size cap; `defaultTtlSeconds` is the drop lifetime before
-expiry (`null` = drops are permanent); `maxStorageBytes` is the account-wide storage cap;
-`maxCustomHostnames` is the custom hostname cap (0 on Free, 1 on Pro). Free example: `{ name: "free", maxSizeBytes: 5242880, defaultTtlSeconds: 2592000, maxStorageBytes: 524288000, maxCustomHostnames: 0 }`.
+`entitlements` carries the active plan's capability matrix + numeric limits (use the limits to size
+a publish before uploading): `entitlements.limits` = `{ maxSizeBytes; maxStorageBytes: number | null;
+defaultTtlSeconds: number | null; maxCustomHostnames; seatLimit; maxActiveUploadSessions }`
+— `maxSizeBytes` is the per-drop size cap; `defaultTtlSeconds` is the drop lifetime before expiry
+(`null` = permanent); `maxStorageBytes` is the workspace storage cap (`null` = no cap);
+`maxCustomHostnames` is the custom hostname cap (0 on Free, 1 on Pro); `seatLimit` is the team member
+cap. `usage` = `{ storageUsedBytes; customDomainsUsed; seatsUsed }`. See
+[types.md](references/types.md) for the full shape.
 
 `AccountWorkspace`: `{ id: string; name: string; slug: string; kind: string; role: string }`
 — `kind` is `"personal"` for a solo workspace or `"team"` when shared with other members; `role` is your role in it (`"owner"`, `"admin"`, or `"member"`). A key minted in a team workspace publishes to the team's shared custom domain automatically.
