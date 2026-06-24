@@ -64,8 +64,7 @@ runbook.
 | Code | Status | Cause / fix |
 |------|--------|-------------|
 | `insufficient_scope` | `403` | The key lacks the scope for a team op (a publish-only key tried to create/invite). Mint a team-scoped key: `client.apiKeys.create({ scopes: ["team"] })`, or re-login `--scope team` |
-| `seat_limit_reached` | `409` | Team workspace hit its member seat limit; upgrade the workspace plan or `client.members.remove(...)` an unused member |
-| `quota_exceeded` | `413`/`403` | Account storage / seat cap reached; delete unused drops/members or upgrade |
+| `quota_exceeded` | `413`/`403` | Account storage cap (`413`) or team seat cap (`403`) reached; delete unused drops, `client.members.remove(...)` a member, or upgrade |
 | `workspace_pinned` | `400` | A service key tried to switch workspace; service keys cannot switch — use a delegated key |
 | `workspace_choice_required` | `409` | Publish couldn't resolve a workspace; body carries `choices[]` — call `client.workspaces.use(slug)` |
 | `workspace_not_found` | `404` | Slug/id doesn't match an accessible workspace; `client.workspaces.list()` for valid slugs |

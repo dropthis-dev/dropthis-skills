@@ -214,8 +214,8 @@ workspace switching surface these in-band `code`s. See the full runbook in
   connection tried to create/invite). Re-authenticate with a team-scoped credential (the hosted
   connector grants `team` on consent; a local key is minted `--scope team`). A plain publish-only
   connection can run none of the team tools.
-- `seat_limit_reached` (409) / `quota_exceeded` — the team workspace hit its member seat cap;
-  upgrade the workspace plan or `dropthis_remove_member` an unused member.
+- `quota_exceeded` (403) — the team workspace hit its member seat cap (seats are a quota; the
+  storage quota is `413`); upgrade the workspace plan or `dropthis_remove_member` an unused member.
 - `workspace_pinned` (400) — a service key tried `dropthis_use_workspace`; service keys can't switch.
 - `workspace_choice_required` (409) — publish couldn't resolve a workspace; the body carries
   `choices[]` — call `dropthis_use_workspace` with one of the slugs.
