@@ -6,7 +6,10 @@ description: >
   from the terminal with the `dropthis` CLI, even if they don't say "drop". Also use to
   update, edit, rename, password-protect, list, or delete published drops via
   `dropthis publish`, `dropthis update-content`, `dropthis update-settings`, `dropthis get`,
-  `dropthis resolve`, `dropthis list`, and `dropthis delete`. Load this before running `dropthis`
+  `dropthis resolve`, `dropthis list`, and `dropthis delete`. Also use to create a team/workspace,
+  invite a teammate, change a member's role, or accept an invite via `dropthis workspace`,
+  `dropthis members`, and `dropthis invitations` (team ops need a team-scoped login —
+  `dropthis login verify … --scope team`). Load this before running `dropthis`
   commands — it covers the non-interactive flag contract and auth resolution order.
 license: MIT
 metadata:

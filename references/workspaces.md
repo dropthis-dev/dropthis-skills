@@ -279,4 +279,4 @@ in the shared team workspace.
 | 409 | `workspace_choice_required` | Publish couldn't resolve a workspace automatically | Body carries `choices[]` — call `dropthis_use_workspace` / `workspace use` / `workspaces.use()` with one of the slugs |
 | 409 | `workspace_mismatch` | The resource belongs to a different workspace than the key targets | Target the correct workspace with `workspaces.use()` or a per-call `workspace` option |
 | 403 | `insufficient_scope` | The credential lacks the scope for a team operation (e.g. a publish-only key tried to create/invite) | Re-authenticate with a team-scoped credential: `dropthis login request --email <you>` then `dropthis login verify --email <you> --otp <code> --scope team`, or `apiKeys.create({ scopes: ["team"] })` |
-| 409 | `seat_limit_reached` | The team workspace has reached its member seat limit | Upgrade the workspace plan, or remove unused members (`dropthis members remove` / `dropthis_remove_member`) |
+| 403 | `quota_exceeded` | The team workspace has reached its member seat limit (seats are a quota) | Upgrade the workspace plan, or remove unused members (`dropthis members remove` / `dropthis_remove_member`) |

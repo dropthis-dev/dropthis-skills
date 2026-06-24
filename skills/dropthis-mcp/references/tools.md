@@ -203,3 +203,23 @@ Four tiers — read the live matrix from `dropthis_account` → `entitlements` (
 A capability the plan lacks returns 403 `feature_not_in_plan` (with `feature`, `current_plan`, `required_plan`, `upgrade_url`, `retryable:false`); numeric ceilings return `quota_exceeded`. e.g. setting a `password` below Pro → `feature_not_in_plan`; clearing an existing password (`password: null`) is always allowed. Billing is parked — plans are granted manually for now.
 
 Plan-limit errors return the server's `suggestion` as an upgrade nudge — relay it.
+
+## Workspace & capability-scope errors
+
+Team tools (`dropthis_create_workspace`, `dropthis_invite_member`, `dropthis_members`, …) and
+workspace switching surface these in-band `code`s. See the full runbook in
+[../../references/workspaces.md](../../references/workspaces.md).
+
+- `insufficient_scope` (403) — the connection lacks the scope for a team op (a publish-only
+  connection tried to create/invite). Re-authenticate with a team-scoped credential (the hosted
+  connector grants `team` on consent; a local key is minted `--scope team`). A plain publish-only
+  connection can run none of the team tools.
+- `quota_exceeded` (403) — the team workspace hit its member seat cap (seats are a quota; the
+  storage quota is `413`); upgrade the workspace plan or `dropthis_remove_member` an unused member.
+- `workspace_pinned` (400) — a service key tried `dropthis_use_workspace`; service keys can't switch.
+- `workspace_choice_required` (409) — publish couldn't resolve a workspace; the body carries
+  `choices[]` — call `dropthis_use_workspace` with one of the slugs.
+- `workspace_not_found` (404) — slug/id doesn't match an accessible workspace; `dropthis_workspaces`
+  lists valid slugs.
+- `workspace_mismatch` (409) — the resource belongs to a different workspace than the connection
+  targets; switch with `dropthis_use_workspace` or pass `workspace` per call.
