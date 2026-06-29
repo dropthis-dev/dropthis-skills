@@ -202,10 +202,12 @@ dropthis_publish { "content": "<html>…</html>" }
 # → lands in byrokko (team's shared custom domain, if configured)
 ```
 
-**Default-to-personal:** a fresh login (delegated key) defaults to the personal workspace — no
-`workspace_choice_required` 409 in the common case. That error only fires for a genuinely
-unresolvable multi-workspace situation (its body carries `choices[]` — call
-`dropthis_use_workspace` with one of the slugs to resolve it).
+**Picking a workspace:** if the connection can reach only one workspace (the common case, including a
+fresh login), a plain `dropthis_publish` lands in your personal workspace with no prompt. If you
+belong to more than one workspace and haven't chosen yet, the first publish returns
+409 `workspace_choice_required` whose body carries `choices[]` — call `dropthis_use_workspace` once
+to pick; the choice persists server-side across reconnects, so later publishes don't ask again.
+Passing `workspace` on `dropthis_publish` skips the prompt for that call.
 
 **Reading the current workspace:** `dropthis_account` always shows the active workspace as a
 `workspace` block (`id`, `name`, `slug`, `kind`, `role`). Every drop response also echoes its
