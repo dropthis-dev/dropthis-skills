@@ -17,8 +17,10 @@ dropthis has two `KeyType` values that behave differently around workspace routi
 Minted by `dropthis login` (interactive) or `apiKeys.create({ type: "delegated" })`. Account-scoped:
 the key has a **server-side switchable active workspace** stored on the `api_keys` row.
 
-- The active workspace starts at the personal workspace (or whichever was active when the key was
-  minted) and can be changed at any time without re-minting.
+- The active workspace is initially unchosen: until it's set, a publish resolves to your personal
+  workspace when that's unambiguous, or returns 409 `workspace_choice_required` when the credential
+  can reach more than one workspace. It can be set or changed at any time without re-minting, and
+  then sticks.
 - An optional `allowedWorkspaces` allowlist restricts which workspaces the key can target.
 - This is the **default** type — use it for interactive login, agent sessions, and any flow that
   may need to switch teams.
@@ -40,8 +42,8 @@ workspace lives on the **account** (`account.active_workspace_id`), so the two s
 context" — switching the workspace in the extension is reflected in the console, and vice versa.
 Delegated keys (CLI / MCP) keep a **per-credential** active workspace, so an agent's context is
 independent of the human's browser. Both feed the **same** resolution precedence (per-call override →
-the credential's active workspace → ask only when genuinely unresolvable), and every drop response
-names its workspace. (ADR 0067.)
+the credential's active workspace → ask when it can't be resolved, e.g. the member can reach more
+than one workspace and hasn't chosen), and every drop response names its workspace. (ADR 0067 r4.)
 
 ---
 
@@ -175,13 +177,20 @@ has a default custom domain.
 
 ---
 
-## Default-to-personal
+## Which workspace a publish lands in (ADR 0067 r4)
 
-A fresh delegated key (including right after `dropthis login`) starts with the personal workspace
-active. A plain `dropthis publish` will land there — there is **no** 409 `workspace_choice_required`
-in the common case. That error only fires for a genuinely unresolvable situation (e.g., the key's
-allowedWorkspaces excludes all default candidates). When it does fire, its body carries `choices[]`
-— pick one and switch.
+Resolution precedence on every publish: a per-call `workspace` override → the credential's
+**chosen** active workspace → otherwise the server decides by eligibility:
+
+- **Single eligible workspace** (the common case, including right after `dropthis login`): resolves
+  silently to that one workspace — your personal workspace for a solo account, or the sole allowed
+  workspace when a key's `allowedWorkspaces` is narrowed to one. A plain `dropthis publish` lands
+  there with **no** 409.
+- **Member of more than one workspace, none chosen yet:** the first publish returns
+  409 `workspace_choice_required`, whose body carries `choices[]`. Pick once with
+  `dropthis_use_workspace` / `dropthis workspace use <slug>` / `workspaces.use(slug)` — the choice
+  persists server-side on the credential, so every later publish lands there without asking again.
+- A per-call `workspace` (or `--workspace`) always wins and never triggers the prompt.
 
 ---
 

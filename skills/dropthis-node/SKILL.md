@@ -378,9 +378,13 @@ await dropthis.apiKeys.create({
 **Reading the current workspace:** `client.account.get()` returns `data.workspace`
 (`id`, `name`, `slug`, `kind`, `role`). Every drop response also echoes its owning workspace.
 
-**Default-to-personal:** a fresh delegated login defaults to the personal workspace — no
-`workspace_choice_required` 409 in the common case. That error carries `choices[]` — call
-`workspaces.use(choices[n].slug)` to resolve it.
+**Picking a workspace:** if the key can reach only one workspace (the common case, including a fresh
+delegated login), a plain `drops.publish(...)` lands in that workspace with no prompt — your personal
+workspace for a solo account, or the sole allowed one if the key is restricted to one. If
+you belong to more than one workspace and haven't chosen yet, the first publish throws
+409 `workspace_choice_required` whose `choices[]` lists the candidates — call
+`workspaces.use(choices[n].slug)` once to pick; the choice persists on the credential, so later
+publishes don't ask again. A per-call `workspace` option (or client-level `workspace`) skips the prompt.
 
 **Team CRUD works from the SDK too** (ADR 0068) — gated by the credential's scopes. A `team`-scoped
 key (`apiKeys.create({ scopes: ["team"] })`) covers `client.workspaces.create|rename`,

@@ -343,9 +343,13 @@ dropthis api-keys create --service --workspace prod-team --label "CI deploy"
 # → mints a sk_ key that always publishes into prod-team; cannot switch
 ```
 
-**Default-to-personal:** a fresh delegated login defaults to the personal workspace — no
-`workspace_choice_required` 409 in the common case. If you do hit that error, its body carries
-`choices[]` — run `dropthis workspace use <slug>` with one of those slugs to resolve it.
+**Picking a workspace:** if you can publish to only one workspace (the common case, including right
+after `dropthis login`), a plain `dropthis publish` lands in that workspace with no prompt — your
+personal workspace for a solo account, or the sole allowed one if your key is restricted to one.
+If you belong to more than one workspace and haven't chosen yet, the first publish returns
+409 `workspace_choice_required` (body carries `choices[]`) — run `dropthis workspace use <slug>` once
+to pick; the choice sticks server-side, so later publishes don't ask again. A per-call `--workspace`
+always skips the prompt.
 
 Every drop response echoes its owning workspace `{id, name, slug, kind}`.
 
