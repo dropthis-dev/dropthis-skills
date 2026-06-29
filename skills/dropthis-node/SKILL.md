@@ -379,7 +379,8 @@ await dropthis.apiKeys.create({
 (`id`, `name`, `slug`, `kind`, `role`). Every drop response also echoes its owning workspace.
 
 **Picking a workspace:** if the key can reach only one workspace (the common case, including a fresh
-delegated login), a plain `drops.publish(...)` lands in your personal workspace with no prompt. If
+delegated login), a plain `drops.publish(...)` lands in that workspace with no prompt — your personal
+workspace for a solo account, or the sole allowed one if the key is restricted to one. If
 you belong to more than one workspace and haven't chosen yet, the first publish throws
 409 `workspace_choice_required` whose `choices[]` lists the candidates — call
 `workspaces.use(choices[n].slug)` once to pick; the choice persists on the credential, so later

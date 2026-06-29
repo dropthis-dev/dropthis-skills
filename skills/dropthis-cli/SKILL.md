@@ -344,7 +344,8 @@ dropthis api-keys create --service --workspace prod-team --label "CI deploy"
 ```
 
 **Picking a workspace:** if you can publish to only one workspace (the common case, including right
-after `dropthis login`), a plain `dropthis publish` lands in your personal workspace with no prompt.
+after `dropthis login`), a plain `dropthis publish` lands in that workspace with no prompt — your
+personal workspace for a solo account, or the sole allowed one if your key is restricted to one.
 If you belong to more than one workspace and haven't chosen yet, the first publish returns
 409 `workspace_choice_required` (body carries `choices[]`) — run `dropthis workspace use <slug>` once
 to pick; the choice sticks server-side, so later publishes don't ask again. A per-call `--workspace`

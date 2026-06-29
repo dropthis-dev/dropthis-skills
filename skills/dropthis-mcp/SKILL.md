@@ -203,7 +203,8 @@ dropthis_publish { "content": "<html>…</html>" }
 ```
 
 **Picking a workspace:** if the connection can reach only one workspace (the common case, including a
-fresh login), a plain `dropthis_publish` lands in your personal workspace with no prompt. If you
+fresh login), a plain `dropthis_publish` lands in that workspace with no prompt — your personal
+workspace for a solo account, or the sole allowed one if the connection is restricted to one. If you
 belong to more than one workspace and haven't chosen yet, the first publish returns
 409 `workspace_choice_required` whose body carries `choices[]` — call `dropthis_use_workspace` once
 to pick; the choice persists server-side across reconnects, so later publishes don't ask again.

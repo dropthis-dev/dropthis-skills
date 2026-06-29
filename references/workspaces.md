@@ -182,9 +182,10 @@ has a default custom domain.
 Resolution precedence on every publish: a per-call `workspace` override → the credential's
 **chosen** active workspace → otherwise the server decides by eligibility:
 
-- **Solo / single eligible workspace** (the common case, including right after `dropthis login`):
-  resolves silently to your personal workspace. A plain `dropthis publish` lands there with **no**
-  409.
+- **Single eligible workspace** (the common case, including right after `dropthis login`): resolves
+  silently to that one workspace — your personal workspace for a solo account, or the sole allowed
+  workspace when a key's `allowedWorkspaces` is narrowed to one. A plain `dropthis publish` lands
+  there with **no** 409.
 - **Member of more than one workspace, none chosen yet:** the first publish returns
   409 `workspace_choice_required`, whose body carries `choices[]`. Pick once with
   `dropthis_use_workspace` / `dropthis workspace use <slug>` / `workspaces.use(slug)` — the choice
